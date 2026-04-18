@@ -1,56 +1,36 @@
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
-import './App.css'
-import Home from './pages/Home'
-import Community from './pages/Community'
-import Profile from './pages/Profile'
-import Messages from './pages/Messages'
-import Settings from './pages/Settings'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { useAuthStore } from './hooks/useAuth'
+import DashboardLayout from './components/DashboardLayout'
+import LoginPage from './pages/LoginPage'
+import Dashboard from './pages/Dashboard'
+import Recicladores from './pages/Recicladores'
+import Pesajes from './pages/Pesajes'
+import Reportes from './pages/Reportes'
+import Configuracion from './pages/Configuracion'
 import NotFound from './pages/NotFound'
 
-function App() {
+export default function App() {
+  const { token } = useAuthStore()
+
   return (
     <Router>
-      <div className="app-container">
-        <nav className="navbar">
-          <div className="navbar-brand">
-            <h1>Somos R</h1>
-          </div>
-          <ul className="navbar-links">
-            <li>
-              <Link to="/">Inicio</Link>
-            </li>
-            <li>
-              <Link to="/community">Comunidad</Link>
-            </li>
-            <li>
-              <Link to="/messages">Mensajes</Link>
-            </li>
-            <li>
-              <Link to="/profile">Perfil</Link>
-            </li>
-            <li>
-              <Link to="/settings">Configuración</Link>
-            </li>
-          </ul>
-        </nav>
+      <Routes>
+        <Route path="/login" element={token ? <Navigate to="/" /> : <LoginPage />} />
 
-        <main className="main-content">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/community" element={<Community />} />
-            <Route path="/messages" element={<Messages />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </main>
+        {token ? (
+          <Route element={<DashboardLayout />}>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/recicladores" element={<Recicladores />} />
+            <Route path="/pesajes" element={<Pesajes />} />
+            <Route path="/reportes" element={<Reportes />} />
+            <Route path="/configuracion" element={<Configuracion />} />
+          </Route>
+        ) : (
+          <Route path="*" element={<Navigate to="/login" />} />
+        )}
 
-        <footer className="footer">
-          <p>&copy; 2024 Somos R. Todos los derechos reservados.</p>
-        </footer>
-      </div>
+        <Route path="*" element={<NotFound />} />
+      </Routes>
     </Router>
   )
 }
-
-export default App

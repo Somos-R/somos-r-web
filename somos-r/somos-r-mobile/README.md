@@ -61,9 +61,23 @@ eas build --platform ios
 # Ejecutar ESLint
 pnpm lint
 
-# Formatear código (próximamente)
+# Formatear código
 pnpm format
 ```
+
+### Configuración
+
+**ESLint** (`eslint.config.js`):
+- ✓ Reglas recomendadas de JavaScript y TypeScript
+- ✓ Verificación de hooks de React
+- ✓ Soporte para Expo y React Native
+
+**Prettier** (`.prettierrc` - compartido):
+- Indentación: 2 espacios
+- Comillas simples
+- Línea máxima: 100 caracteres
+- Punto y coma al final de líneas
+- Auto-formato al guardar (VSCode)
 
 ## Estructura del proyecto
 
@@ -123,6 +137,21 @@ expo prebuild --clean
 rm -rf node_modules .expo
 pnpm install
 ```
+
+## Guía de Estilo
+
+Este proyecto sigue convenciones estrictas. Ver [docs/CODE_STYLE.md](../docs/CODE_STYLE.md).
+
+**Referencia rápida:**
+- Variables/funciones: `camelCase`
+- Componentes: `PascalCase`
+- Constantes: `UPPER_SNAKE_CASE`
+- Commits: `feat(scope): descripción`
+- Branches: `feature/*` o `fix/*`
+
+## Tipos
+
+Interfaces de usuarios y autenticación en [types/auth.types.ts](types/auth.types.ts).
 
 ## Licencia
 
