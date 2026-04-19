@@ -13,23 +13,22 @@ interface FieldErrors {
 }
 
 export default function LoginForm({ onSuccess }: LoginFormProps) {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [email, setEmail]               = useState('')
+  const [password, setPassword]         = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
-  const { login, isLoading, error } = useAuthStore()
+  const [fieldErrors, setFieldErrors]   = useState<FieldErrors>({})
+  const [infoMsg, setInfoMsg]           = useState<string | null>(null)
+  const { login, isLoading, error }     = useAuthStore()
   const emailRef = useRef<HTMLInputElement>(null)
 
-  useEffect(() => {
-    emailRef.current?.focus()
-  }, [])
+  useEffect(() => { emailRef.current?.focus() }, [])
 
   const validate = (): boolean => {
     const errors: FieldErrors = {}
-    if (!email) errors.email = 'El email es requerido'
-    else if (!/\S+@\S+\.\S+/.test(email)) errors.email = 'Ingresa un email válido'
-    if (!password) errors.password = 'La contraseña es requerida'
-    else if (password.length < 6) errors.password = 'Mínimo 6 caracteres'
+    if (!email)                                errors.email    = 'El email es requerido'
+    else if (!/\S+@\S+\.\S+/.test(email))      errors.email    = 'Ingresa un email válido'
+    if (!password)                             errors.password = 'La contraseña es requerida'
+    else if (password.length < 6)             errors.password = 'Mínimo 6 caracteres'
     setFieldErrors(errors)
     return Object.keys(errors).length === 0
   }
@@ -49,14 +48,35 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
     if (fieldErrors[field]) setFieldErrors((prev) => ({ ...prev, [field]: undefined }))
   }
 
+  const showInfo = (msg: string) => {
+    setInfoMsg(msg)
+    setTimeout(() => setInfoMsg(null), 4000)
+  }
+
+  // Detecta si el error es de credenciales (401) para mensaje más específico
+  const getErrorMessage = () => {
+    if (!error) return null
+    if (error.toLowerCase().includes('401') || error.toLowerCase().includes('credenciales') || error.toLowerCase().includes('login'))
+      return 'Email o contraseña incorrectos. Verifica tus datos e intenta nuevamente.'
+    if (error.toLowerCase().includes('403'))
+      return 'Tu cuenta no tiene permisos para acceder al Portal ECA.'
+    return error
+  }
+
   return (
     <form
       className="bg-white rounded-xl shadow-md p-8 w-full flex flex-col gap-5"
       onSubmit={handleSubmit}
       noValidate
     >
-      <h2 className="text-xl font-semibold text-center text-gray-800">Portal ECA — Somos R</h2>
+      {/* Logo + título */}
+      <div className="flex flex-col items-center gap-2 mb-1">
+        <span className="text-4xl">♻️</span>
+        <h2 className="text-xl font-semibold text-center text-gray-800">Portal ECA — Somos R</h2>
+        <p className="text-xs text-gray-400 text-center">Gestión de estaciones de clasificación</p>
+      </div>
 
+      {/* Campo email */}
       <div className="flex flex-col gap-1.5">
         <label htmlFor="email" className="text-sm font-medium text-gray-700">Email</label>
         <Input
@@ -74,8 +94,18 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
         )}
       </div>
 
+      {/* Campo contraseña */}
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="password" className="text-sm font-medium text-gray-700">Contraseña</label>
+        <div className="flex items-center justify-between">
+          <label htmlFor="password" className="text-sm font-medium text-gray-700">Contraseña</label>
+          <button
+            type="button"
+            className="text-xs text-primary hover:underline"
+            onClick={() => showInfo('Recuperación de contraseña disponible próximamente. Contacta a tu administrador.')}
+          >
+            ¿Olvidaste tu contraseña?
+          </button>
+        </div>
         <div className="relative">
           <Input
             id="password"
@@ -101,19 +131,42 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
         )}
       </div>
 
+      {/* Error de autenticación */}
       {error && (
-        <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-md p-3 text-center">
-          {error}
+        <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-md p-3 flex items-start gap-2">
+          <span className="mt-0.5">⚠️</span>
+          <span>{getErrorMessage()}</span>
         </div>
       )}
 
+      {/* Mensaje informativo (ej: contraseña olvidada) */}
+      {infoMsg && (
+        <div className="text-sm text-blue-700 bg-blue-50 border border-blue-200 rounded-md p-3 flex items-start gap-2">
+          <span className="mt-0.5">ℹ️</span>
+          <span>{infoMsg}</span>
+        </div>
+      )}
+
+      {/* Botón submit */}
       <Button
         type="submit"
         disabled={isLoading || !email || !password}
         className="w-full"
       >
-        {isLoading ? 'Iniciando...' : 'Iniciar sesión'}
+        {isLoading ? 'Iniciando sesión...' : 'Iniciar sesión'}
       </Button>
+
+      {/* Link registro */}
+      <p className="text-center text-xs text-gray-500">
+        ¿No tienes cuenta?{' '}
+        <button
+          type="button"
+          className="text-primary font-medium hover:underline"
+          onClick={() => showInfo('El registro de administradores ECA se realiza a través del equipo Somos R. Escríbenos a soporte@somosr.co')}
+        >
+          Regístrate
+        </button>
+      </p>
     </form>
   )
 }
