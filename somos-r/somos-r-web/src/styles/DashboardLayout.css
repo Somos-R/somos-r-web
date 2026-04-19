@@ -101,6 +101,15 @@
   color: rgba(255, 255, 255, 0.4);
 }
 
+.sidebar-user-role-badge {
+  font-size: 0.7rem;
+  font-weight: 500;
+  padding: 0.1rem 0.5rem;
+  border-radius: 9999px;
+  margin-top: 0.15rem;
+  display: inline-block;
+}
+
 .sidebar-logout {
   background: rgba(255, 255, 255, 0.1);
   color: rgba(255, 255, 255, 0.7);
@@ -129,10 +138,29 @@
 .dashboard-header {
   background: #fff;
   border-bottom: 1px solid #e5e7eb;
-  padding: 1rem 2rem;
+  padding: 0.75rem 2rem;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.header-datetime {
+  display: flex;
+  flex-direction: column;
+}
+
+.header-time {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+  line-height: 1.2;
+}
+
+.header-date {
+  font-size: 0.72rem;
+  color: #9ca3af;
+  text-transform: capitalize;
 }
 
 .header-eca {
