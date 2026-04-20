@@ -95,17 +95,19 @@ pnpm dev
 Servidor en `http://localhost:5173`
 
 **Rutas disponibles:**
-- `/` - Inicio
-- `/community` - Comunidad
-- `/profile` - Perfil
-- `/messages` - Mensajes
-- `/settings` - Configuración
+- `/login` - Autenticación
+- `/dashboard` - Panel principal
+- `/recicladores` - Padrón de recicladores
+- `/pesajes` - Registro de pesajes
+- `/reportes` - Métricas y exportación CSV
+- `/configuracion` - Perfil y contraseña
 
 **Stack:**
 - React 19.2.4
 - Vite 8.0.4
 - React Router 7.14.0
 - Tailwind CSS 3.4.19
+- shadcn/ui, React Query 5, Zustand 5, Axios
 
 ### Mobile
 
@@ -128,29 +130,31 @@ Opciones:
 
 ## Control de Versiones
 
-### Rama principal
-- `main` - Rama principal (versión de producción)
-- `master` - Rama de desarrollo (actual)
+### Branches
+
+```
+main       → producción
+develop    → staging / integración
+feature/*  → nueva funcionalidad (sale de develop)
+fix/*      → corrección de bug (sale de develop)
+```
 
 ### Commits
 
-Seguir convención:
-```
-[tipo]: Descripción breve
+Ver convención completa en [docs/CODE_STYLE.md](docs/CODE_STYLE.md).
 
-Descripción detallada si aplica.
-```
+Formato: `tipo(scope): descripción`
 
-Tipos: `feat`, `fix`, `refactor`, `docs`, `style`, `test`, `chore`
+Tipos: `feat`, `fix`, `refactor`, `docs`, `chore`
 
 ## Próximos Pasos
 
-- **Sprint 3**: Login y autenticación
-- **Sprint 4**: Integración con API backend
-- **Sprint 5**: Modo offline y sincronización
-- **Sprint 6**: Mapas e integración geolocalización
+- **Sprint 4**: Integración con API backend (CORS + endpoints pendientes)
+- **Sprint 5**: Módulo móvil — Registro de Reciclador y Ciudadano
+- **Sprint 6**: Modo offline y sincronización
+- **Sprint 7**: Mapas e integración geolocalización
 
 ---
 
-**Última actualización:** 2026-04-12  
-**Sprint:** 2 - Inicialización del proyecto
+**Última actualización:** 2026-04-19
+**Sprint:** 3 - Portal ECA
