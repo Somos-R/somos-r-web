@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Reciclador } from './RecicladoresTable'
+import type { Reciclador } from './RecicladoresTable'
 
 interface ValidacionRecicladorModalProps {
   open: boolean
@@ -50,19 +50,6 @@ export default function ValidacionRecicladorModal({ open, onOpenChange, reciclad
   }, [open, reciclador])
 
   if (!reciclador) return null
-
-  const validate = (): boolean => {
-    const e: FormErrors = {}
-    if (actionType === 'approve') {
-      if (!form.carnet) e.carnet = 'El n° de carnet es obligatorio'
-      if (!form.fechaAfil) e.fechaAfil = 'La fecha de afiliación es obligatoria'
-      if (!form.zona) e.zona = 'Debes seleccionar una zona'
-    } else {
-      if (!form.motivo) e.motivo = 'Debes indicar un motivo de rechazo'
-    }
-    setErrors(e)
-    return Object.keys(e).length === 0
-  }
 
   const handleSubmit = async (e: React.FormEvent, type: 'approve' | 'reject') => {
     e.preventDefault()
