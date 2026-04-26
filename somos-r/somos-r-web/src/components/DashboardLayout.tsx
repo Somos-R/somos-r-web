@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { useAuthStore } from '../hooks/useAuth'
+import { useRoles } from '../hooks/useRoles'
 import {
   Dialog,
   DialogContent,
@@ -12,12 +13,12 @@ import {
 import { Button } from '@/components/ui/button'
 import '../styles/DashboardLayout.css'
 
-const NAV_ITEMS = [
-  { to: '/', label: 'Dashboard', icon: '📊', end: true },
-  { to: '/recicladores', label: 'Recicladores', icon: '♻️', end: false },
-  { to: '/pesajes', label: 'Pesajes', icon: '⚖️', end: false },
-  { to: '/reportes', label: 'Reportes', icon: '📈', end: false },
-  { to: '/configuracion', label: 'Configuración', icon: '⚙️', end: false },
+const ALL_NAV_ITEMS = [
+  { to: '/',             label: 'Dashboard',     icon: '📊', end: true,  requiresECA: true,  requiresAsoc: false },
+  { to: '/recicladores', label: 'Recicladores',  icon: '♻️', end: false, requiresECA: false, requiresAsoc: true  },
+  { to: '/pesajes',      label: 'Pesajes',        icon: '⚖️', end: false, requiresECA: true,  requiresAsoc: false },
+  { to: '/reportes',     label: 'Reportes',       icon: '📈', end: false, requiresECA: true,  requiresAsoc: false },
+  { to: '/configuracion',label: 'Configuración',  icon: '⚙️', end: false, requiresECA: false, requiresAsoc: false },
 ]
 
 // Formato hora local colombiana
@@ -29,16 +30,26 @@ function formatDate(date: Date) {
 }
 
 const ROLE_BADGE: Record<string, { label: string; cls: string }> = {
-  admin:    { label: 'Admin',     cls: 'text-blue-300 bg-blue-900/40' },
-  recycler: { label: 'Reciclador', cls: 'text-green-300 bg-green-900/40' },
-  citizen:  { label: 'Ciudadano', cls: 'text-gray-300 bg-gray-700/40' },
+  operador_eca:      { label: 'Operador ECA',   cls: 'text-blue-300 bg-blue-900/40' },
+  admin_eca:         { label: 'Admin ECA',       cls: 'text-indigo-300 bg-indigo-900/40' },
+  admin_asociacion:  { label: 'Admin Asociación',cls: 'text-green-300 bg-green-900/40' },
+  superadmin:        { label: 'Super Admin',     cls: 'text-yellow-300 bg-yellow-900/40' },
+  recycler:          { label: 'Reciclador',      cls: 'text-green-300 bg-green-900/40' },
+  citizen:           { label: 'Ciudadano',       cls: 'text-gray-300 bg-gray-700/40' },
 }
 
 export default function DashboardLayout() {
   const { user, logout } = useAuthStore()
+  const { canSeePesajes, canSeeRecicladores } = useRoles()
   const [showConfirm, setShowConfirm] = useState(false)
   const [toast, setToast] = useState(false)
   const [now, setNow] = useState(new Date())
+
+  const navItems = ALL_NAV_ITEMS.filter((item) => {
+    if (item.requiresECA && !canSeePesajes) return false
+    if (item.requiresAsoc && !canSeeRecicladores) return false
+    return true
+  })
 
   // Reloj en tiempo real — actualiza cada 30 s
   useEffect(() => {
@@ -54,7 +65,7 @@ export default function DashboardLayout() {
     }, 1200)
   }
 
-  const roleBadge = ROLE_BADGE[user?.role ?? 'admin'] ?? ROLE_BADGE.admin
+  const roleBadge = ROLE_BADGE[user?.role ?? 'operador_eca'] ?? ROLE_BADGE.operador_eca
 
   return (
     <div className="dashboard-wrapper">
@@ -65,7 +76,7 @@ export default function DashboardLayout() {
         </div>
 
         <nav className="sidebar-nav">
-          {NAV_ITEMS.map((item) => (
+          {navItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
@@ -100,7 +111,7 @@ export default function DashboardLayout() {
             <span className="header-date">{formatDate(now)}</span>
           </div>
           <span className="header-eca">
-            {user?.role === 'admin' && 'eca_id' in (user ?? {})
+            {'eca_id' in (user ?? {}) && (user as { eca_id?: string }).eca_id
               ? `ECA: ${(user as { eca_id: string }).eca_id}`
               : 'Portal ECA'}
           </span>

@@ -62,18 +62,34 @@ export const authApi = {
 }
 
 export const recicladoresApi = {
-  /** GET /api/v1/users?user_type=recycler */
-  list: () => apiClient.get('/api/v1/users', { params: { user_type: 'recycler' } }),
+  /** GET /users?user_type_code=recycler */
+  list: () => apiClient.get('/users', { params: { user_type_code: 'recycler' } }),
+
+  /** PATCH /users/{id} — verificar/rechazar reciclador */
+  update: (id: string, data: Record<string, unknown>) => apiClient.patch(`/users/${id}`, data),
 }
 
 export const pesajesApi = {
-  /** GET /api/v1/pesajes */
-  list: () => apiClient.get('/api/v1/pesajes'),
+  /** GET /pesajes — pendiente de implementación por Oscar */
+  list: () => apiClient.get('/pesajes'),
 
-  /** POST /api/v1/pesajes */
-  create: (data: unknown) => apiClient.post('/api/v1/pesajes', data),
+  /** POST /pesajes — pendiente de implementación por Oscar */
+  create: (data: unknown) => apiClient.post('/pesajes', data),
 
-  /** PATCH /api/v1/pesajes/:id/estado */
+  /** PATCH /pesajes/{id}/estado — pendiente de implementación por Oscar */
   updateEstado: (id: string, estado: string) =>
-    apiClient.patch(`/api/v1/pesajes/${id}/estado`, { estado }),
+    apiClient.patch(`/pesajes/${id}/estado`, { estado }),
+}
+
+export const usersApi = {
+  /** GET /users/{id} */
+  get: (id: string) => apiClient.get(`/users/${id}`),
+
+  /** PATCH /users/{id} */
+  update: (id: string, data: Record<string, unknown>) => apiClient.patch(`/users/${id}`, data),
+}
+
+export const catalogsApi = {
+  /** GET /catalogs/document-types */
+  documentTypes: () => apiClient.get('/catalogs/document-types'),
 }

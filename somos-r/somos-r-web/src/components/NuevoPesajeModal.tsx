@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useLayoutEffect } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { MOCK_RECICLADORES } from '../data/mockData'
 
-// ── Precios de referencia por material ──────────
+// eslint-disable-next-line react-refresh/only-export-components
 export const PRECIO_POR_MATERIAL: Record<string, number> = {
   papel:    350,
   plastico: 500,
@@ -66,8 +66,9 @@ export default function NuevoPesajeModal({ open, onOpenChange, onSuccess, defaul
   const [toast, setToast] = useState(false)
 
   // Reset al abrir — aplica preselección si viene desde MatrizMateriales
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (open) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setForm({
         reciclador_id: '',
         material: defaultMaterial ?? '',

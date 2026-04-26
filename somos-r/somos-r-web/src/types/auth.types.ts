@@ -1,5 +1,11 @@
-// Roles disponibles en el sistema
-export type UserRole = 'citizen' | 'recycler' | 'admin'
+// Roles móviles (app ciudadana / app reciclador)
+export type MobileRole = 'citizen' | 'recycler'
+
+// Roles del portal web (ECA / Asociación)
+export type PortalRole = 'operador_eca' | 'admin_eca' | 'admin_asociacion' | 'superadmin'
+
+// Unión completa para compatibilidad con BaseUser
+export type UserRole = MobileRole | PortalRole
 
 // Estado de la cuenta
 export type UserStatus = 'active' | 'inactive' | 'suspended'
@@ -46,17 +52,19 @@ export interface Recycler extends BaseUser {
 }
 
 // -------------------------------------------
-// Administrador ECA — Portal Web
-// Gestiona la estación de clasificación
+// Usuario del Portal Web (ECA / Asociación)
+// Puede tener uno o varios roles simultáneos
 // -------------------------------------------
-export interface EcaAdmin extends BaseUser {
-  role: 'admin'
-  eca_id: string
-  employee_code: string
+export interface PortalUser extends BaseUser {
+  role: PortalRole          // rol principal (para compatibilidad con ROLE_BADGE)
+  roles: PortalRole[]       // todos los roles asignados
+  eca_id?: string           // presente si tiene rol operador_eca o admin_eca
+  asociacion_id?: string    // presente si tiene rol admin_asociacion
+  employee_code?: string
 }
 
 // Tipo unión: cualquier usuario autenticado
-export type AuthUser = Citizen | Recycler | EcaAdmin
+export type AuthUser = Citizen | Recycler | PortalUser
 
 // -------------------------------------------
 // Payloads para requests a la API

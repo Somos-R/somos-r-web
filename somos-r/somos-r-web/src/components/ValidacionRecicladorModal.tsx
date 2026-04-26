@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useLayoutEffect } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -41,8 +41,9 @@ export default function ValidacionRecicladorModal({ open, onOpenChange, reciclad
   const [loading, setLoading] = useState(false)
   const [actionType, setActionType] = useState<'approve' | 'reject'>('approve')
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (open) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setForm({ carnet: '', fechaAfil: todayISO(), zona: '', motivo: '' })
       setErrors({})
       setActionType('approve')
@@ -87,7 +88,7 @@ export default function ValidacionRecicladorModal({ open, onOpenChange, reciclad
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Validar Reciclador ASOBEUM</DialogTitle>
+          <DialogTitle>Validar Reciclador — Asociación</DialogTitle>
           <DialogDescription>
             Validando a <span className="font-semibold text-gray-800">{reciclador.full_name}</span> (ID: {reciclador.id_number})
           </DialogDescription>
@@ -114,7 +115,7 @@ export default function ValidacionRecicladorModal({ open, onOpenChange, reciclad
             <>
               {/* N° Carnet */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium text-gray-700">N° de carnet ASOBEUM</label>
+                <label className="text-sm font-medium text-gray-700">N° de carnet Asociación</label>
                 <Input
                   value={form.carnet}
                   onChange={(e) => setField('carnet', e.target.value)}
@@ -162,7 +163,7 @@ export default function ValidacionRecicladorModal({ open, onOpenChange, reciclad
               <textarea
                 value={form.motivo}
                 onChange={(e) => setField('motivo', e.target.value)}
-                placeholder="Ej: El número de carnet no existe en la base de ASOBEUM..."
+                placeholder="Ej: El número de carnet no existe en la base de la Asociación..."
                 disabled={loading}
                 rows={3}
                 className={`resize-none ${inputBase} ${errors.motivo ? 'border-red-500 focus-visible:ring-red-500' : ''}`}

@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { queryClient } from '../main'
-import type { AuthUser } from '../types/auth.types.ts'
+import type { AuthUser, PortalUser, PortalRole } from '../types/auth.types.ts'
 
 interface AuthStore {
   user: AuthUser | null
@@ -8,7 +8,7 @@ interface AuthStore {
   isAuthenticated: boolean
   isLoading: boolean
   error: string | null
-  login: (email: string, password: string) => Promise<void>
+  login: (email: string, password: string, mockRoles?: string[]) => Promise<void>
   logout: () => void
   setUser: (user: AuthUser | null) => void
 }
@@ -31,18 +31,23 @@ export const useAuthStore = create<AuthStore>((set) => {
     isLoading: false,
     error: null,
 
-    login: async (email: string, _password: string) => {
+    login: async (email: string, _password: string, mockRoles?: string[]) => {
       set({ isLoading: true, error: null })
       try {
-        // Mock — reemplazar con axios POST /auth/login cuando backend tenga CORS + /auth/me
-        const user: AuthUser = {
+        // Mock — simula un usuario con ambos roles para desarrollo local.
+        // Cambiar roles a ['operador_eca'] o ['admin_asociacion'] para probar vistas específicas.
+        // Reemplazar con: const { data } = await authApi.login(email, password)
+        //                 y decodificar JWT o llamar authApi.me() para obtener roles reales.
+        const user: PortalUser = {
           id: '1',
           email,
           full_name: 'Admin ECA',
-          role: 'admin',
+          role: 'admin_eca',
+          roles: (mockRoles ?? ['operador_eca', 'admin_eca', 'admin_asociacion']) as PortalRole[],
           status: 'active',
           created_at: new Date().toISOString(),
           eca_id: 'ECA-001',
+          asociacion_id: 'ASOC-001',
           employee_code: 'EMP-001',
         }
         const token = 'mock_token_' + Date.now()

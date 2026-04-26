@@ -12,12 +12,21 @@ interface FieldErrors {
   password?: string
 }
 
+const DEV_PRESETS = [
+  { label: 'Admin ECA + Asociación (todo)',  roles: ['operador_eca', 'admin_eca', 'admin_asociacion'] },
+  { label: 'Solo Operador ECA',              roles: ['operador_eca'] },
+  { label: 'Solo Admin ECA',                 roles: ['admin_eca'] },
+  { label: 'Solo Admin Asociación',          roles: ['admin_asociacion'] },
+  { label: 'Super Admin',                    roles: ['superadmin'] },
+]
+
 export default function LoginForm({ onSuccess }: LoginFormProps) {
   const [email, setEmail]               = useState('')
   const [password, setPassword]         = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [fieldErrors, setFieldErrors]   = useState<FieldErrors>({})
   const [infoMsg, setInfoMsg]           = useState<string | null>(null)
+  const [devPreset, setDevPreset]       = useState(0)
   const { login, isLoading, error }     = useAuthStore()
   const emailRef = useRef<HTMLInputElement>(null)
 
@@ -37,7 +46,8 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
     e.preventDefault()
     if (!validate()) return
     try {
-      await login(email, password)
+      const mockRoles = import.meta.env.DEV ? DEV_PRESETS[devPreset].roles : undefined
+      await login(email, password, mockRoles)
       onSuccess?.()
     } catch {
       // Error manejado por el store
@@ -72,8 +82,8 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
       {/* Logo + título */}
       <div className="flex flex-col items-center gap-2 mb-1">
         <span className="text-4xl">♻️</span>
-        <h2 className="text-xl font-semibold text-center text-gray-800">Portal ECA — Somos R</h2>
-        <p className="text-xs text-gray-400 text-center">Gestión de estaciones de clasificación</p>
+        <h2 className="text-xl font-semibold text-center text-gray-800">Portal — Somos R</h2>
+        <p className="text-xs text-gray-400 text-center">Acceso para ECAs y Asociaciones</p>
       </div>
 
       {/* Campo email */}
@@ -144,6 +154,22 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
         <div className="text-sm text-blue-700 bg-blue-50 border border-blue-200 rounded-md p-3 flex items-start gap-2">
           <span className="mt-0.5">ℹ️</span>
           <span>{infoMsg}</span>
+        </div>
+      )}
+
+      {/* Selector de rol — solo en desarrollo */}
+      {import.meta.env.DEV && (
+        <div className="flex flex-col gap-1.5 border border-dashed border-amber-400 rounded-md p-3 bg-amber-50">
+          <label className="text-xs font-semibold text-amber-700">🛠 Modo desarrollo — Rol a simular</label>
+          <select
+            value={devPreset}
+            onChange={(e) => setDevPreset(Number(e.target.value))}
+            className="text-sm rounded-md border border-amber-300 bg-white px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-amber-400"
+          >
+            {DEV_PRESETS.map((p, i) => (
+              <option key={i} value={i}>{p.label}</option>
+            ))}
+          </select>
         </div>
       )}
 
