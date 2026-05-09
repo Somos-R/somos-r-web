@@ -1,9 +1,0 @@
-node_modules/
-dist/
-build/
-.expo/
-coverage/
-*.min.js
-.env
-.env.local
-.env.*.local
