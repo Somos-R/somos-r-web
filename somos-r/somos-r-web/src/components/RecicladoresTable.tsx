@@ -11,6 +11,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import ValidacionRecicladorModal from './ValidacionRecicladorModal'
+import { CheckCircle2 } from 'lucide-react'
 
 export interface Reciclador {
   id: string
@@ -163,10 +164,10 @@ export default function RecicladoresTable({ data, isLoading, onValidationSuccess
 
       {toast && (
         <div
-          className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-5 py-3 rounded-lg text-sm font-medium shadow-lg z-[200]"
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-5 py-3 rounded-lg text-sm font-medium shadow-lg z-[200] flex items-center gap-2"
           style={{ animation: 'slideUp 0.3s ease' }}
         >
-          ✅ {toast}
+          <CheckCircle2 className="w-5 h-5 text-green-400" /> {toast}
         </div>
       )}
     </>

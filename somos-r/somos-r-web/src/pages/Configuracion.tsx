@@ -3,6 +3,7 @@ import { useAuthStore } from '../hooks/useAuth'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { CheckCircle2 } from 'lucide-react'
 
 // ── Tipos de rol → label visible ──
 const ROLE_CONFIG: Record<string, { label: string; className: string }> = {
@@ -46,7 +47,7 @@ export default function Configuracion() {
     setPwLoading(false)
     setPw({ current: '', next: '', confirm: '' })
     setPwErrors({})
-    showToast({ type: 'success', message: '✅ Contraseña actualizada exitosamente' })
+    showToast({ type: 'success', message: 'Contraseña actualizada exitosamente' })
   }
 
   // Helper para limpiar error al escribir
@@ -197,9 +198,10 @@ export default function Configuracion() {
 
       {/* ── Toast ── */}
       {toast && (
-        <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 px-5 py-3 rounded-lg text-sm font-medium shadow-lg z-50
+        <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 px-5 py-3 rounded-lg text-sm font-medium shadow-lg z-50 flex items-center gap-2
           ${toast.type === 'success' ? 'bg-gray-900 text-white' : 'bg-red-600 text-white'}`}
           style={{ animation: 'slideUp 0.3s ease' }}>
+          {toast.type === 'success' && <CheckCircle2 className="w-5 h-5 text-green-400" />}
           {toast.message}
         </div>
       )}

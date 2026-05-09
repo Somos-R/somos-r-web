@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useAuthStore } from '../hooks/useAuth'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { Leaf, Eye, EyeOff, AlertTriangle, Info, Settings2 } from 'lucide-react'
 
 interface LoginFormProps {
   onSuccess?: () => void
@@ -81,7 +82,7 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
     >
       {/* Logo + título */}
       <div className="flex flex-col items-center gap-2 mb-1">
-        <span className="text-4xl">♻️</span>
+        <span className="p-2 bg-green-100 rounded-full"><Leaf className="w-8 h-8 text-green-600" /></span>
         <h2 className="text-xl font-semibold text-center text-gray-800">Portal — Somos R</h2>
         <p className="text-xs text-gray-400 text-center">Acceso para ECAs y Asociaciones</p>
       </div>
@@ -133,7 +134,7 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
             tabIndex={-1}
             aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
           >
-            {showPassword ? '🙈' : '👁️'}
+            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
           </button>
         </div>
         {fieldErrors.password && (
@@ -144,7 +145,7 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
       {/* Error de autenticación */}
       {error && (
         <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-md p-3 flex items-start gap-2">
-          <span className="mt-0.5">⚠️</span>
+          <AlertTriangle className="w-4 h-4 mt-0.5" />
           <span>{getErrorMessage()}</span>
         </div>
       )}
@@ -152,7 +153,7 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
       {/* Mensaje informativo (ej: contraseña olvidada) */}
       {infoMsg && (
         <div className="text-sm text-blue-700 bg-blue-50 border border-blue-200 rounded-md p-3 flex items-start gap-2">
-          <span className="mt-0.5">ℹ️</span>
+          <Info className="w-4 h-4 mt-0.5" />
           <span>{infoMsg}</span>
         </div>
       )}
@@ -160,7 +161,7 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
       {/* Selector de rol — solo en desarrollo */}
       {import.meta.env.DEV && (
         <div className="flex flex-col gap-1.5 border border-dashed border-amber-400 rounded-md p-3 bg-amber-50">
-          <label className="text-xs font-semibold text-amber-700">🛠 Modo desarrollo — Rol a simular</label>
+          <label className="text-xs font-semibold text-amber-700 flex items-center gap-1.5"><Settings2 className="w-3 h-3" /> Modo desarrollo — Rol a simular</label>
           <select
             value={devPreset}
             onChange={(e) => setDevPreset(Number(e.target.value))}

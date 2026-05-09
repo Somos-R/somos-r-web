@@ -2,11 +2,13 @@ import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../hooks/useAuth'
 import { Button } from '@/components/ui/button'
 
+import { Users, Scale, ClipboardList, Package, TrendingUp, Recycle } from 'lucide-react'
+
 const METRICS = [
-  { label: 'Recicladores activos', value: '12',   trend: '+2 este mes',   up: true,  icon: '♻️' },
-  { label: 'Pesajes este mes',      value: '47',   trend: '+8 vs anterior', up: true,  icon: '⚖️' },
-  { label: 'Solicitudes pendientes',value: '3',    trend: '−1 vs ayer',    up: false, icon: '📋' },
-  { label: 'Kg recolectados',       value: '1.284',trend: '+124 kg',       up: true,  icon: '📦' },
+  { label: 'Recicladores activos', value: '12',   trend: '+2 este mes',   up: true,  icon: <Users className="w-6 h-6 text-green-600" /> },
+  { label: 'Pesajes este mes',      value: '47',   trend: '+8 vs anterior', up: true,  icon: <Scale className="w-6 h-6 text-blue-600" /> },
+  { label: 'Solicitudes pendientes',value: '3',    trend: '−1 vs ayer',    up: false, icon: <ClipboardList className="w-6 h-6 text-orange-600" /> },
+  { label: 'Kg recolectados',       value: '1.284',trend: '+124 kg',       up: true,  icon: <Package className="w-6 h-6 text-purple-600" /> },
 ]
 
 const RECENT_PESAJES = [
@@ -18,9 +20,9 @@ const RECENT_PESAJES = [
 ]
 
 const ACCIONES = [
-  { label: 'Nuevo pesaje',       icon: '⚖️', to: '/pesajes',      desc: 'Registrar un pesaje' },
-  { label: 'Ver recicladores',   icon: '♻️', to: '/recicladores', desc: 'Padrón de recicladores' },
-  { label: 'Ver reportes',       icon: '📈', to: '/reportes',     desc: 'Métricas y exportación' },
+  { label: 'Nuevo pesaje',       icon: <Scale className="w-6 h-6 text-blue-500" />, to: '/pesajes',      desc: 'Registrar un pesaje' },
+  { label: 'Ver recicladores',   icon: <Recycle className="w-6 h-6 text-green-500" />, to: '/recicladores', desc: 'Padrón de recicladores' },
+  { label: 'Ver reportes',       icon: <TrendingUp className="w-6 h-6 text-purple-500" />, to: '/reportes',     desc: 'Métricas y exportación' },
 ]
 
 export default function Dashboard() {
@@ -41,7 +43,7 @@ export default function Dashboard() {
         {METRICS.map((m) => (
           <div key={m.label} className="bg-white rounded-lg border border-gray-200 p-5">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-2xl">{m.icon}</span>
+              <span className="p-2 bg-gray-50 rounded-lg">{m.icon}</span>
               <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
                 m.up ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'
               }`}>
@@ -68,7 +70,7 @@ export default function Dashboard() {
               onClick={() => navigate(a.to)}
               className="flex items-center gap-2 h-auto py-3 px-4"
             >
-              <span className="text-lg">{a.icon}</span>
+              <span className="p-2 bg-gray-50 rounded-lg">{a.icon}</span>
               <div className="text-left">
                 <div className="text-sm font-medium">{a.label}</div>
                 <div className="text-xs text-muted-foreground">{a.desc}</div>

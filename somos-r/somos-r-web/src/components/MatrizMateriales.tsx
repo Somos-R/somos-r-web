@@ -2,12 +2,14 @@ import { useState, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { PRECIO_POR_MATERIAL } from './NuevoPesajeModal'
 
+import { FileText, Droplet, GlassWater, Settings, Package, Calculator } from 'lucide-react'
+
 const MATERIALES = [
-  { key: 'papel',    label: 'Papel',    emoji: '📄', color: 'text-blue-700    bg-blue-50    border-blue-200' },
-  { key: 'plastico', label: 'Plástico', emoji: '🧴', color: 'text-purple-700  bg-purple-50  border-purple-200' },
-  { key: 'vidrio',   label: 'Vidrio',   emoji: '🫙', color: 'text-teal-700    bg-teal-50    border-teal-200' },
-  { key: 'metal',    label: 'Metal',    emoji: '⚙️', color: 'text-gray-700    bg-gray-50    border-gray-200' },
-  { key: 'carton',   label: 'Cartón',   emoji: '📦', color: 'text-orange-700  bg-orange-50  border-orange-200' },
+  { key: 'papel',    label: 'Papel',    icon: <FileText className="w-4 h-4" />, color: 'text-blue-700    bg-blue-50    border-blue-200' },
+  { key: 'plastico', label: 'Plástico', icon: <Droplet className="w-4 h-4" />, color: 'text-purple-700  bg-purple-50  border-purple-200' },
+  { key: 'vidrio',   label: 'Vidrio',   icon: <GlassWater className="w-4 h-4" />, color: 'text-teal-700    bg-teal-50    border-teal-200' },
+  { key: 'metal',    label: 'Metal',    icon: <Settings className="w-4 h-4" />, color: 'text-gray-700    bg-gray-50    border-gray-200' },
+  { key: 'carton',   label: 'Cartón',   icon: <Package className="w-4 h-4" />, color: 'text-orange-700  bg-orange-50  border-orange-200' },
 ]
 
 interface MatrizMaterialesProps {
@@ -45,7 +47,7 @@ export default function MatrizMateriales({ onSelectMaterial }: MatrizMaterialesP
         className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition-colors"
       >
         <div className="flex items-center gap-2">
-          <span className="text-lg">🧮</span>
+          <span className="p-1.5 bg-gray-100 rounded-md"><Calculator className="w-5 h-5 text-gray-700" /></span>
           <div className="text-left">
             <p className="text-sm font-semibold text-gray-800">Calculadora de materiales</p>
             <p className="text-xs text-gray-500">Precios de referencia por kg · Sprint 4 US</p>
@@ -84,7 +86,7 @@ export default function MatrizMateriales({ onSelectMaterial }: MatrizMaterialesP
                     {/* Material */}
                     <td className="px-5 py-3">
                       <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${f.color}`}>
-                        {f.emoji} {f.label}
+                        {f.icon} {f.label}
                       </span>
                     </td>
                     {/* Precio */}

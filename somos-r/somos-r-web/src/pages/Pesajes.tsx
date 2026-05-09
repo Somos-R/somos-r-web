@@ -4,6 +4,7 @@ import PesajesTable, { type Pesaje } from '../components/PesajesTable'
 import NuevoPesajeModal from '../components/NuevoPesajeModal'
 import MatrizMateriales from '../components/MatrizMateriales'
 import { Button } from '@/components/ui/button'
+import { Scale } from 'lucide-react'
 import { MOCK_PESAJES } from '../data/mockData'
 
 const fetchPesajes = async (): Promise<Pesaje[]> => {
@@ -41,7 +42,7 @@ export default function Pesajes() {
           <p className="text-sm text-gray-500 mt-1">Registro y validación de pesajes por material</p>
         </div>
         <Button id="btn-nuevo-pesaje" onClick={() => { setPreselect({}); setModalOpen(true) }}>
-          ⚖️ Nuevo pesaje
+          <Scale className="w-4 h-4 mr-2" /> Nuevo pesaje
         </Button>
       </div>
 

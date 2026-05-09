@@ -11,6 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { Package, DollarSign, Scale, Recycle, Clock, CheckCircle2, Download, Info } from 'lucide-react'
 
 // ── Label helpers ─────────────────────────────
 const MATERIAL_LABELS: Record<string, string> = {
@@ -112,22 +113,26 @@ export default function Reportes() {
           className="gap-2"
           variant={exportado ? 'outline' : 'default'}
         >
-          {exportado ? '✅ Descargado' : '⬇️ Exportar CSV'}
+          {exportado ? (
+            <><CheckCircle2 className="w-4 h-4 mr-2" /> Descargado</>
+          ) : (
+            <><Download className="w-4 h-4 mr-2" /> Exportar CSV</>
+          )}
         </Button>
       </div>
 
       {/* ── Tarjetas de métricas ── */}
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
         {[
-          { icon: '📦', label: 'Total Kg recolectados', value: `${metricas.totalKg.toLocaleString('es-CO')} kg`, color: 'text-blue-700' },
-          { icon: '💰', label: 'Valor total pagado', value: `$${metricas.totalCOP.toLocaleString('es-CO')}`, color: 'text-emerald-700' },
-          { icon: '⚖️', label: 'Total pesajes', value: metricas.totalPesajes.toString(), color: 'text-gray-800' },
-          { icon: '♻️', label: 'Recicladores activos', value: metricas.recicladoresUnicos.toString(), color: 'text-green-700' },
-          { icon: '🕐', label: 'Pesajes pendientes', value: metricas.pendientes.toString(), color: 'text-yellow-700' },
-          { icon: '✅', label: 'Pesajes pagados', value: metricas.pagados.toString(), color: 'text-teal-700' },
+          { icon: <Package className="w-8 h-8" />, label: 'Total Kg recolectados', value: `${metricas.totalKg.toLocaleString('es-CO')} kg`, color: 'text-blue-700' },
+          { icon: <DollarSign className="w-8 h-8" />, label: 'Valor total pagado', value: `$${metricas.totalCOP.toLocaleString('es-CO')}`, color: 'text-emerald-700' },
+          { icon: <Scale className="w-8 h-8" />, label: 'Total pesajes', value: metricas.totalPesajes.toString(), color: 'text-gray-800' },
+          { icon: <Recycle className="w-8 h-8" />, label: 'Recicladores activos', value: metricas.recicladoresUnicos.toString(), color: 'text-green-700' },
+          { icon: <Clock className="w-8 h-8" />, label: 'Pesajes pendientes', value: metricas.pendientes.toString(), color: 'text-yellow-700' },
+          { icon: <CheckCircle2 className="w-8 h-8" />, label: 'Pesajes pagados', value: metricas.pagados.toString(), color: 'text-teal-700' },
         ].map((m) => (
           <div key={m.label} className="bg-white rounded-lg border border-gray-200 p-5 flex items-center gap-4">
-            <span className="text-3xl">{m.icon}</span>
+            <span className={`text-gray-400 ${m.color.replace('text-', 'text-opacity-50 text-')}`}>{m.icon}</span>
             <div>
               <div className={`text-2xl font-bold ${m.color}`}>{m.value}</div>
               <div className="text-xs text-gray-500 mt-0.5">{m.label}</div>
@@ -230,8 +235,8 @@ export default function Reportes() {
       </div>
 
       {/* ── Nota backend ── */}
-      <p className="text-xs text-gray-400 text-center">
-        ℹ️ Datos calculados sobre registros mock — se actualizarán automáticamente cuando se conecte el backend
+      <p className="text-xs text-gray-400 text-center flex items-center justify-center gap-1">
+        <Info className="w-4 h-4" /> Datos calculados sobre registros mock — se actualizarán automáticamente cuando se conecte el backend
       </p>
     </div>
   )

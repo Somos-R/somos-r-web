@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Scale, CheckCircle2 } from 'lucide-react'
 import { MOCK_RECICLADORES } from '../data/mockData'
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -123,7 +124,7 @@ export default function NuevoPesajeModal({ open, onOpenChange, onSuccess, defaul
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>⚖️ Registrar nuevo pesaje</DialogTitle>
+            <DialogTitle className="flex items-center gap-2"><Scale className="w-5 h-5" /> Registrar nuevo pesaje</DialogTitle>
             <DialogDescription>
               Completa los datos del material recolectado.
             </DialogDescription>
@@ -230,10 +231,10 @@ export default function NuevoPesajeModal({ open, onOpenChange, onSuccess, defaul
       {/* Toast de éxito */}
       {toast && (
         <div
-          className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-5 py-3 rounded-lg text-sm font-medium shadow-lg z-[200]"
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-5 py-3 rounded-lg text-sm font-medium shadow-lg z-[200] flex items-center gap-2"
           style={{ animation: 'slideUp 0.3s ease' }}
         >
-          ✅ Pesaje registrado exitosamente
+          <CheckCircle2 className="w-5 h-5 text-green-400" /> Pesaje registrado exitosamente
         </div>
       )}
     </>

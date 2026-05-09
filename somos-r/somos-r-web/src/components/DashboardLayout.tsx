@@ -13,12 +13,14 @@ import {
 import { Button } from '@/components/ui/button'
 import '../styles/DashboardLayout.css'
 
+import { LayoutDashboard, Recycle, Scale, TrendingUp, Settings, LogOut, CheckCircle2, Leaf } from 'lucide-react'
+
 const ALL_NAV_ITEMS = [
-  { to: '/',             label: 'Dashboard',     icon: '📊', end: true,  requiresECA: true,  requiresAsoc: false },
-  { to: '/recicladores', label: 'Recicladores',  icon: '♻️', end: false, requiresECA: false, requiresAsoc: true  },
-  { to: '/pesajes',      label: 'Pesajes',        icon: '⚖️', end: false, requiresECA: true,  requiresAsoc: false },
-  { to: '/reportes',     label: 'Reportes',       icon: '📈', end: false, requiresECA: true,  requiresAsoc: false },
-  { to: '/configuracion',label: 'Configuración',  icon: '⚙️', end: false, requiresECA: false, requiresAsoc: false },
+  { to: '/',             label: 'Dashboard',     icon: <LayoutDashboard className="w-5 h-5" />, end: true,  requiresECA: true,  requiresAsoc: false },
+  { to: '/recicladores', label: 'Recicladores',  icon: <Recycle className="w-5 h-5" />, end: false, requiresECA: false, requiresAsoc: true  },
+  { to: '/pesajes',      label: 'Pesajes',        icon: <Scale className="w-5 h-5" />, end: false, requiresECA: true,  requiresAsoc: false },
+  { to: '/reportes',     label: 'Reportes',       icon: <TrendingUp className="w-5 h-5" />, end: false, requiresECA: true,  requiresAsoc: false },
+  { to: '/configuracion',label: 'Configuración',  icon: <Settings className="w-5 h-5" />, end: false, requiresECA: false, requiresAsoc: false },
 ]
 
 // Formato hora local colombiana
@@ -71,7 +73,7 @@ export default function DashboardLayout() {
     <div className="dashboard-wrapper">
       <aside className="sidebar">
         <div className="sidebar-brand">
-          <span className="sidebar-logo">♻️</span>
+          <span className="sidebar-logo"><Leaf className="w-6 h-6 text-green-400" /></span>
           <span className="sidebar-title">Somos R</span>
         </div>
 
@@ -99,7 +101,7 @@ export default function DashboardLayout() {
             </span>
           </div>
           <button onClick={() => setShowConfirm(true)} className="sidebar-logout" title="Cerrar sesión">
-            🚪
+            <LogOut className="w-5 h-5" />
           </button>
         </div>
       </aside>
@@ -140,8 +142,8 @@ export default function DashboardLayout() {
       </Dialog>
 
       {toast && (
-        <div className="toast">
-          ✅ Sesión cerrada exitosamente
+        <div className="toast flex items-center gap-2">
+          <CheckCircle2 className="w-5 h-5" /> Sesión cerrada exitosamente
         </div>
       )}
     </div>

@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Check, X } from 'lucide-react'
 import type { Reciclador } from './RecicladoresTable'
 
 interface ValidacionRecicladorModalProps {
@@ -100,13 +101,13 @@ export default function ValidacionRecicladorModal({ open, onOpenChange, reciclad
             onClick={() => { setActionType('approve'); setErrors({}); }}
             className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-colors ${actionType === 'approve' ? 'bg-white shadow-sm text-green-700' : 'text-gray-500 hover:text-gray-700'}`}
           >
-            ✅ Aprobar
+            <span className="flex items-center justify-center gap-2"><Check className="w-4 h-4" /> Aprobar</span>
           </button>
           <button
             onClick={() => { setActionType('reject'); setErrors({}); }}
             className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-colors ${actionType === 'reject' ? 'bg-white shadow-sm text-red-700' : 'text-gray-500 hover:text-gray-700'}`}
           >
-            ❌ Rechazar
+            <span className="flex items-center justify-center gap-2"><X className="w-4 h-4" /> Rechazar</span>
           </button>
         </div>
 
