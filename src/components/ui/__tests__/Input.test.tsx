@@ -46,4 +46,9 @@ describe('Input', () => {
     render(<Input label="Password" endAdornment={<span>👁</span>} />)
     expect(screen.getByText('👁')).toBeInTheDocument()
   })
+
+  it('marks the input as required when required is true', () => {
+    render(<Input label="Email" required />)
+    expect(screen.getByRole('textbox')).toBeRequired()
+  })
 })

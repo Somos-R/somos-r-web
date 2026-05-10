@@ -12,6 +12,7 @@ export interface SelectProps {
   value?: string
   onChange?: React.ChangeEventHandler<HTMLInputElement>
   options: SelectOption[]
+  required?: boolean
   disabled?: boolean
   error?: boolean
   helperText?: string
@@ -25,6 +26,7 @@ export function Select({
   value,
   onChange,
   options,
+  required,
   disabled,
   error,
   helperText,
@@ -38,6 +40,7 @@ export function Select({
       label={label}
       value={value}
       onChange={onChange}
+      required={required}
       disabled={disabled}
       error={error}
       helperText={helperText}

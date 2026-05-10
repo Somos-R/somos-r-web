@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm install *)",
+      "Bash(pnpm approve-builds *)",
+      "Bash(pnpm exec *)",
+      "Bash(pnpm test *)",
+      "Bash(pnpm build *)",
+      "Read(//mnt/c/Users/Rago/Documents/Development/Somos-R/**)",
+      "Read(//mnt/c/Users/Rago/Documents/Development/Somos-R/somos-r-web/somos-r/**)",
+      "Bash(xargs ls -la)",
+      "Bash(npx tsc *)",
+      "Bash(npx vitest *)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Rago\\\\Documents\\\\Development\\\\Somos-R\\\\somos-r-web\\\\src\" -Recurse -Include \"*.tsx\", \"*.ts\")",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(claude mcp *)",
+      "Bash(gh repo *)",
+      "Bash(gh api *)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Rago\\\\Documents\\\\Development\\\\Somos-R\\\\somos-r-web\\\\src\" -Recurse -File)",
+      "Bash(Remove-Item -Recurse -Force src/features/configuracion, src/features/inventario, src/features/pesajes, src/features/recicladores, src/features/reportes, src/features/transacciones, src/services/recicladores.ts)"
+    ]
+  }
+}

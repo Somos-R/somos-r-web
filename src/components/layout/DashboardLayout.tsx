@@ -6,6 +6,7 @@ import { Sidebar } from './Sidebar'
 import { Header } from './Header'
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Snackbar } from '../ui'
 import { useAuthStore } from '../../hooks/useAuth'
+import { t } from '../../lib/i18n'
 
 export default function DashboardLayout() {
   const { logout } = useAuthStore()
@@ -30,20 +31,20 @@ export default function DashboardLayout() {
       </Box>
 
       <Dialog open={showConfirm} onClose={() => setShowConfirm(false)} maxWidth="xs">
-        <DialogTitle>¿Cerrar sesión?</DialogTitle>
+        <DialogTitle>{t.logout.confirmTitle}</DialogTitle>
         <DialogContent>
-          <Typography variant="body2" color="text.secondary">Tu sesión actual se cerrará.</Typography>
+          <Typography variant="body2" color="text.secondary">{t.logout.confirmMessage}</Typography>
         </DialogContent>
         <DialogActions>
-          <Button variant="outlined" onClick={() => setShowConfirm(false)}>Cancelar</Button>
-          <Button variant="destructive" onClick={handleLogout}>Cerrar sesión</Button>
+          <Button variant="outlined" onClick={() => setShowConfirm(false)}>{t.common.cancel}</Button>
+          <Button variant="destructive" onClick={handleLogout}>{t.logout.confirmButton}</Button>
         </DialogActions>
       </Dialog>
 
       <Snackbar
         open={showToast}
         onClose={() => setShowToast(false)}
-        message="Sesión cerrada exitosamente"
+        message={t.logout.successMessage}
         severity="success"
       />
     </Box>

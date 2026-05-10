@@ -1,4 +1,5 @@
 import MuiTable from '@mui/material/Table'
+import { t, interpolate } from '../../lib/i18n'
 import MuiTableHead from '@mui/material/TableHead'
 import MuiTableBody from '@mui/material/TableBody'
 import MuiTableRow from '@mui/material/TableRow'
@@ -78,7 +79,7 @@ export function TablePagination({
   onPageChange,
   onRowsPerPageChange,
   rowsPerPageOptions = [8, 15, 25],
-  labelRowsPerPage = 'Filas por página:',
+  labelRowsPerPage = t.ui.table.rowsPerPage,
 }: TablePaginationProps) {
   return (
     <MuiTablePagination
@@ -91,7 +92,7 @@ export function TablePagination({
       rowsPerPageOptions={rowsPerPageOptions}
       labelRowsPerPage={labelRowsPerPage}
       labelDisplayedRows={({ from, to, count: total }) =>
-        `${from}–${to} de ${total !== -1 ? total : `más de ${to}`}`
+        interpolate(t.ui.table.displayedRows, { from, to, total: total !== -1 ? total : `más de ${to}` })
       }
     />
   )

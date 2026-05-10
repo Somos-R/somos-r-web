@@ -7,16 +7,17 @@ import { Eye, EyeOff } from 'lucide-react'
 import { Button, Input, Select, Alert } from '../../components/ui'
 import { useAuthStore } from '../../hooks/useAuth'
 import type { UserRole } from '../../types/auth.types'
+import { t } from '../../lib/i18n'
 
 interface LoginFormProps {
   onSuccess?: () => void
 }
 
 const DEV_ROLES: { value: UserRole; label: string }[] = [
-  { value: 'admin_eca', label: 'Admin ECA' },
-  { value: 'operador_eca', label: 'Operador ECA' },
-  { value: 'admin_asociacion', label: 'Admin Asociación' },
-  { value: 'superadmin', label: 'Superadmin' },
+  { value: 'admin_eca', label: t.auth.devRoles.admin_eca },
+  { value: 'operador_eca', label: t.auth.devRoles.operador_eca },
+  { value: 'admin_asociacion', label: t.auth.devRoles.admin_asociacion },
+  { value: 'superadmin', label: t.auth.devRoles.superadmin },
 ]
 
 export function LoginForm({ onSuccess }: LoginFormProps) {
@@ -36,11 +37,11 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
 
   const validate = (): boolean => {
     let valid = true
-    if (!email) { setEmailError('El email es requerido'); valid = false }
-    else if (!/\S+@\S+\.\S+/.test(email)) { setEmailError('Ingresa un email válido'); valid = false }
+    if (!email) { setEmailError(t.auth.validation.emailRequired); valid = false }
+    else if (!/\S+@\S+\.\S+/.test(email)) { setEmailError(t.auth.validation.emailInvalid); valid = false }
     else setEmailError('')
-    if (!password) { setPasswordError('La contraseña es requerida'); valid = false }
-    else if (password.length < 6) { setPasswordError('Mínimo 6 caracteres'); valid = false }
+    if (!password) { setPasswordError(t.auth.validation.passwordRequired); valid = false }
+    else if (password.length < 6) { setPasswordError(t.auth.validation.passwordMinLength); valid = false }
     else setPasswordError('')
     return valid
   }
@@ -52,34 +53,34 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
       await login(email, password, isDev ? devRole : undefined)
       onSuccess?.()
     } catch {
-      // error manejado por el store
+      // error handled by the store
     }
   }
 
   return (
     <Paper elevation={4} sx={{ p: 4, borderRadius: 2 }}>
       <Typography variant="h6" fontWeight={700} textAlign="center" mb={3}>
-        Portal ECA — Somos R
+        {t.auth.loginTitle}
       </Typography>
 
       <Box component="form" onSubmit={handleSubmit} noValidate sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         <Input
-          label="Email"
+          label={t.auth.emailLabel}
           type="email"
           value={email}
           onChange={(e) => { setEmail(e.target.value); setEmailError('') }}
-          placeholder="admin@eca.com"
+          placeholder={t.auth.emailPlaceholder}
           disabled={isLoading}
           error={!!emailError}
           helperText={emailError}
         />
 
         <Input
-          label="Contraseña"
+          label={t.auth.passwordLabel}
           type={showPassword ? 'text' : 'password'}
           value={password}
           onChange={(e) => { setPassword(e.target.value); setPasswordError('') }}
-          placeholder="••••••••"
+          placeholder={t.auth.passwordPlaceholder}
           disabled={isLoading}
           error={!!passwordError}
           helperText={passwordError}
@@ -92,7 +93,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
 
         {isDev && (
           <Select
-            label="Rol (solo DEV)"
+            label={t.auth.roleDevLabel}
             value={devRole}
             onChange={(e) => setDevRole(e.target.value as UserRole)}
             options={DEV_ROLES}
@@ -108,7 +109,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
           loading={isLoading}
           disabled={!email || !password}
         >
-          Iniciar sesión
+          {t.auth.loginButton}
         </Button>
       </Box>
     </Paper>

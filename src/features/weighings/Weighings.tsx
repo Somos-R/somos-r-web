@@ -1,9 +1,10 @@
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import { useQuery } from '@tanstack/react-query'
-import PesajesTable, { type Pesaje } from './PesajesTable'
+import WeighingsTable, { type Weighing } from './WeighingsTable'
+import { t } from '../../lib/i18n'
 
-const MOCK_PESAJES: Pesaje[] = [
+const MOCK_WEIGHINGS: Weighing[] = [
   { id: '1', fecha: '2026-04-18', reciclador_nombre: 'Carlos Mendez', material: 'papel', kg: 32, precio_kg: 350, estado: 'validado' },
   { id: '2', fecha: '2026-04-17', reciclador_nombre: 'María López', material: 'plastico', kg: 15, precio_kg: 500, estado: 'pagado' },
   { id: '3', fecha: '2026-04-17', reciclador_nombre: 'Juan Torres', material: 'metal', kg: 8, precio_kg: 1200, estado: 'validado' },
@@ -21,22 +22,21 @@ const MOCK_PESAJES: Pesaje[] = [
   { id: '15', fecha: '2026-04-08', reciclador_nombre: 'Carlos Mendez', material: 'papel', kg: 28, precio_kg: 350, estado: 'pagado' },
 ]
 
-const fetchPesajes = async (): Promise<Pesaje[]> => {
-  // Mock — reemplazar con: apiClient.get('/api/v1/pesajes')
+const fetchWeighings = async (): Promise<Weighing[]> => {
   await new Promise((r) => setTimeout(r, 800))
-  return MOCK_PESAJES
+  return MOCK_WEIGHINGS
 }
 
-export default function Pesajes() {
-  const { data = [], isLoading } = useQuery({ queryKey: ['pesajes'], queryFn: fetchPesajes })
+export default function Weighings() {
+  const { data = [], isLoading } = useQuery({ queryKey: ['weighings'], queryFn: fetchWeighings })
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       <Box>
-        <Typography variant="h5" fontWeight={600}>Pesajes</Typography>
-        <Typography variant="body2" color="text.secondary" mt={0.5}>Registro y validación de pesajes por material</Typography>
+        <Typography variant="h5" fontWeight={600}>{t.pesajes.title}</Typography>
+        <Typography variant="body2" color="text.secondary" mt={0.5}>{t.pesajes.subtitle}</Typography>
       </Box>
-      <PesajesTable data={data} isLoading={isLoading} />
+      <WeighingsTable data={data} isLoading={isLoading} />
     </Box>
   )
 }

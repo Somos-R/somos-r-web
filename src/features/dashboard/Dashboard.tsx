@@ -8,12 +8,13 @@ import Divider from '@mui/material/Divider'
 import { Users, Scale, ClipboardList, Package } from 'lucide-react'
 import { Card, CardContent, CardHeader, Badge, Button } from '../../components/ui'
 import { useAuthStore } from '../../hooks/useAuth'
+import { t, interpolate } from '../../lib/i18n'
 
 const METRICS = [
-  { label: 'Recicladores activos', value: '12', trend: '+2 este mes', up: true, icon: <Users size={22} color="#059669" /> },
-  { label: 'Pesajes este mes', value: '47', trend: '+8 vs anterior', up: true, icon: <Scale size={22} color="#059669" /> },
-  { label: 'Solicitudes pendientes', value: '3', trend: '−1 vs ayer', up: false, icon: <ClipboardList size={22} color="#f59e0b" /> },
-  { label: 'Kg recolectados', value: '1.284', trend: '+124 kg', up: true, icon: <Package size={22} color="#059669" /> },
+  { label: t.dashboard.metrics.activeRecyclers, value: '12', trend: '+2 este mes', up: true, icon: <Users size={22} color="#059669" /> },
+  { label: t.dashboard.metrics.monthlyWeighings, value: '47', trend: '+8 vs anterior', up: true, icon: <Scale size={22} color="#059669" /> },
+  { label: t.dashboard.metrics.pendingRequests, value: '3', trend: '−1 vs ayer', up: false, icon: <ClipboardList size={22} color="#f59e0b" /> },
+  { label: t.dashboard.metrics.collectedKg, value: '1.284', trend: '+124 kg', up: true, icon: <Package size={22} color="#059669" /> },
 ]
 
 const RECENT_PESAJES = [
@@ -30,8 +31,10 @@ export default function Dashboard() {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       <Box>
-        <Typography variant="h5" fontWeight={600}>Bienvenido, {user?.full_name ?? 'Admin'}</Typography>
-        <Typography variant="body2" color="text.secondary" mt={0.5}>Panel de control — Portal ECA</Typography>
+        <Typography variant="h5" fontWeight={600}>
+          {interpolate(t.dashboard.greeting, { name: user?.full_name ?? 'Admin' })}
+        </Typography>
+        <Typography variant="body2" color="text.secondary" mt={0.5}>{t.dashboard.subtitle}</Typography>
       </Box>
 
       <Grid container spacing={2}>
@@ -41,11 +44,7 @@ export default function Dashboard() {
               <CardContent>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
                   {m.icon}
-                  <Badge
-                    label={m.trend}
-                    color={m.up ? 'success' : 'error'}
-                    size="small"
-                  />
+                  <Badge label={m.trend} color={m.up ? 'success' : 'error'} size="small" />
                 </Box>
                 <Typography variant="h4" fontWeight={700}>{m.value}</Typography>
                 <Typography variant="body2" color="text.secondary" mt={0.5}>{m.label}</Typography>
@@ -57,10 +56,10 @@ export default function Dashboard() {
 
       <Card>
         <CardHeader
-          title="Pesajes recientes"
+          title={t.dashboard.recentWeighings}
           action={
             <Button variant="text" size="small" onClick={() => window.location.href = '/pesajes'}>
-              Ver todos →
+              {t.dashboard.viewAll}
             </Button>
           }
         />

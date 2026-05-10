@@ -8,8 +8,9 @@ import {
   Badge, Input,
   Table, TableHead, TableBody, TableRow, TableCell, TableContainer, TablePagination,
 } from '../../components/ui'
+import { t } from '../../lib/i18n'
 
-export interface ItemInventario {
+export interface InventoryItem {
   id: string
   material: 'papel' | 'plastico' | 'vidrio' | 'metal' | 'carton' | 'electronico' | 'organico'
   stock_kg: number
@@ -20,25 +21,25 @@ export interface ItemInventario {
   estado: 'disponible' | 'bajo_stock' | 'agotado'
 }
 
-interface InventarioTableProps {
-  data: ItemInventario[]
+interface InventoryTableProps {
+  data: InventoryItem[]
   isLoading?: boolean
 }
 
-const MATERIAL_CONFIG: Record<ItemInventario['material'], { label: string; color: 'info' | 'primary' | 'success' | 'default' | 'warning' | 'error' }> = {
-  papel: { label: 'Papel', color: 'info' },
-  plastico: { label: 'Plástico', color: 'primary' },
-  vidrio: { label: 'Vidrio', color: 'success' },
-  metal: { label: 'Metal', color: 'default' },
-  carton: { label: 'Cartón', color: 'warning' },
-  electronico: { label: 'Electrónico', color: 'error' },
-  organico: { label: 'Orgánico', color: 'success' },
+const MATERIAL_CONFIG: Record<InventoryItem['material'], { label: string; color: 'info' | 'primary' | 'success' | 'default' | 'warning' | 'error' }> = {
+  papel: { label: t.inventario.materials.papel, color: 'info' },
+  plastico: { label: t.inventario.materials.plastico, color: 'primary' },
+  vidrio: { label: t.inventario.materials.vidrio, color: 'success' },
+  metal: { label: t.inventario.materials.metal, color: 'default' },
+  carton: { label: t.inventario.materials.carton, color: 'warning' },
+  electronico: { label: t.inventario.materials.electronico, color: 'error' },
+  organico: { label: t.inventario.materials.organico, color: 'success' },
 }
 
-const ESTADO_CONFIG: Record<ItemInventario['estado'], { label: string; color: 'success' | 'warning' | 'error' }> = {
-  disponible: { label: 'Disponible', color: 'success' },
-  bajo_stock: { label: 'Bajo stock', color: 'warning' },
-  agotado: { label: 'Agotado', color: 'error' },
+const ESTADO_CONFIG: Record<InventoryItem['estado'], { label: string; color: 'success' | 'warning' | 'error' }> = {
+  disponible: { label: t.inventario.status.disponible, color: 'success' },
+  bajo_stock: { label: t.inventario.status.bajo_stock, color: 'warning' },
+  agotado: { label: t.inventario.status.agotado, color: 'error' },
 }
 
 function StockBar({ actual, minimo }: { actual: number; minimo: number }) {
@@ -57,10 +58,10 @@ function StockBar({ actual, minimo }: { actual: number; minimo: number }) {
 
 const PAGE_SIZE = 8
 
-export default function InventarioTable({ data, isLoading }: InventarioTableProps) {
+export default function InventoryTable({ data, isLoading }: InventoryTableProps) {
   const [search, setSearch] = useState('')
-  const [filtroMaterial, setFiltroMaterial] = useState<ItemInventario['material'] | ''>('')
-  const [filtroEstado, setFiltroEstado] = useState<ItemInventario['estado'] | ''>('')
+  const [materialFilter, setMaterialFilter] = useState<InventoryItem['material'] | ''>('')
+  const [statusFilter, setStatusFilter] = useState<InventoryItem['estado'] | ''>('')
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(PAGE_SIZE)
 
@@ -68,8 +69,8 @@ export default function InventarioTable({ data, isLoading }: InventarioTableProp
     const q = search.toLowerCase()
     return (
       (item.bodega.toLowerCase().includes(q) || MATERIAL_CONFIG[item.material].label.toLowerCase().includes(q)) &&
-      (filtroMaterial === '' || item.material === filtroMaterial) &&
-      (filtroEstado === '' || item.estado === filtroEstado)
+      (materialFilter === '' || item.material === materialFilter) &&
+      (statusFilter === '' || item.estado === statusFilter)
     )
   })
 
@@ -79,45 +80,49 @@ export default function InventarioTable({ data, isLoading }: InventarioTableProp
     return <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}><CircularProgress /></Box>
   }
 
+  const countLabel = `${filtered.length} ${filtered.length !== 1 ? t.inventario.countPlural : t.inventario.countSingular}`
+
   return (
     <TableContainer>
       <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1.5, px: 2, py: 1.5, borderBottom: '1px solid', borderColor: 'divider' }}>
         <Input
-          placeholder="Buscar por material o bodega..."
+          placeholder={t.inventario.searchPlaceholder}
           value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(0) }}
           fullWidth={false}
           sx={{ width: 240 }}
         />
         <TextField
-          select size="small" value={filtroMaterial}
-          onChange={(e) => { setFiltroMaterial(e.target.value as ItemInventario['material'] | ''); setPage(0) }}
+          select size="small" value={materialFilter}
+          onChange={(e) => { setMaterialFilter(e.target.value as InventoryItem['material'] | ''); setPage(0) }}
           sx={{ width: 180 }}
         >
-          <MenuItem value="">Todos los materiales</MenuItem>
+          <MenuItem value="">{t.inventario.filterAllMaterials}</MenuItem>
           {Object.entries(MATERIAL_CONFIG).map(([k, v]) => (
             <MenuItem key={k} value={k}>{v.label}</MenuItem>
           ))}
         </TextField>
         <TextField
-          select size="small" value={filtroEstado}
-          onChange={(e) => { setFiltroEstado(e.target.value as ItemInventario['estado'] | ''); setPage(0) }}
+          select size="small" value={statusFilter}
+          onChange={(e) => { setStatusFilter(e.target.value as InventoryItem['estado'] | ''); setPage(0) }}
           sx={{ width: 160 }}
         >
-          <MenuItem value="">Todos los estados</MenuItem>
+          <MenuItem value="">{t.inventario.filterAllStatuses}</MenuItem>
           {Object.entries(ESTADO_CONFIG).map(([k, v]) => (
             <MenuItem key={k} value={k}>{v.label}</MenuItem>
           ))}
         </TextField>
         <Typography variant="caption" color="text.secondary" sx={{ ml: 'auto' }}>
-          {filtered.length} ítem{filtered.length !== 1 ? 's' : ''}
+          {countLabel}
         </Typography>
       </Box>
 
       {filtered.length === 0 ? (
         <Box sx={{ py: 6, textAlign: 'center' }}>
           <Typography variant="body2" color="text.secondary">
-            {search || filtroMaterial || filtroEstado ? 'Sin resultados para los filtros aplicados.' : 'No hay ítems en el inventario.'}
+            {search || materialFilter || statusFilter
+              ? t.inventario.emptySearch
+              : t.inventario.emptyState}
           </Typography>
         </Box>
       ) : (
@@ -125,14 +130,14 @@ export default function InventarioTable({ data, isLoading }: InventarioTableProp
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Material</TableCell>
-                <TableCell>Bodega</TableCell>
-                <TableCell>Stock actual</TableCell>
-                <TableCell align="right">Mínimo (kg)</TableCell>
-                <TableCell align="right">Precio/kg</TableCell>
-                <TableCell align="right">Valor total</TableCell>
-                <TableCell>Actualizado</TableCell>
-                <TableCell>Estado</TableCell>
+                <TableCell>{t.inventario.table.material}</TableCell>
+                <TableCell>{t.inventario.table.warehouse}</TableCell>
+                <TableCell>{t.inventario.table.currentStock}</TableCell>
+                <TableCell align="right">{t.inventario.table.minimum}</TableCell>
+                <TableCell align="right">{t.inventario.table.pricePerKg}</TableCell>
+                <TableCell align="right">{t.inventario.table.totalValue}</TableCell>
+                <TableCell>{t.inventario.table.updated}</TableCell>
+                <TableCell>{t.inventario.table.status}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
