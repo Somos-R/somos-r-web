@@ -13,12 +13,12 @@ Este repositorio contiene **únicamente el frontend del Portal ECA/Asociación**
 
 ### Actores que usan el portal
 
-| Actor | Qué puede hacer |
-|-------|----------------|
-| **Operador ECA** | Registrar pesajes, ver recicladores, consultar inventario y transacciones |
-| **Admin ECA** | Todo lo del operador + dashboard de métricas, reportes, configuración |
-| **Admin Asociación** | Padrón de recicladores, validación/rechazo, exportación |
-| **Superadmin** | Acceso completo a todos los módulos |
+| Actor | `role_code` | Qué puede hacer |
+|-------|-------------|----------------|
+| **Operador ECA** | `eca_operator` | Registrar pesajes, consultar inventario y transacciones |
+| **Admin ECA** | `eca_admin` | Todo lo del operador + dashboard de métricas, reportes, configuración |
+| **Admin Asociación** | `association_admin` | Dashboard, padrón de recicladores, validación/rechazo, exportación, configuración |
+| **Superadmin** | `superadmin` | Acceso completo a todos los módulos |
 
 ---
 
@@ -140,14 +140,16 @@ pnpm test:coverage   # reporte de cobertura HTML
 
 ## Roles y permisos
 
-| Rol | Dashboard | Pesajes | Reportes | Recicladores | Inventario | Configuración |
-|-----|:---------:|:-------:|:--------:|:------------:|:----------:|:-------------:|
-| `operador_eca` | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ |
-| `admin_eca` | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ |
-| `admin_asociacion` | ❌ | ❌ | ❌ | ✅ | ❌ | ✅ |
-| `superadmin` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+Los `role_code` son los que devuelve el backend en el JWT. El hook `useRoles()` en `src/hooks/useRoles.ts` traduce el rol a booleanos de visibilidad por módulo.
 
-En modo desarrollo (`DEV`), el formulario de login incluye un selector de rol para simular cualquier actor.
+| Rol | Dashboard | Pesajes | Reportes | Recicladores | Inventario | Transacciones | Configuración |
+|-----|:---------:|:-------:|:--------:|:------------:|:----------:|:-------------:|:-------------:|
+| `eca_operator` | ✅ | ✅ | ❌ | ❌ | ✅ | ✅ | ❌ |
+| `eca_admin` | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ✅ |
+| `association_admin` | ✅ | ❌ | ❌ | ✅ | ❌ | ❌ | ✅ |
+| `superadmin` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+> **Escenario ECA + Asociación**: cuando una organización opera como ambas, se usa `role_code: association_admin` con un campo `permissions` JSON que habilita módulos adicionales de ECA. Ver tarea F-RBAC.1.
 
 ---
 
