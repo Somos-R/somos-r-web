@@ -3,20 +3,21 @@ import { useAuthStore } from './hooks/useAuth'
 import DashboardLayout from './components/layout/DashboardLayout'
 import LoginPage from './features/auth/LoginPage'
 import Dashboard from './features/dashboard/Dashboard'
-import Recicladores from './features/recicladores/Recicladores'
-import Pesajes from './features/pesajes/Pesajes'
-import Inventario from './features/inventario/Inventario'
-import Transacciones from './features/transacciones/Transacciones'
-import Reportes from './features/reportes/Reportes'
-import Configuracion from './features/configuracion/Configuracion'
+import Recyclers from './features/recyclers/Recyclers'
+import Weighings from './features/weighings/Weighings'
+import Inventory from './features/inventory/Inventory'
+import Transactions from './features/transactions/Transactions'
+import Reports from './features/reports/Reports'
+import Settings from './features/settings/Settings'
+import { t } from './lib/i18n'
 
 function NotFound() {
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
       <div style={{ textAlign: 'center' }}>
-        <h1>404</h1>
-        <p>Página no encontrada</p>
-        <a href="/">Volver al inicio</a>
+        <h1>{t.notFound.title}</h1>
+        <p>{t.notFound.message}</p>
+        <a href="/">{t.notFound.backLink}</a>
       </div>
     </div>
   )
@@ -33,12 +34,12 @@ export default function App() {
         {token ? (
           <Route element={<DashboardLayout />}>
             <Route path="/" element={<Dashboard />} />
-            <Route path="/recicladores" element={<Recicladores />} />
-            <Route path="/pesajes" element={<Pesajes />} />
-            <Route path="/inventario" element={<Inventario />} />
-            <Route path="/transacciones" element={<Transacciones />} />
-            <Route path="/reportes" element={<Reportes />} />
-            <Route path="/configuracion" element={<Configuracion />} />
+            <Route path="/recicladores" element={<Recyclers />} />
+            <Route path="/pesajes" element={<Weighings />} />
+            <Route path="/inventario" element={<Inventory />} />
+            <Route path="/transacciones" element={<Transactions />} />
+            <Route path="/reportes" element={<Reports />} />
+            <Route path="/configuracion" element={<Settings />} />
           </Route>
         ) : (
           <Route path="*" element={<Navigate to="/login" />} />

@@ -6,8 +6,9 @@ import {
   Input, Badge,
   Table, TableHead, TableBody, TableRow, TableCell, TableContainer, TablePagination,
 } from '../../components/ui'
+import { t, interpolate } from '../../lib/i18n'
 
-export interface Pesaje {
+export interface Weighing {
   id: string
   fecha: string
   reciclador_nombre: string
@@ -17,28 +18,28 @@ export interface Pesaje {
   estado: 'pendiente' | 'validado' | 'pagado'
 }
 
-interface PesajesTableProps {
-  data: Pesaje[]
+interface WeighingsTableProps {
+  data: Weighing[]
   isLoading?: boolean
 }
 
-const MATERIAL_CONFIG: Record<Pesaje['material'], { label: string; color: 'default' | 'info' | 'primary' | 'success' | 'warning' | 'error' }> = {
-  papel: { label: 'Papel', color: 'info' },
-  plastico: { label: 'Plástico', color: 'primary' },
-  vidrio: { label: 'Vidrio', color: 'success' },
-  metal: { label: 'Metal', color: 'default' },
-  carton: { label: 'Cartón', color: 'warning' },
+const MATERIAL_CONFIG: Record<Weighing['material'], { label: string; color: 'default' | 'info' | 'primary' | 'success' | 'warning' | 'error' }> = {
+  papel: { label: t.pesajes.materials.papel, color: 'info' },
+  plastico: { label: t.pesajes.materials.plastico, color: 'primary' },
+  vidrio: { label: t.pesajes.materials.vidrio, color: 'success' },
+  metal: { label: t.pesajes.materials.metal, color: 'default' },
+  carton: { label: t.pesajes.materials.carton, color: 'warning' },
 }
 
-const ESTADO_CONFIG: Record<Pesaje['estado'], { label: string; color: 'warning' | 'success' | 'info' }> = {
-  pendiente: { label: 'Pendiente', color: 'warning' },
-  validado: { label: 'Validado', color: 'success' },
-  pagado: { label: 'Pagado', color: 'info' },
+const ESTADO_CONFIG: Record<Weighing['estado'], { label: string; color: 'warning' | 'success' | 'info' }> = {
+  pendiente: { label: t.pesajes.status.pendiente, color: 'warning' },
+  validado: { label: t.pesajes.status.validado, color: 'success' },
+  pagado: { label: t.pesajes.status.pagado, color: 'info' },
 }
 
 const PAGE_SIZE = 8
 
-export default function PesajesTable({ data, isLoading }: PesajesTableProps) {
+export default function WeighingsTable({ data, isLoading }: WeighingsTableProps) {
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(PAGE_SIZE)
@@ -61,25 +62,27 @@ export default function PesajesTable({ data, isLoading }: PesajesTableProps) {
     )
   }
 
+  const countLabel = `${filtered.length} ${filtered.length !== 1 ? t.pesajes.countPlural : t.pesajes.countSingular}`
+
   return (
     <TableContainer>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 2, py: 1.5, borderBottom: '1px solid', borderColor: 'divider' }}>
         <Input
-          placeholder="Buscar por reciclador o material..."
+          placeholder={t.pesajes.searchPlaceholder}
           value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(0) }}
           fullWidth={false}
           sx={{ width: 280 }}
         />
-        <Typography variant="caption" color="text.secondary">
-          {filtered.length} pesaje{filtered.length !== 1 ? 's' : ''}
-        </Typography>
+        <Typography variant="caption" color="text.secondary">{countLabel}</Typography>
       </Box>
 
       {filtered.length === 0 ? (
         <Box sx={{ py: 6, textAlign: 'center' }}>
           <Typography variant="body2" color="text.secondary">
-            {search ? `Sin resultados para "${search}"` : 'No hay pesajes registrados aún.'}
+            {search
+              ? interpolate(t.pesajes.emptySearch, { query: search })
+              : t.pesajes.emptyState}
           </Typography>
         </Box>
       ) : (
@@ -87,13 +90,13 @@ export default function PesajesTable({ data, isLoading }: PesajesTableProps) {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Fecha</TableCell>
-                <TableCell>Reciclador</TableCell>
-                <TableCell>Material</TableCell>
-                <TableCell align="right">Kg</TableCell>
-                <TableCell align="right">Precio/kg</TableCell>
-                <TableCell align="right">Total</TableCell>
-                <TableCell>Estado</TableCell>
+                <TableCell>{t.pesajes.table.date}</TableCell>
+                <TableCell>{t.pesajes.table.recycler}</TableCell>
+                <TableCell>{t.pesajes.table.material}</TableCell>
+                <TableCell align="right">{t.pesajes.table.kg}</TableCell>
+                <TableCell align="right">{t.pesajes.table.pricePerKg}</TableCell>
+                <TableCell align="right">{t.pesajes.table.total}</TableCell>
+                <TableCell>{t.pesajes.table.status}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>

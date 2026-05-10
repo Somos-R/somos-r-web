@@ -2,12 +2,14 @@ import { useState } from 'react'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import CircularProgress from '@mui/material/CircularProgress'
+import { UserPlus } from 'lucide-react'
 import {
   Input, Badge, Button,
   Table, TableHead, TableBody, TableRow, TableCell, TableContainer, TablePagination,
 } from '../../components/ui'
+import { t, interpolate } from '../../lib/i18n'
 
-export interface Reciclador {
+export interface Recycler {
   id: string
   full_name: string
   id_number: string
@@ -16,20 +18,23 @@ export interface Reciclador {
   created_at: string
 }
 
-interface RecicladoresTableProps {
-  data: Reciclador[]
+interface RecyclersTableProps {
+  data: Recycler[]
   isLoading?: boolean
+  onRegisterClick?: () => void
+  onValidate?: (id: string) => void
+  validatingId?: string | null
 }
 
-const STATUS_CONFIG: Record<Reciclador['status'], { label: string; color: 'success' | 'warning' | 'error' }> = {
-  verified: { label: 'Verificado', color: 'success' },
-  pending: { label: 'Pendiente', color: 'warning' },
-  rejected: { label: 'Rechazado', color: 'error' },
+const STATUS_CONFIG: Record<Recycler['status'], { label: string; color: 'success' | 'warning' | 'error' }> = {
+  verified: { label: t.recicladores.status.verified, color: 'success' },
+  pending: { label: t.recicladores.status.pending, color: 'warning' },
+  rejected: { label: t.recicladores.status.rejected, color: 'error' },
 }
 
 const PAGE_SIZE = 8
 
-export default function RecicladoresTable({ data, isLoading }: RecicladoresTableProps) {
+export default function RecyclersTable({ data, isLoading, onRegisterClick, onValidate, validatingId }: RecyclersTableProps) {
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(PAGE_SIZE)
@@ -49,25 +54,34 @@ export default function RecicladoresTable({ data, isLoading }: RecicladoresTable
     )
   }
 
+  const countLabel = `${filtered.length} ${filtered.length !== 1 ? t.recicladores.countPlural : t.recicladores.countSingular}`
+
   return (
     <TableContainer>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 2, py: 1.5, borderBottom: '1px solid', borderColor: 'divider' }}>
-        <Input
-          placeholder="Buscar por nombre o cédula..."
-          value={search}
-          onChange={(e) => { setSearch(e.target.value); setPage(0) }}
-          fullWidth={false}
-          sx={{ width: 280 }}
-        />
-        <Typography variant="caption" color="text.secondary">
-          {filtered.length} reciclador{filtered.length !== 1 ? 'es' : ''}
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Input
+            placeholder={t.recicladores.searchPlaceholder}
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setPage(0) }}
+            fullWidth={false}
+            sx={{ width: 280 }}
+          />
+          <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: 'nowrap' }}>
+            {countLabel}
+          </Typography>
+        </Box>
+        <Button size="small" startIcon={<UserPlus size={16} />} onClick={onRegisterClick}>
+          {t.recicladores.registerButton}
+        </Button>
       </Box>
 
       {filtered.length === 0 ? (
         <Box sx={{ py: 6, textAlign: 'center' }}>
           <Typography variant="body2" color="text.secondary">
-            {search ? `Sin resultados para "${search}"` : 'No hay recicladores registrados aún.'}
+            {search
+              ? interpolate(t.recicladores.emptySearch, { query: search })
+              : t.recicladores.emptyState}
           </Typography>
         </Box>
       ) : (
@@ -75,12 +89,12 @@ export default function RecicladoresTable({ data, isLoading }: RecicladoresTable
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Nombre</TableCell>
-                <TableCell>Cédula</TableCell>
-                <TableCell>Teléfono</TableCell>
-                <TableCell>Estado</TableCell>
-                <TableCell>Registro</TableCell>
-                <TableCell>Acciones</TableCell>
+                <TableCell>{t.recicladores.table.name}</TableCell>
+                <TableCell>{t.recicladores.table.idNumber}</TableCell>
+                <TableCell>{t.recicladores.table.phone}</TableCell>
+                <TableCell>{t.recicladores.table.status}</TableCell>
+                <TableCell>{t.recicladores.table.registration}</TableCell>
+                <TableCell>{t.recicladores.table.actions}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -97,7 +111,15 @@ export default function RecicladoresTable({ data, isLoading }: RecicladoresTable
                   </TableCell>
                   <TableCell>
                     {r.status === 'pending' && (
-                      <Button variant="outlined" size="small">Validar</Button>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        loading={validatingId === r.id}
+                        disabled={!!validatingId}
+                        onClick={() => onValidate?.(r.id)}
+                      >
+                        {t.common.validate}
+                      </Button>
                     )}
                   </TableCell>
                 </TableRow>

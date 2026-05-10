@@ -24,48 +24,48 @@ describe('useRoles', () => {
 
   it('returns false for all permissions when no user is authenticated', () => {
     const { result } = renderHook(() => useRoles())
-    expect(result.current.canSeePesajes).toBe(false)
-    expect(result.current.canSeeRecicladores).toBe(false)
+    expect(result.current.canSeeWeighings).toBe(false)
+    expect(result.current.canSeeRecyclers).toBe(false)
     expect(result.current.canSeeDashboard).toBe(false)
-    expect(result.current.canSeeReportes).toBe(false)
+    expect(result.current.canSeeReports).toBe(false)
   })
 
-  it('canSeePesajes is true for operador_eca', async () => {
+  it('canSeeWeighings is true for operador_eca', async () => {
     await setMockUser({ role: 'operador_eca' })
     const { result } = renderHook(() => useRoles())
-    expect(result.current.canSeePesajes).toBe(true)
+    expect(result.current.canSeeWeighings).toBe(true)
   })
 
-  it('canSeePesajes is true for admin_eca', async () => {
+  it('canSeeWeighings is true for admin_eca', async () => {
     await setMockUser({ role: 'admin_eca' })
     const { result } = renderHook(() => useRoles())
-    expect(result.current.canSeePesajes).toBe(true)
+    expect(result.current.canSeeWeighings).toBe(true)
   })
 
-  it('canSeeRecicladores is true for admin_asociacion', async () => {
+  it('canSeeRecyclers is true for admin_asociacion', async () => {
     await setMockUser({ role: 'admin_asociacion' })
     const { result } = renderHook(() => useRoles())
-    expect(result.current.canSeeRecicladores).toBe(true)
+    expect(result.current.canSeeRecyclers).toBe(true)
   })
 
   it('all permissions are true for superadmin', async () => {
     await setMockUser({ role: 'superadmin' })
     const { result } = renderHook(() => useRoles())
-    expect(result.current.canSeePesajes).toBe(true)
-    expect(result.current.canSeeRecicladores).toBe(true)
+    expect(result.current.canSeeWeighings).toBe(true)
+    expect(result.current.canSeeRecyclers).toBe(true)
     expect(result.current.canSeeDashboard).toBe(true)
-    expect(result.current.canSeeReportes).toBe(true)
+    expect(result.current.canSeeReports).toBe(true)
   })
 
-  it('canSeeRecicladores is false for operador_eca', async () => {
+  it('canSeeRecyclers is false for operador_eca', async () => {
     await setMockUser({ role: 'operador_eca' })
     const { result } = renderHook(() => useRoles())
-    expect(result.current.canSeeRecicladores).toBe(false)
+    expect(result.current.canSeeRecyclers).toBe(false)
   })
 
-  it('canSeePesajes is false for admin_asociacion', async () => {
+  it('canSeeWeighings is false for admin_asociacion', async () => {
     await setMockUser({ role: 'admin_asociacion' })
     const { result } = renderHook(() => useRoles())
-    expect(result.current.canSeePesajes).toBe(false)
+    expect(result.current.canSeeWeighings).toBe(false)
   })
 })

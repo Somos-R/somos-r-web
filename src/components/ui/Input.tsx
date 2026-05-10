@@ -8,6 +8,7 @@ export interface InputProps {
   value?: string
   onChange?: React.ChangeEventHandler<HTMLInputElement>
   type?: string
+  required?: boolean
   disabled?: boolean
   error?: boolean
   helperText?: string
@@ -24,6 +25,7 @@ export function Input({
   value,
   onChange,
   type = 'text',
+  required,
   disabled,
   error,
   helperText,
@@ -40,6 +42,7 @@ export function Input({
       value={value}
       onChange={onChange}
       type={type}
+      required={required}
       disabled={disabled}
       error={error}
       helperText={helperText}

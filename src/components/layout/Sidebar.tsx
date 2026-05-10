@@ -21,24 +21,25 @@ import {
 } from 'lucide-react'
 import { useAuthStore } from '../../hooks/useAuth'
 import { useRoles } from '../../hooks/useRoles'
+import { t } from '../../lib/i18n'
 
 const DRAWER_WIDTH = 240
 
 const NAV_ITEMS = [
-  { to: '/', label: 'Dashboard', icon: <LayoutDashboard size={20} />, roleKey: 'canSeeDashboard' as const },
-  { to: '/recicladores', label: 'Recicladores', icon: <Users size={20} />, roleKey: 'canSeeRecicladores' as const },
-  { to: '/pesajes', label: 'Pesajes', icon: <Scale size={20} />, roleKey: 'canSeePesajes' as const },
-  { to: '/inventario', label: 'Inventario', icon: <Package size={20} />, roleKey: 'canSeeInventario' as const },
-  { to: '/transacciones', label: 'Transacciones', icon: <ArrowLeftRight size={20} />, roleKey: 'canSeeTransacciones' as const },
-  { to: '/reportes', label: 'Reportes', icon: <BarChart2 size={20} />, roleKey: 'canSeeReportes' as const },
-  { to: '/configuracion', label: 'Configuración', icon: <Settings size={20} />, roleKey: 'canSeeConfiguracion' as const },
+  { to: '/', label: t.nav.dashboard, icon: <LayoutDashboard size={20} />, roleKey: 'canSeeDashboard' as const },
+  { to: '/recicladores', label: t.nav.recicladores, icon: <Users size={20} />, roleKey: 'canSeeRecyclers' as const },
+  { to: '/pesajes', label: t.nav.pesajes, icon: <Scale size={20} />, roleKey: 'canSeeWeighings' as const },
+  { to: '/inventario', label: t.nav.inventario, icon: <Package size={20} />, roleKey: 'canSeeInventory' as const },
+  { to: '/transacciones', label: t.nav.transacciones, icon: <ArrowLeftRight size={20} />, roleKey: 'canSeeTransactions' as const },
+  { to: '/reportes', label: t.nav.reportes, icon: <BarChart2 size={20} />, roleKey: 'canSeeReports' as const },
+  { to: '/configuracion', label: t.nav.configuracion, icon: <Settings size={20} />, roleKey: 'canSeeSettings' as const },
 ]
 
 const ROLE_LABELS: Record<string, string> = {
-  operador_eca: 'Operador ECA',
-  admin_eca: 'Admin ECA',
-  admin_asociacion: 'Admin Asociación',
-  superadmin: 'Superadmin',
+  operador_eca: t.sidebar.roles.operador_eca,
+  admin_eca: t.sidebar.roles.admin_eca,
+  admin_asociacion: t.sidebar.roles.admin_asociacion,
+  superadmin: t.sidebar.roles.superadmin,
 }
 
 interface SidebarProps {
@@ -66,13 +67,11 @@ export function Sidebar({ onLogout }: SidebarProps) {
         },
       }}
     >
-      {/* Brand */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, px: 2, py: 2.5, borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
         <Leaf size={24} color="#10b981" />
-        <Typography variant="h6" fontWeight={700} color="#fff">Somos R</Typography>
+        <Typography variant="h6" fontWeight={700} color="#fff">{t.sidebar.brand}</Typography>
       </Box>
 
-      {/* Nav */}
       <List sx={{ flex: 1, px: 1, py: 1 }}>
         {NAV_ITEMS.map((item) => {
           if (!roles[item.roleKey]) return null
@@ -102,11 +101,10 @@ export function Sidebar({ onLogout }: SidebarProps) {
         })}
       </List>
 
-      {/* Footer */}
       <Box sx={{ px: 2, py: 1.5, borderTop: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
         <Box sx={{ minWidth: 0 }}>
           <Typography variant="body2" fontWeight={600} color="#fff" noWrap>
-            {user?.full_name ?? 'Usuario'}
+            {user?.full_name ?? t.sidebar.defaultUser}
           </Typography>
           <Chip
             label={ROLE_LABELS[user?.role ?? ''] ?? user?.role ?? ''}
@@ -114,7 +112,7 @@ export function Sidebar({ onLogout }: SidebarProps) {
             sx={{ mt: 0.25, height: 18, fontSize: '0.65rem', backgroundColor: 'rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.7)' }}
           />
         </Box>
-        <IconButton onClick={onLogout} sx={{ color: 'rgba(255,255,255,0.6)', '&:hover': { color: '#ef4444' } }} title="Cerrar sesión">
+        <IconButton onClick={onLogout} sx={{ color: 'rgba(255,255,255,0.6)', '&:hover': { color: '#ef4444' } }} title={t.sidebar.logout}>
           <LogOut size={18} />
         </IconButton>
       </Box>

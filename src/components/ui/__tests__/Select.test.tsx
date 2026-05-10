@@ -40,4 +40,9 @@ describe('Select', () => {
     render(<Select label="Material" options={OPTIONS} disabled />)
     expect(screen.getByRole('combobox')).toHaveAttribute('aria-disabled', 'true')
   })
+
+  it('renders required variant without errors', () => {
+    render(<Select label="Material" options={OPTIONS} required />)
+    expect(screen.getByRole('combobox')).toBeInTheDocument()
+  })
 })

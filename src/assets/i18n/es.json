@@ -1,0 +1,286 @@
+{
+  "common": {
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "close": "Cerrar",
+    "register": "Registrar",
+    "validate": "Validar"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "recicladores": "Recicladores",
+    "pesajes": "Pesajes",
+    "inventario": "Inventario",
+    "transacciones": "Transacciones",
+    "reportes": "Reportes",
+    "configuracion": "Configuración"
+  },
+  "sidebar": {
+    "brand": "Somos R",
+    "defaultUser": "Usuario",
+    "logout": "Cerrar sesión",
+    "roles": {
+      "admin_eca": "Admin ECA",
+      "operador_eca": "Operador ECA",
+      "admin_asociacion": "Admin Asociación",
+      "superadmin": "Superadmin"
+    }
+  },
+  "auth": {
+    "loginTitle": "Portal ECA — Somos R",
+    "emailLabel": "Email",
+    "emailPlaceholder": "admin@eca.com",
+    "passwordLabel": "Contraseña",
+    "passwordPlaceholder": "••••••••",
+    "roleDevLabel": "Rol (solo DEV)",
+    "loginButton": "Iniciar sesión",
+    "validation": {
+      "emailRequired": "El email es requerido",
+      "emailInvalid": "Ingresa un email válido",
+      "passwordRequired": "La contraseña es requerida",
+      "passwordMinLength": "Mínimo 6 caracteres"
+    },
+    "devRoles": {
+      "admin_eca": "Admin ECA",
+      "operador_eca": "Operador ECA",
+      "admin_asociacion": "Admin Asociación",
+      "superadmin": "Superadmin"
+    }
+  },
+  "logout": {
+    "confirmTitle": "¿Cerrar sesión?",
+    "confirmMessage": "Tu sesión actual se cerrará.",
+    "confirmButton": "Cerrar sesión",
+    "successMessage": "Sesión cerrada exitosamente"
+  },
+  "notFound": {
+    "title": "404",
+    "message": "Página no encontrada",
+    "backLink": "Volver al inicio"
+  },
+  "dashboard": {
+    "greeting": "Bienvenido, {{name}}",
+    "subtitle": "Panel de control — Portal ECA",
+    "metrics": {
+      "activeRecyclers": "Recicladores activos",
+      "monthlyWeighings": "Pesajes este mes",
+      "pendingRequests": "Solicitudes pendientes",
+      "collectedKg": "Kg recolectados"
+    },
+    "recentWeighings": "Pesajes recientes",
+    "viewAll": "Ver todos →"
+  },
+  "recicladores": {
+    "title": "Recicladores",
+    "subtitle": "Recicladores asociados a esta ECA",
+    "registerButton": "Crear reciclador",
+    "searchPlaceholder": "Buscar por nombre o cédula...",
+    "countSingular": "reciclador",
+    "countPlural": "recicladores",
+    "emptySearch": "Sin resultados para \"{{query}}\"",
+    "emptyState": "No hay recicladores registrados aún.",
+    "table": {
+      "name": "Nombre",
+      "idNumber": "Cédula",
+      "phone": "Teléfono",
+      "status": "Estado",
+      "registration": "Registro",
+      "actions": "Acciones"
+    },
+    "status": {
+      "verified": "Verificado",
+      "pending": "Pendiente",
+      "rejected": "Rechazado"
+    },
+    "validate": {
+      "successMessage": "Reciclador verificado exitosamente",
+      "errorMessage": "Error al verificar el reciclador"
+    },
+    "register": {
+      "drawerTitle": "Registrar reciclador",
+      "submitLabel": "Registrar",
+      "successMessage": "Reciclador registrado exitosamente",
+      "errorMessage": "Error al registrar el reciclador",
+      "fields": {
+        "fullName": "Nombre completo",
+        "email": "Correo electrónico",
+        "password": "Contraseña",
+        "documentType": "Tipo de documento",
+        "documentNumber": "Número de documento",
+        "phone": "Teléfono (opcional)"
+      },
+      "validation": {
+        "emailInvalid": "Correo inválido",
+        "passwordMinLength": "Mínimo 8 caracteres",
+        "documentNumberLength": "Debe tener entre 6 y 20 caracteres",
+        "digitsOnly": "Solo dígitos"
+      },
+      "documentTypes": {
+        "CC": "Cédula de Ciudadanía",
+        "CE": "Cédula de Extranjería",
+        "TI": "Tarjeta de Identidad",
+        "PA": "Pasaporte"
+      }
+    }
+  },
+  "pesajes": {
+    "title": "Pesajes",
+    "subtitle": "Registro y validación de pesajes por material",
+    "searchPlaceholder": "Buscar por reciclador o material...",
+    "countSingular": "pesaje",
+    "countPlural": "pesajes",
+    "emptySearch": "Sin resultados para \"{{query}}\"",
+    "emptyState": "No hay pesajes registrados aún.",
+    "table": {
+      "date": "Fecha",
+      "recycler": "Reciclador",
+      "material": "Material",
+      "kg": "Kg",
+      "pricePerKg": "Precio/kg",
+      "total": "Total",
+      "status": "Estado"
+    },
+    "materials": {
+      "papel": "Papel",
+      "plastico": "Plástico",
+      "vidrio": "Vidrio",
+      "metal": "Metal",
+      "carton": "Cartón"
+    },
+    "status": {
+      "pendiente": "Pendiente",
+      "validado": "Validado",
+      "pagado": "Pagado"
+    }
+  },
+  "inventario": {
+    "title": "Inventario de Reciclaje",
+    "subtitle": "Control de stock por material y punto de acopio",
+    "searchPlaceholder": "Buscar por material o bodega...",
+    "countSingular": "ítem",
+    "countPlural": "ítems",
+    "filterAllMaterials": "Todos los materiales",
+    "filterAllStatuses": "Todos los estados",
+    "emptySearch": "Sin resultados para los filtros aplicados.",
+    "emptyState": "No hay ítems en el inventario.",
+    "stats": {
+      "totalStock": "Stock total",
+      "totalStockSub": "Suma de todos los materiales",
+      "inventoryValue": "Valor inventario",
+      "inventoryValueSub": "Valorado al precio de compra",
+      "available": "Disponibles",
+      "availableSub": "de {{total}} ítems totales",
+      "alerts": "Alertas",
+      "alertsSub": "Bajo stock o agotados"
+    },
+    "table": {
+      "material": "Material",
+      "warehouse": "Bodega",
+      "currentStock": "Stock actual",
+      "minimum": "Mínimo (kg)",
+      "pricePerKg": "Precio/kg",
+      "totalValue": "Valor total",
+      "updated": "Actualizado",
+      "status": "Estado"
+    },
+    "materials": {
+      "papel": "Papel",
+      "plastico": "Plástico",
+      "vidrio": "Vidrio",
+      "metal": "Metal",
+      "carton": "Cartón",
+      "electronico": "Electrónico",
+      "organico": "Orgánico"
+    },
+    "status": {
+      "disponible": "Disponible",
+      "bajo_stock": "Bajo stock",
+      "agotado": "Agotado"
+    }
+  },
+  "transacciones": {
+    "title": "Transacciones",
+    "subtitle": "Compras a recicladores y ventas a empresas gestoras",
+    "tabs": {
+      "purchases": "Compras",
+      "sales": "Ventas"
+    },
+    "purchaseStats": {
+      "totalPurchased": "Total comprado",
+      "totalPurchasedSub": "Materiales adquiridos",
+      "valuePaid": "Valor pagado",
+      "valuePaidSub": "A recicladores",
+      "pendingPayment": "Pendientes de pago",
+      "pendingPaymentSub": "de {{total}} compras"
+    },
+    "saleStats": {
+      "totalSold": "Total vendido",
+      "totalSoldSub": "Materiales despachados",
+      "valueCharged": "Valor cobrado",
+      "valueChargedSub": "A empresas",
+      "grossProfit": "Ganancia bruta",
+      "grossProfitSub": "Venta − costo compra",
+      "toInvoice": "Por facturar",
+      "toInvoiceSub": "de {{total}} ventas"
+    },
+    "newPurchase": "+ Nueva compra",
+    "newSale": "+ Nueva venta",
+    "table": {
+      "date": "Fecha",
+      "recycler": "Reciclador",
+      "company": "Empresa",
+      "kg": "Kg",
+      "pricePerKg": "Precio/kg",
+      "total": "Total",
+      "status": "Estado"
+    },
+    "registerPurchase": {
+      "title": "Registrar compra",
+      "submitLabel": "Registrar compra",
+      "recyclerField": "Reciclador *",
+      "recyclerPlaceholder": "Nombre del reciclador",
+      "materialField": "Material *",
+      "quantityField": "Cantidad (kg) *",
+      "priceField": "Precio/kg ($) *",
+      "dateField": "Fecha",
+      "statusField": "Estado",
+      "validationError": "Completa todos los campos requeridos."
+    },
+    "registerSale": {
+      "title": "Registrar venta",
+      "submitLabel": "Registrar venta",
+      "companyField": "Empresa compradora *",
+      "companyPlaceholder": "Nombre de la empresa"
+    },
+    "status": {
+      "pendiente": "Pendiente",
+      "pagado": "Pagado",
+      "cancelado": "Cancelado",
+      "facturado": "Facturado",
+      "entregado": "Entregado"
+    }
+  },
+  "reportes": {
+    "title": "Reportes",
+    "subtitle": "Estadísticas y exportación de datos",
+    "placeholder": "Reportes y exportación — disponible cuando se conecte el backend"
+  },
+  "configuracion": {
+    "title": "Configuración",
+    "subtitle": "Ajustes del portal y datos de la ECA",
+    "placeholder": "Configuración de la ECA — disponible cuando se conecte el backend"
+  },
+  "ui": {
+    "table": {
+      "rowsPerPage": "Filas por página:",
+      "displayedRows": "{{from}}–{{to}} de {{total}}"
+    },
+    "formDrawer": {
+      "cancel": "Cancelar",
+      "save": "Guardar",
+      "requiredField": "{{field}} es requerido",
+      "togglePasswordVisibility": "Mostrar/ocultar contraseña",
+      "close": "Cerrar"
+    }
+  }
+}
