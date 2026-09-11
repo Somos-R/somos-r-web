@@ -1,4 +1,4 @@
-name: Build and Deploy — Frontend
+name: CI — Frontend
 
 on:
   push:
@@ -11,7 +11,7 @@ env:
   IMAGE: ghcr.io/somos-r/frontend
 
 jobs:
-  # ─── Build & Push image ───────────────────────────────────────────────────
+  # ─── Build image (smoke test — not pushed anywhere for deployment yet) ────
   build:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
@@ -48,24 +48,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  # ─── Deploy to Kubernetes ─────────────────────────────────────────────────
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    environment: production
-    steps:
-      - uses: azure/setup-kubectl@v3
-
-      - name: Configure kubectl
-        run: |
-          mkdir -p ~/.kube
-          echo "${{ secrets.KUBECONFIG }}" | base64 -d > ~/.kube/config
-
-      - name: Update frontend image
-        run: |
-          kubectl set image deployment/somos-r-frontend \
-            frontend=${{ env.IMAGE }}:${{ needs.build.outputs.image_tag }} \
-            -n somos-r-prod
-          kubectl rollout status deployment/somos-r-frontend \
-            -n somos-r-prod --timeout=120s
+# Deployment is not wired up here yet. The plan is Vercel (web) + Railway
+# (backend) + Supabase (Postgres/PostGIS) — see ESTADO_Y_PLAN_MVP.md in the
+# Somos-R workspace root — connected straight to GitHub, not a Kubernetes
+# cluster. Add that as its own step once the Vercel project exists.
