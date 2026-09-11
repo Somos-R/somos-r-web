@@ -14,7 +14,6 @@ jobs:
   # ─── Build image (smoke test — not pushed anywhere for deployment yet) ────
   build:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
     permissions:
       contents: read
       packages: write
@@ -40,7 +39,9 @@ jobs:
       - uses: docker/build-push-action@v5
         with:
           context: .
-          push: true
+          # Only publish the image once it's actually on main — PRs just
+          # need the build itself to succeed, that's what's required to merge.
+          push: ${{ github.ref == 'refs/heads/main' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
