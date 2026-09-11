@@ -13,7 +13,6 @@ import { useAuthStore } from '../../hooks/useAuth'
 import { t, interpolate } from '../../lib/i18n'
 import { weighingsService } from '../../services/weighings'
 import { recyclersService } from '../../services/recyclers'
-import { inventoryService } from '../../services/inventory'
 
 export default function Dashboard() {
   const { user } = useAuthStore()
@@ -21,11 +20,6 @@ export default function Dashboard() {
   const { data: weighingStats } = useQuery({
     queryKey: ['weighings', 'stats'],
     queryFn: () => weighingsService.stats(),
-  })
-
-  const { data: inventoryStats } = useQuery({
-    queryKey: ['inventory', 'stats'],
-    queryFn: () => inventoryService.stats(),
   })
 
   const { data: recyclersData } = useQuery({

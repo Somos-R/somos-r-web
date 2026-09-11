@@ -4,6 +4,8 @@ import type { SxProps, Theme } from '@mui/material/styles'
 
 export interface ButtonProps {
   variant?: 'contained' | 'outlined' | 'text' | 'destructive'
+  /** Overrides the color independently of variant (e.g. an outlined success/error button). */
+  color?: 'primary' | 'success' | 'error' | 'warning'
   size?: 'small' | 'medium' | 'large'
   loading?: boolean
   disabled?: boolean
@@ -18,6 +20,7 @@ export interface ButtonProps {
 
 export function Button({
   variant = 'contained',
+  color,
   size = 'medium',
   loading = false,
   disabled,
@@ -33,7 +36,7 @@ export function Button({
     variant === 'destructive' ? 'contained' : variant
 
   const colorProp: MuiButtonProps['color'] =
-    variant === 'destructive' ? 'error' : 'primary'
+    color ?? (variant === 'destructive' ? 'error' : 'primary')
 
   return (
     <MuiButton

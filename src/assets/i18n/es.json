@@ -249,6 +249,7 @@
       "date": "Fecha",
       "recycler": "Reciclador",
       "company": "Empresa",
+      "material": "Material",
       "kg": "Kg",
       "pricePerKg": "Precio/kg",
       "total": "Total",

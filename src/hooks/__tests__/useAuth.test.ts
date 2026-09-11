@@ -85,8 +85,8 @@ describe('useAuth', () => {
     await act(async () => {
       await result.current.login('test@eca.com', 'password')
     })
-    act(() => {
-      result.current.logout()
+    await act(async () => {
+      await result.current.logout()
     })
     expect(result.current.user).toBeNull()
     expect(result.current.token).toBeNull()
@@ -97,8 +97,8 @@ describe('useAuth', () => {
     await act(async () => {
       await result.current.login('test@eca.com', 'password')
     })
-    act(() => {
-      result.current.logout()
+    await act(async () => {
+      await result.current.logout()
     })
     expect(localStorageMock.getItem('auth_token')).toBeNull()
   })
