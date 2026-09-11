@@ -5,7 +5,8 @@ import type { SxProps, Theme } from '@mui/material/styles'
 export interface InputProps {
   label?: string
   placeholder?: string
-  value?: string
+  /** Accepts number for numeric fields (e.g. kg, precio) — MUI renders it as text either way. */
+  value?: string | number
   onChange?: React.ChangeEventHandler<HTMLInputElement>
   type?: string
   required?: boolean

@@ -4,32 +4,22 @@ import Typography from '@mui/material/Typography'
 import Paper from '@mui/material/Paper'
 import IconButton from '@mui/material/IconButton'
 import { Eye, EyeOff } from 'lucide-react'
-import { Button, Input, Select, Alert } from '../../components/ui'
+import { Button, Input, Alert } from '../../components/ui'
 import { useAuthStore } from '../../hooks/useAuth'
-import type { UserRole } from '../../types/auth.types'
 import { t } from '../../lib/i18n'
 
 interface LoginFormProps {
   onSuccess?: () => void
 }
 
-const DEV_ROLES: { value: UserRole; label: string }[] = [
-  { value: 'admin_eca', label: t.auth.devRoles.admin_eca },
-  { value: 'operador_eca', label: t.auth.devRoles.operador_eca },
-  { value: 'admin_asociacion', label: t.auth.devRoles.admin_asociacion },
-  { value: 'superadmin', label: t.auth.devRoles.superadmin },
-]
-
 export function LoginForm({ onSuccess }: LoginFormProps) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [devRole, setDevRole] = useState<UserRole>('admin_eca')
   const [emailError, setEmailError] = useState('')
   const [passwordError, setPasswordError] = useState('')
   const { login, isLoading, error } = useAuthStore()
   const emailRef = useRef<HTMLInputElement>(null)
-  const isDev = import.meta.env.DEV
 
   useEffect(() => {
     emailRef.current?.focus()
@@ -50,7 +40,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
     e.preventDefault()
     if (!validate()) return
     try {
-      await login(email, password, isDev ? devRole : undefined)
+      await login(email, password)
       onSuccess?.()
     } catch {
       // error handled by the store
@@ -90,15 +80,6 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
             </IconButton>
           }
         />
-
-        {isDev && (
-          <Select
-            label={t.auth.roleDevLabel}
-            value={devRole}
-            onChange={(e) => setDevRole(e.target.value as UserRole)}
-            options={DEV_ROLES}
-          />
-        )}
 
         {error && <Alert severity="error">{error}</Alert>}
 

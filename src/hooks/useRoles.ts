@@ -8,7 +8,7 @@ export function useRoles() {
     canSeeDashboard: role === 'operador_eca' || role === 'admin_eca' || role === 'superadmin',
     canSeeWeighings: role === 'operador_eca' || role === 'admin_eca' || role === 'superadmin',
     canSeeReports: role === 'operador_eca' || role === 'admin_eca' || role === 'superadmin',
-    canSeeRecyclers: role === 'admin_asociacion' || role === 'superadmin',
+    canSeeRecyclers: role === 'admin_eca' || role === 'operador_eca' || role === 'admin_asociacion' || role === 'superadmin',
     canSeeSettings: role !== undefined,
     canSeeInventory: role === 'operador_eca' || role === 'admin_eca' || role === 'superadmin',
     canSeeTransactions: role === 'operador_eca' || role === 'admin_eca' || role === 'superadmin',

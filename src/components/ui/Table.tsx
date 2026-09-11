@@ -38,12 +38,13 @@ export function TableRow({ children, hover }: TableRowProps) {
 interface TableCellProps {
   children?: React.ReactNode
   align?: 'left' | 'center' | 'right'
+  colSpan?: number
   sx?: SxProps<Theme>
 }
 
-export function TableCell({ children, align, sx }: TableCellProps) {
+export function TableCell({ children, align, colSpan, sx }: TableCellProps) {
   return (
-    <MuiTableCell align={align} sx={sx}>
+    <MuiTableCell align={align} colSpan={colSpan} sx={sx}>
       {children}
     </MuiTableCell>
   )

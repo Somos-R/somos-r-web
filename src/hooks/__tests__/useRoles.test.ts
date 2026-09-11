@@ -57,10 +57,10 @@ describe('useRoles', () => {
     expect(result.current.canSeeReports).toBe(true)
   })
 
-  it('canSeeRecyclers is false for operador_eca', async () => {
+  it('canSeeRecyclers is true for operador_eca', async () => {
     await setMockUser({ role: 'operador_eca' })
     const { result } = renderHook(() => useRoles())
-    expect(result.current.canSeeRecyclers).toBe(false)
+    expect(result.current.canSeeRecyclers).toBe(true)
   })
 
   it('canSeeWeighings is false for admin_asociacion', async () => {

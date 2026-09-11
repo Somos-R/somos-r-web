@@ -2,6 +2,17 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Git workflow — read this first
+
+`main` is protected: it only moves forward through a merged pull request, never a direct push.
+
+- **Never commit directly on `main`.** Before starting any change — including a quick fix — create or switch to a branch (`feature/<slug>`, `fix/<slug>`, `chore/<slug>`).
+- **Commit as you go.** Don't let a session end with unstaged or uncommitted changes sitting in the working tree "to commit later." If the work isn't finished, commit it as WIP on the branch anyway — an uncommitted working tree is not a save point.
+- **Push and open a PR** once there's something worth reviewing, rather than leaving finished work local-only. A draft PR is fine if it's still in progress.
+- This applies whether the session is you (a human) or a Claude Code / agent session — no exceptions for "it's just a small change."
+
+This isn't theoretical: this repo had ~4 months of real work (MUI migration, real API wiring) sitting uncommitted in the working tree before it finally got consolidated into PRs. Don't repeat that.
+
 ## Commands
 
 ```bash

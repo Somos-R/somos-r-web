@@ -5,28 +5,69 @@ import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
 import ListItemText from '@mui/material/ListItemText'
 import Divider from '@mui/material/Divider'
+import Skeleton from '@mui/material/Skeleton'
 import { Users, Scale, ClipboardList, Package } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, Badge, Button } from '../../components/ui'
 import { useAuthStore } from '../../hooks/useAuth'
 import { t, interpolate } from '../../lib/i18n'
-
-const METRICS = [
-  { label: t.dashboard.metrics.activeRecyclers, value: '12', trend: '+2 este mes', up: true, icon: <Users size={22} color="#059669" /> },
-  { label: t.dashboard.metrics.monthlyWeighings, value: '47', trend: '+8 vs anterior', up: true, icon: <Scale size={22} color="#059669" /> },
-  { label: t.dashboard.metrics.pendingRequests, value: '3', trend: '−1 vs ayer', up: false, icon: <ClipboardList size={22} color="#f59e0b" /> },
-  { label: t.dashboard.metrics.collectedKg, value: '1.284', trend: '+124 kg', up: true, icon: <Package size={22} color="#059669" /> },
-]
-
-const RECENT_PESAJES = [
-  { reciclador: 'Carlos Mendez', material: 'Papel', kg: 32, fecha: '2026-04-18' },
-  { reciclador: 'María López', material: 'Plástico', kg: 15, fecha: '2026-04-17' },
-  { reciclador: 'Juan Torres', material: 'Metal', kg: 8, fecha: '2026-04-17' },
-  { reciclador: 'Ana Gómez', material: 'Cartón', kg: 45, fecha: '2026-04-16' },
-  { reciclador: 'Pedro Ruiz', material: 'Vidrio', kg: 20, fecha: '2026-04-15' },
-]
+import { weighingsService } from '../../services/weighings'
+import { recyclersService } from '../../services/recyclers'
 
 export default function Dashboard() {
   const { user } = useAuthStore()
+
+  const { data: weighingStats } = useQuery({
+    queryKey: ['weighings', 'stats'],
+    queryFn: () => weighingsService.stats(),
+  })
+
+  const { data: recyclersData } = useQuery({
+    queryKey: ['recyclers', 'dashboard'],
+    queryFn: () => recyclersService.list({ limit: 100 }),
+  })
+
+  const { data: recentWeighings, isLoading: recentLoading } = useQuery({
+    queryKey: ['weighings', 'recent'],
+    queryFn: () => weighingsService.list({ limit: 5 }),
+  })
+
+  const activeRecyclers = recyclersData?.items.filter((r) => r.verification_status === 'verified').length ?? 0
+  const pendingRecyclers = recyclersData?.items.filter((r) => r.verification_status === 'pending').length ?? 0
+  const totalWeighings = weighingStats?.total_weighings_month ?? 0
+  const pendingWeighings = weighingStats?.pending_count ?? 0
+  const collectedKg = weighingStats ? Number(weighingStats.total_kg_month) : 0
+
+  const metrics = [
+    {
+      label: t.dashboard.metrics.activeRecyclers,
+      value: String(activeRecyclers),
+      trend: pendingRecyclers > 0 ? `${pendingRecyclers} pendientes` : 'Sin pendientes',
+      up: pendingRecyclers === 0,
+      icon: <Users size={22} color="#059669" />,
+    },
+    {
+      label: t.dashboard.metrics.monthlyWeighings,
+      value: String(totalWeighings),
+      trend: 'este mes',
+      up: totalWeighings > 0,
+      icon: <Scale size={22} color="#059669" />,
+    },
+    {
+      label: t.dashboard.metrics.pendingRequests,
+      value: String(pendingWeighings),
+      trend: 'por validar',
+      up: pendingWeighings === 0,
+      icon: <ClipboardList size={22} color={pendingWeighings > 0 ? '#f59e0b' : '#059669'} />,
+    },
+    {
+      label: t.dashboard.metrics.collectedKg,
+      value: collectedKg.toLocaleString('es-CO'),
+      trend: 'kg este mes',
+      up: collectedKg > 0,
+      icon: <Package size={22} color="#059669" />,
+    },
+  ]
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -38,7 +79,7 @@ export default function Dashboard() {
       </Box>
 
       <Grid container spacing={2}>
-        {METRICS.map((m) => (
+        {metrics.map((m) => (
           <Grid item xs={12} sm={6} lg={3} key={m.label}>
             <Card>
               <CardContent>
@@ -63,27 +104,43 @@ export default function Dashboard() {
             </Button>
           }
         />
-        <List disablePadding>
-          {RECENT_PESAJES.map((p, i) => (
-            <Box key={i}>
-              {i > 0 && <Divider />}
-              <ListItem sx={{ px: 2, py: 1.25 }}>
+        {recentLoading ? (
+          <Box sx={{ px: 2, py: 1 }}>
+            {[...Array(5)].map((_, i) => (
+              <Skeleton key={i} height={48} sx={{ my: 0.5 }} />
+            ))}
+          </Box>
+        ) : (
+          <List disablePadding>
+            {(recentWeighings?.items ?? []).map((w, i) => (
+              <Box key={w.id}>
+                {i > 0 && <Divider />}
+                <ListItem sx={{ px: 2, py: 1.25 }}>
+                  <ListItemText
+                    primary={w.recycler.full_name}
+                    secondary={w.material.label}
+                    primaryTypographyProps={{ fontWeight: 500, variant: 'body2' }}
+                    secondaryTypographyProps={{ variant: 'caption' }}
+                  />
+                  <Box sx={{ textAlign: 'right' }}>
+                    <Typography variant="body2" fontWeight={500}>{Number(w.kg).toLocaleString('es-CO')} kg</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {new Date(w.fecha).toLocaleDateString('es-CO', { day: '2-digit', month: 'short' })}
+                    </Typography>
+                  </Box>
+                </ListItem>
+              </Box>
+            ))}
+            {(recentWeighings?.items ?? []).length === 0 && (
+              <ListItem sx={{ px: 2, py: 2 }}>
                 <ListItemText
-                  primary={p.reciclador}
-                  secondary={p.material}
-                  primaryTypographyProps={{ fontWeight: 500, variant: 'body2' }}
-                  secondaryTypographyProps={{ variant: 'caption' }}
+                  primary="No hay pesajes registrados aún"
+                  primaryTypographyProps={{ variant: 'body2', color: 'text.secondary', textAlign: 'center' }}
                 />
-                <Box sx={{ textAlign: 'right' }}>
-                  <Typography variant="body2" fontWeight={500}>{p.kg} kg</Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    {new Date(p.fecha).toLocaleDateString('es-CO', { day: '2-digit', month: 'short' })}
-                  </Typography>
-                </Box>
               </ListItem>
-            </Box>
-          ))}
-        </List>
+            )}
+          </List>
+        )}
       </Card>
     </Box>
   )

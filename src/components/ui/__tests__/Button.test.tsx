@@ -49,4 +49,16 @@ describe('Button', () => {
     render(<Button variant="destructive">Eliminar</Button>)
     expect(screen.getByRole('button', { name: 'Eliminar' })).toBeInTheDocument()
   })
+
+  it('applies an explicit color independently of variant', () => {
+    render(<Button variant="outlined" color="success">Validar</Button>)
+    const btn = screen.getByRole('button')
+    expect(btn).toHaveClass('MuiButton-outlined')
+    expect(btn).toHaveClass('MuiButton-colorSuccess')
+  })
+
+  it('lets an explicit color override the destructive default', () => {
+    render(<Button variant="outlined" color="error">Rechazar</Button>)
+    expect(screen.getByRole('button')).toHaveClass('MuiButton-colorError')
+  })
 })

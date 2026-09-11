@@ -15,7 +15,7 @@ export type { SelectOption }
 export interface FormFieldDef {
   name: string
   label: string
-  type: 'text' | 'email' | 'password' | 'select' | 'tel'
+  type: 'text' | 'email' | 'password' | 'select' | 'tel' | 'number'
   placeholder?: string
   required?: boolean
   options?: SelectOption[]

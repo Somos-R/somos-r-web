@@ -51,4 +51,9 @@ describe('Input', () => {
     render(<Input label="Email" required />)
     expect(screen.getByRole('textbox')).toBeRequired()
   })
+
+  it('accepts a numeric value, for fields like kg or precio', () => {
+    render(<Input label="Kilogramos" value={12.5} onChange={() => {}} />)
+    expect(screen.getByLabelText('Kilogramos')).toHaveValue('12.5')
+  })
 })
