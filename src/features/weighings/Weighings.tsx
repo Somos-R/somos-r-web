@@ -1,42 +1,183 @@
+import { useState } from 'react'
 import Box from '@mui/material/Box'
+import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
-import { useQuery } from '@tanstack/react-query'
+import CircularProgress from '@mui/material/CircularProgress'
+import Dialog from '@mui/material/Dialog'
+import DialogTitle from '@mui/material/DialogTitle'
+import DialogContent from '@mui/material/DialogContent'
+import DialogActions from '@mui/material/DialogActions'
+import MuiTextField from '@mui/material/TextField'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import WeighingsTable, { type Weighing } from './WeighingsTable'
+import RegisterWeighingDrawer from './RegisterWeighingDrawer'
+import { Card, CardContent, Button } from '../../components/ui'
 import { t } from '../../lib/i18n'
+import { weighingsService, type WeighingAPI } from '../../services/weighings'
 
-const MOCK_WEIGHINGS: Weighing[] = [
-  { id: '1', fecha: '2026-04-18', reciclador_nombre: 'Carlos Mendez', material: 'papel', kg: 32, precio_kg: 350, estado: 'validado' },
-  { id: '2', fecha: '2026-04-17', reciclador_nombre: 'María López', material: 'plastico', kg: 15, precio_kg: 500, estado: 'pagado' },
-  { id: '3', fecha: '2026-04-17', reciclador_nombre: 'Juan Torres', material: 'metal', kg: 8, precio_kg: 1200, estado: 'validado' },
-  { id: '4', fecha: '2026-04-16', reciclador_nombre: 'Ana Gómez', material: 'carton', kg: 45, precio_kg: 280, estado: 'pagado' },
-  { id: '5', fecha: '2026-04-15', reciclador_nombre: 'Pedro Ruiz', material: 'vidrio', kg: 20, precio_kg: 150, estado: 'pendiente' },
-  { id: '6', fecha: '2026-04-15', reciclador_nombre: 'Carlos Mendez', material: 'carton', kg: 60, precio_kg: 280, estado: 'pagado' },
-  { id: '7', fecha: '2026-04-14', reciclador_nombre: 'Laura Sánchez', material: 'papel', kg: 25, precio_kg: 350, estado: 'validado' },
-  { id: '8', fecha: '2026-04-14', reciclador_nombre: 'David Herrera', material: 'plastico', kg: 18, precio_kg: 500, estado: 'pendiente' },
-  { id: '9', fecha: '2026-04-13', reciclador_nombre: 'María López', material: 'metal', kg: 12, precio_kg: 1200, estado: 'pagado' },
-  { id: '10', fecha: '2026-04-12', reciclador_nombre: 'Juan Torres', material: 'vidrio', kg: 35, precio_kg: 150, estado: 'validado' },
-  { id: '11', fecha: '2026-04-12', reciclador_nombre: 'Ana Gómez', material: 'papel', kg: 40, precio_kg: 350, estado: 'pagado' },
-  { id: '12', fecha: '2026-04-11', reciclador_nombre: 'Pedro Ruiz', material: 'plastico', kg: 22, precio_kg: 500, estado: 'validado' },
-  { id: '13', fecha: '2026-04-10', reciclador_nombre: 'Laura Sánchez', material: 'carton', kg: 55, precio_kg: 280, estado: 'pagado' },
-  { id: '14', fecha: '2026-04-09', reciclador_nombre: 'David Herrera', material: 'metal', kg: 5, precio_kg: 1200, estado: 'pendiente' },
-  { id: '15', fecha: '2026-04-08', reciclador_nombre: 'Carlos Mendez', material: 'papel', kg: 28, precio_kg: 350, estado: 'pagado' },
-]
+function toViewModel(w: WeighingAPI): Weighing {
+  return {
+    id: w.id,
+    fecha: w.fecha,
+    reciclador_nombre: w.recycler.full_name,
+    material: w.material_code as Weighing['material'],
+    kg: Number(w.kg),
+    precio_kg: Number(w.precio_kg),
+    estado: w.estado,
+    rejection_reason: w.rejection_reason,
+  }
+}
 
-const fetchWeighings = async (): Promise<Weighing[]> => {
-  await new Promise((r) => setTimeout(r, 800))
-  return MOCK_WEIGHINGS
+interface StatCardProps { label: string; value: string; sub: string; color?: string }
+
+function StatCard({ label, value, sub, color = 'text.primary' }: StatCardProps) {
+  return (
+    <Card>
+      <CardContent>
+        <Typography variant="caption" color="text.secondary" textTransform="uppercase" letterSpacing={0.5}>{label}</Typography>
+        <Typography variant="h5" fontWeight={700} color={color} mt={0.5}>{value}</Typography>
+        <Typography variant="caption" color="text.secondary">{sub}</Typography>
+      </CardContent>
+    </Card>
+  )
 }
 
 export default function Weighings() {
-  const { data = [], isLoading } = useQuery({ queryKey: ['weighings'], queryFn: fetchWeighings })
+  const queryClient = useQueryClient()
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false)
+  const [rejectTargetId, setRejectTargetId] = useState<string | null>(null)
+  const [rejectReason, setRejectReason] = useState('')
+  const [rejectReasonError, setRejectReasonError] = useState('')
+  const [actionLoadingId, setActionLoadingId] = useState<string | null>(null)
+
+  const { data: listData, isLoading: listLoading } = useQuery({
+    queryKey: ['weighings'],
+    queryFn: () => weighingsService.list({ limit: 50 }),
+  })
+
+  const { data: stats } = useQuery({
+    queryKey: ['weighings', 'stats'],
+    queryFn: () => weighingsService.stats(),
+  })
+
+  const statusMutation = useMutation({
+    mutationFn: ({ id, status, reason }: { id: string; status: 'validado' | 'rechazado' | 'pagado'; reason?: string }) =>
+      weighingsService.updateStatus(id, { status, rejection_reason: reason }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['weighings'] })
+    },
+    onSettled: () => {
+      setActionLoadingId(null)
+    },
+  })
+
+  const handleValidate = (id: string) => {
+    setActionLoadingId(id)
+    statusMutation.mutate({ id, status: 'validado' })
+  }
+
+  const handleOpenReject = (id: string) => {
+    setRejectTargetId(id)
+    setRejectReason('')
+    setRejectReasonError('')
+    setRejectDialogOpen(true)
+  }
+
+  const handleConfirmReject = () => {
+    if (!rejectReason.trim()) {
+      setRejectReasonError('El motivo de rechazo es requerido')
+      return
+    }
+    if (!rejectTargetId) return
+    setRejectDialogOpen(false)
+    setActionLoadingId(rejectTargetId)
+    statusMutation.mutate({ id: rejectTargetId, status: 'rechazado', reason: rejectReason.trim() })
+  }
+
+  const handleMarkPaid = (id: string) => {
+    setActionLoadingId(id)
+    statusMutation.mutate({ id, status: 'pagado' })
+  }
+
+  const items = (listData?.items ?? []).map(toViewModel)
+  const totalKgMonth = stats ? Number(stats.total_kg_month).toLocaleString('es-CO') : '0'
+  const totalWeighingsMonth = stats?.total_weighings_month ?? 0
+  const pendingCount = stats?.pending_count ?? 0
+
+  if (listLoading && items.length === 0) {
+    return <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}><CircularProgress /></Box>
+  }
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <Box>
-        <Typography variant="h5" fontWeight={600}>{t.pesajes.title}</Typography>
-        <Typography variant="body2" color="text.secondary" mt={0.5}>{t.pesajes.subtitle}</Typography>
+      <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+        <Box>
+          <Typography variant="h5" fontWeight={600}>{t.pesajes.title}</Typography>
+          <Typography variant="body2" color="text.secondary" mt={0.5}>{t.pesajes.subtitle}</Typography>
+        </Box>
+        <Button onClick={() => setDrawerOpen(true)}>Nuevo pesaje</Button>
       </Box>
-      <WeighingsTable data={data} isLoading={isLoading} />
+
+      <Grid container spacing={2}>
+        <Grid item xs={6} sm={4}>
+          <StatCard
+            label="Pesajes este mes"
+            value={String(totalWeighingsMonth)}
+            sub="pesajes registrados"
+          />
+        </Grid>
+        <Grid item xs={6} sm={4}>
+          <StatCard
+            label="Kg recogidos este mes"
+            value={`${totalKgMonth} kg`}
+            sub="total del período"
+            color="success.dark"
+          />
+        </Grid>
+        <Grid item xs={6} sm={4}>
+          <StatCard
+            label="Pendientes de validar"
+            value={String(pendingCount)}
+            sub="requieren acción"
+            color={pendingCount > 0 ? 'warning.main' : 'text.disabled'}
+          />
+        </Grid>
+      </Grid>
+
+      <WeighingsTable
+        data={items}
+        isLoading={listLoading}
+        onValidate={handleValidate}
+        onReject={handleOpenReject}
+        onMarkPaid={handleMarkPaid}
+        actionLoadingId={actionLoadingId}
+      />
+
+      <RegisterWeighingDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
+
+      <Dialog open={rejectDialogOpen} onClose={() => setRejectDialogOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Rechazar pesaje</DialogTitle>
+        <DialogContent>
+          <MuiTextField
+            autoFocus
+            fullWidth
+            multiline
+            rows={3}
+            label="Motivo de rechazo"
+            placeholder="Describe el motivo por el cual se rechaza este pesaje..."
+            value={rejectReason}
+            onChange={(e) => { setRejectReason(e.target.value); setRejectReasonError('') }}
+            error={!!rejectReasonError}
+            helperText={rejectReasonError}
+            sx={{ mt: 1 }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" onClick={() => setRejectDialogOpen(false)}>Cancelar</Button>
+          <Button color="error" onClick={handleConfirmReject}>Confirmar rechazo</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   )
 }

@@ -17,7 +17,10 @@
       "Bash(gh repo *)",
       "Bash(gh api *)",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Rago\\\\Documents\\\\Development\\\\Somos-R\\\\somos-r-web\\\\src\" -Recurse -File)",
-      "Bash(Remove-Item -Recurse -Force src/features/configuracion, src/features/inventario, src/features/pesajes, src/features/recicladores, src/features/reportes, src/features/transacciones, src/services/recicladores.ts)"
+      "Bash(Remove-Item -Recurse -Force src/features/configuracion, src/features/inventario, src/features/pesajes, src/features/recicladores, src/features/reportes, src/features/transacciones, src/services/recicladores.ts)",
+      "Bash(curl -s http://localhost:8000/openapi.json)",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); paths=list\\(d.get\\('paths',{}\\).keys\\(\\)\\); [print\\(p\\) for p in paths]\")",
+      "Bash(python -c ' *)"
     ]
   }
 }

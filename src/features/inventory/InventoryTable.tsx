@@ -4,6 +4,9 @@ import Typography from '@mui/material/Typography'
 import CircularProgress from '@mui/material/CircularProgress'
 import MenuItem from '@mui/material/MenuItem'
 import TextField from '@mui/material/TextField'
+import IconButton from '@mui/material/IconButton'
+import Tooltip from '@mui/material/Tooltip'
+import { Pencil } from 'lucide-react'
 import {
   Badge, Input,
   Table, TableHead, TableBody, TableRow, TableCell, TableContainer, TablePagination,
@@ -24,6 +27,7 @@ export interface InventoryItem {
 interface InventoryTableProps {
   data: InventoryItem[]
   isLoading?: boolean
+  onEdit?: (item: InventoryItem) => void
 }
 
 const MATERIAL_CONFIG: Record<InventoryItem['material'], { label: string; color: 'info' | 'primary' | 'success' | 'default' | 'warning' | 'error' }> = {
@@ -58,7 +62,7 @@ function StockBar({ actual, minimo }: { actual: number; minimo: number }) {
 
 const PAGE_SIZE = 8
 
-export default function InventoryTable({ data, isLoading }: InventoryTableProps) {
+export default function InventoryTable({ data, isLoading, onEdit }: InventoryTableProps) {
   const [search, setSearch] = useState('')
   const [materialFilter, setMaterialFilter] = useState<InventoryItem['material'] | ''>('')
   const [statusFilter, setStatusFilter] = useState<InventoryItem['estado'] | ''>('')
@@ -138,6 +142,7 @@ export default function InventoryTable({ data, isLoading }: InventoryTableProps)
                 <TableCell align="right">{t.inventario.table.totalValue}</TableCell>
                 <TableCell>{t.inventario.table.updated}</TableCell>
                 <TableCell>{t.inventario.table.status}</TableCell>
+                {onEdit && <TableCell />}
               </TableRow>
             </TableHead>
             <TableBody>
@@ -153,6 +158,15 @@ export default function InventoryTable({ data, isLoading }: InventoryTableProps)
                     {new Date(item.fecha_actualizacion).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' })}
                   </TableCell>
                   <TableCell><Badge label={ESTADO_CONFIG[item.estado].label} color={ESTADO_CONFIG[item.estado].color} /></TableCell>
+                  {onEdit && (
+                    <TableCell align="right" sx={{ py: 0.5 }}>
+                      <Tooltip title="Editar mínimo y precio">
+                        <IconButton size="small" onClick={() => onEdit(item)}>
+                          <Pencil size={15} />
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))}
             </TableBody>

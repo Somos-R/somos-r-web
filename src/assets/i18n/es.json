@@ -96,6 +96,23 @@
       "successMessage": "Reciclador verificado exitosamente",
       "errorMessage": "Error al verificar el reciclador"
     },
+    "reject": {
+      "button": "Rechazar",
+      "dialogTitle": "Rechazar reciclador",
+      "dialogMessage": "Indica el motivo del rechazo. El reciclador no podrá iniciar sesión hasta que sea verificado.",
+      "reasonLabel": "Motivo del rechazo",
+      "reasonPlaceholder": "Ej: Documento vencido, información incompleta...",
+      "confirmButton": "Confirmar rechazo",
+      "successMessage": "Reciclador rechazado",
+      "errorMessage": "Error al rechazar el reciclador",
+      "reasonRequired": "El motivo es requerido"
+    },
+    "filterStatus": {
+      "all": "Todos los estados",
+      "pending": "Solo pendientes",
+      "verified": "Solo verificados",
+      "rejected": "Solo rechazados"
+    },
     "register": {
       "drawerTitle": "Registrar reciclador",
       "submitLabel": "Registrar",
@@ -145,12 +162,15 @@
       "plastico": "Plástico",
       "vidrio": "Vidrio",
       "metal": "Metal",
-      "carton": "Cartón"
+      "carton": "Cartón",
+      "electronico": "Electrónico",
+      "organico": "Orgánico"
     },
     "status": {
       "pendiente": "Pendiente",
       "validado": "Validado",
-      "pagado": "Pagado"
+      "pagado": "Pagado",
+      "rechazado": "Rechazado"
     }
   },
   "inventario": {
@@ -220,7 +240,7 @@
       "valueChargedSub": "A empresas",
       "grossProfit": "Ganancia bruta",
       "grossProfitSub": "Venta − costo compra",
-      "toInvoice": "Por facturar",
+      "toInvoice": "Pendientes de entrega",
       "toInvoiceSub": "de {{total}} ventas"
     },
     "newPurchase": "+ Nueva compra",
@@ -256,7 +276,6 @@
       "pendiente": "Pendiente",
       "pagado": "Pagado",
       "cancelado": "Cancelado",
-      "facturado": "Facturado",
       "entregado": "Entregado"
     }
   },
