@@ -4,6 +4,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Git workflow — read this first
 
+> This section is duplicated (same policy) in `backend` and `somos-r-mobile`. If it changes, update it in all three repos.
+
 `main` is protected: it only moves forward through a merged pull request, never a direct push.
 
 - **Never commit directly on `main`.** Before starting any change — including a quick fix — create or switch to a branch (`feature/<slug>`, `fix/<slug>`, `chore/<slug>`).
@@ -16,6 +18,7 @@ This isn't theoretical: this repo had ~4 months of real work (MUI migration, rea
 ## Commands
 
 ```bash
+cp .env.example .env.local  # set VITE_API_URL
 npm run dev          # start dev server (Vite, http://localhost:5173)
 npm run build        # tsc -b + vite build
 npm run lint         # ESLint
@@ -32,6 +35,8 @@ npx vitest run src/components/ui/__tests__/FormDrawer.test.tsx
 ## Architecture
 
 **Stack:** React 19 + TypeScript, Vite 8, MUI v6, React Router v7, TanStack React Query v5, Zustand, Axios.
+
+**`legacy-web/`** is a standalone, earlier iteration of this same app (own `package.json`, Tailwind instead of MUI, own lockfile) kept for reference during the MUI migration. It is not built or deployed and should not be edited — treat it as read-only history, not active code.
 
 **Path alias:** `@` → `src/` (configured in both `vite.config.ts` and `vitest.config.ts`).
 
@@ -52,7 +57,7 @@ npx vitest run src/components/ui/__tests__/FormDrawer.test.tsx
 
 `queryClient` is exported from `src/main.tsx` and used by `useAuthStore.logout()` to clear the cache.
 
-The backend base URL is `VITE_API_URL` env var (default `http://localhost:8000`). Auth is still mocked in `useAuthStore.login()` — replace with a real `POST /auth/login` call when the backend is ready.
+The backend base URL is `VITE_API_URL` env var (see `.env.example`; default `http://localhost:8000` when unset). `useAuthStore.login()` calls the real backend (`POST /auth/login` + `GET /users/:id`) — auth is no longer mocked.
 
 ### Feature structure
 
