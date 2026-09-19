@@ -7,14 +7,14 @@ import { t } from '../../lib/i18n'
 
 interface DocumentType {
   code: string
-  name: string
+  label: string
 }
 
 const FALLBACK_DOC_TYPES: DocumentType[] = [
-  { code: 'CC', name: t.recicladores.register.documentTypes.CC },
-  { code: 'CE', name: t.recicladores.register.documentTypes.CE },
-  { code: 'TI', name: t.recicladores.register.documentTypes.TI },
-  { code: 'PA', name: t.recicladores.register.documentTypes.PA },
+  { code: 'CC', label: t.recicladores.register.documentTypes.CC },
+  { code: 'CE', label: t.recicladores.register.documentTypes.CE },
+  { code: 'TI', label: t.recicladores.register.documentTypes.TI },
+  { code: 'PA', label: t.recicladores.register.documentTypes.PA },
 ]
 
 interface Props {
@@ -73,7 +73,7 @@ export default function RegisterRecyclerDrawer({ open, onClose }: Props) {
       label: t.recicladores.register.fields.documentType,
       type: 'select',
       required: true,
-      options: documentTypes.map((d) => ({ value: d.code, label: d.name })),
+      options: documentTypes.map((d) => ({ value: d.code, label: d.label })),
     },
     {
       name: 'id_number',
