@@ -176,6 +176,10 @@ Tests use Vitest + React Testing Library (`@testing-library/react`) + `@testing-
 
 **Coverage is enforced in CI** (`vitest run --coverage`, floors in `vitest.config.ts`: overall, `features/`, `components/ui/`, `lib/`). Feature behaviour is tested through the whole app (`src/__tests__/App.*.test.tsx`, with the fake axios adapter, not MSW), so interceptors, permissions and the query layer run for real. If CI reports a threshold failure, add tests; raise the floors as coverage grows, never lower them to pass.
 
+## End-to-end tests
+
+`e2e/` holds Playwright tests that drive the **production build** in a real browser (`pnpm test:e2e`; first time: `pnpm exec playwright install chromium`). The build is made with a fake API URL and every request is answered at the network level by `e2e/fakeApi.ts`, a small stateful stand-in (a recycler verified in one step is verified in the next), so no backend is needed. It covers what unit tests can't: the real bundle, lazy chunks, router, session in localStorage and the flow across screens (Association verifies a recycler → ECA registers a weighing → validates it). Add a flow here when a change crosses screens; keep single-screen behaviour in Vitest. The fake API only mirrors the contract the app uses: when the backend contract changes, update it together with `src/test/fakeApi.tsx`. A test against a real ephemeral backend is a later step (needs the backend repo in CI and a seed script).
+
 ## Accessibility
 
 Every screen and overlay is checked with axe-core in `src/__tests__/a11y.test.tsx` (runs in CI with the rest of the tests), and keyboard/focus behaviour in `src/__tests__/keyboard.test.tsx`. **A new screen, dialog or drawer must be added to `a11y.test.tsx`** (the shared fake API is in `src/test/fakeApi.tsx`). Whole-page renders also enforce one `<h1>`, a `<main>` and content inside landmarks; jsdom can't check color contrast, so review that by eye. The rules that keep it passing:
