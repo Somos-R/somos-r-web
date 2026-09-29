@@ -25,6 +25,8 @@ export interface InventoryListKey {
 
 export interface RecyclersListKey {
   status: string
+  /** Text typed in the search box, trimmed; empty means no search. */
+  search: string
   page: number
   rowsPerPage: number
 }
@@ -74,6 +76,7 @@ export const queryKeys = {
     all: ['recyclers'] as const,
     list: (filters: RecyclersListKey) => ['recyclers', 'list', filters] as const,
     count: (status: 'verified' | 'pending') => ['recyclers', 'count', status] as const,
-    verified: ['recyclers', 'verified'] as const,
+    /** Verified recyclers matching what the user typed in the picker. */
+    verified: (search: string) => ['recyclers', 'verified', search] as const,
   },
 }

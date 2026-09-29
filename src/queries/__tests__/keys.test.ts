@@ -21,10 +21,12 @@ describe('queryKeys', () => {
     queryKeys.transactions.pendingCount('purchase'),
     queryKeys.transactions.pendingCount('sale'),
     queryKeys.transactions.stats,
-    queryKeys.recyclers.list({ status: 'all', ...page }),
+    queryKeys.recyclers.list({ status: 'all', search: '', ...page }),
+    queryKeys.recyclers.list({ status: 'all', search: 'ana', ...page }),
     queryKeys.recyclers.count('verified'),
     queryKeys.recyclers.count('pending'),
-    queryKeys.recyclers.verified,
+    queryKeys.recyclers.verified(''),
+    queryKeys.recyclers.verified('ana'),
   ]
 
   it('never repeats a key for different data', () => {

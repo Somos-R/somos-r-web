@@ -72,7 +72,7 @@ Never load "all" rows and filter in the browser: the API returns one page (`limi
 - The table is controlled: it receives the page's rows and a `PaginationProps` (`toPaginationProps(pagination, total)`); the count shown is the server `total`, never `data.length`.
 - Counts and totals (dashboard, "pending" cards) come from the server: `list({ ..., limit: 1 }).total` or the stats endpoints, never from filtering a page.
 - Filter options come from the catalogs (`catalogQueries.materials()/warehouses()`), not from the rows on screen.
-- The API has no text search yet, so search boxes only narrow the loaded page and say so (Recyclers). When it does, send it as a param, debounced.
+- Text search happens on the server: `GET /users?q=` (contains, no case or accents, 2 characters minimum). The box keeps its own state and the query gets `useDebouncedValue(search.trim())` (300 ms), so it is one request per pause in typing; changing the text calls `pagination.resetPage()`. Pickers over long lists (the recycler in the weighing form) use the `Autocomplete` primitive (imported from `components/ui/Autocomplete`, not the barrel: it is heavy and belongs to the page chunk that uses it, not the first download), which shows what the server returned for the typed text, never a full list.
 
 ### Code splitting
 

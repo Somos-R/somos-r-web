@@ -117,7 +117,7 @@
     "title": "Recicladores",
     "subtitle": "Recicladores asociados a esta ECA",
     "registerButton": "Crear reciclador",
-    "searchPlaceholder": "Buscar por nombre o cédula...",
+    "searchPlaceholder": "Buscar por nombre, cédula o correo...",
     "countSingular": "reciclador",
     "countPlural": "recicladores",
     "emptySearch": "Sin resultados para \"{{query}}\"",
@@ -181,8 +181,7 @@
         "TI": "Tarjeta de Identidad",
         "PA": "Pasaporte"
       }
-    },
-    "searchPageOnly": "La búsqueda solo recorre los {{count}} de esta página. Filtra por estado o cambia de página para ver el resto."
+    }
   },
   "pesajes": {
     "title": "Pesajes",
@@ -240,7 +239,8 @@
       "selectMaterial": "Seleccionar material…",
       "selectWarehouse": "Seleccionar bodega…",
       "onlyVerified": "Solo recicladores verificados",
-      "noVerifiedRecyclers": "No hay recicladores verificados",
+      "noVerifiedRecyclers": "No hay recicladores verificados con ese nombre o documento",
+      "searchingRecyclers": "Buscando…",
       "priceAutoFilled": "Auto-completado desde inventario",
       "priceHint": "Se completa al seleccionar material y bodega",
       "totalToPay": "Total a pagar al reciclador",

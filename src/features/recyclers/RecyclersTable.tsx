@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import MenuItem from '@mui/material/MenuItem'
@@ -24,13 +23,16 @@ export interface Recycler {
 export type StatusFilter = 'all' | 'pending' | 'verified' | 'rejected'
 
 interface RecyclersTableProps {
-  /** The rows of the current page, already filtered by status by the server. */
+  /** The rows of the current page, already filtered by status and search by the server. */
   data: Recycler[]
   isLoading?: boolean
   /** A new page or filter is loading while the previous rows are still shown. */
   isFetching?: boolean
   status: StatusFilter
   onStatusChange: (status: StatusFilter) => void
+  /** What is typed in the search box; the server does the searching (debounced by the page). */
+  search: string
+  onSearchChange: (text: string) => void
   pagination: PaginationProps
   onRegisterClick?: () => void
   onValidate?: (id: string) => void
@@ -51,6 +53,8 @@ export default function RecyclersTable({
   isFetching,
   status,
   onStatusChange,
+  search,
+  onSearchChange,
   pagination,
   onRegisterClick,
   onValidate,
@@ -59,14 +63,6 @@ export default function RecyclersTable({
   rejectingId,
 }: RecyclersTableProps) {
   const hasActions = !!(onValidate || onReject)
-  // The API has no text search yet, so this only narrows the rows of the page already loaded.
-  const [search, setSearch] = useState('')
-
-  const filtered = data.filter((r) => {
-    const q = search.toLowerCase()
-    return r.full_name.toLowerCase().includes(q) || r.id_number.includes(q)
-  })
-
   if (isLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
@@ -77,7 +73,6 @@ export default function RecyclersTable({
 
   const total = pagination.total
   const countLabel = `${total.toLocaleString('es-CO')} ${total !== 1 ? t.recicladores.countPlural : t.recicladores.countSingular}`
-  const searchIsPartial = total > data.length
 
   return (
     <TableContainer sx={{ opacity: isFetching ? 0.6 : 1, transition: 'opacity 120ms' }}>
@@ -86,8 +81,7 @@ export default function RecyclersTable({
           <Input
             placeholder={t.recicladores.searchPlaceholder}
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            helperText={searchIsPartial && search ? interpolate(t.recicladores.searchPageOnly, { count: data.length }) : undefined}
+            onChange={(e) => onSearchChange(e.target.value)}
             fullWidth={false}
             sx={{ width: 260 }}
           />
@@ -114,7 +108,7 @@ export default function RecyclersTable({
         )}
       </Box>
 
-      {filtered.length === 0 ? (
+      {data.length === 0 ? (
         <Box sx={{ py: 6, textAlign: 'center' }}>
           <Typography variant="body2" color="text.secondary">
             {search || status !== 'all'
@@ -136,7 +130,7 @@ export default function RecyclersTable({
               </TableRow>
             </TableHead>
             <TableBody>
-              {filtered.map((r) => (
+              {data.map((r) => (
                 <TableRow key={r.id} hover>
                   <TableCell sx={{ fontWeight: 500 }}>{r.full_name}</TableCell>
                   <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>{r.id_number}</TableCell>
