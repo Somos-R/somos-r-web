@@ -314,5 +314,11 @@
       "togglePasswordVisibility": "Mostrar/ocultar contraseña",
       "close": "Cerrar"
     }
+  },
+  "errors": {
+    "network": "No pudimos conectar con el servidor. Revisa tu conexión e inténtalo de nuevo",
+    "tooManyRequests": "Demasiadas solicitudes. Espera un momento antes de volver a intentarlo",
+    "tooManyRequestsWait": "Demasiadas solicitudes. Vuelve a intentarlo en {{seconds}} segundos",
+    "validation": "Revisa los datos ingresados"
   }
 }

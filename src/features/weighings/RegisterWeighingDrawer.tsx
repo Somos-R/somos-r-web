@@ -13,6 +13,7 @@ import { Button, Snackbar } from '../../components/ui'
 import { recyclersService } from '../../services/recyclers'
 import { inventoryService } from '../../services/inventory'
 import { weighingsService } from '../../services/weighings'
+import { getApiErrorMessage } from '../../lib/apiError'
 
 interface Props {
   open: boolean
@@ -83,8 +84,7 @@ export default function RegisterWeighingDrawer({ open, onClose }: Props) {
       onClose()
     },
     onError: (err: unknown) => {
-      const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail
-      setSnackbar({ open: true, message: msg ?? 'Error al registrar el pesaje', severity: 'error' })
+      setSnackbar({ open: true, message: getApiErrorMessage(err, 'Error al registrar el pesaje'), severity: 'error' })
     },
   })
 
