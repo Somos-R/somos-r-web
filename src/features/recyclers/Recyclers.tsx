@@ -47,6 +47,7 @@ export default function Recyclers() {
   }))
 
   const validateMutation = useMutation({
+    meta: { silent: true, refreshOnError: [['recyclers']] },
     mutationFn: (userId: string) => {
       setValidatingId(userId)
       return recyclersService.updateStatus(userId, { status: 'verified' })
@@ -63,6 +64,7 @@ export default function Recyclers() {
   })
 
   const rejectMutation = useMutation({
+    meta: { silent: true, refreshOnError: [['recyclers']] },
     mutationFn: ({ userId, reason }: { userId: string; reason: string }) => {
       setRejectingId(userId)
       return recyclersService.updateStatus(userId, { status: 'rejected', rejection_reason: reason })

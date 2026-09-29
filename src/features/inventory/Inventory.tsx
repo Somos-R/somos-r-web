@@ -60,6 +60,7 @@ export default function Inventory() {
   })
 
   const editMutation = useMutation({
+    meta: { silent: true },
     mutationFn: ({ id, stock_min_kg, price_per_kg }: { id: string; stock_min_kg: number; price_per_kg: number }) =>
       inventoryService.update(id, { stock_min_kg, price_per_kg }),
     onSuccess: () => {

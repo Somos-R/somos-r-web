@@ -21,6 +21,7 @@ export default function SecuritySection() {
   })
 
   const changePassword = useMutation({
+    meta: { silent: true },
     mutationFn: (values: Record<string, string>) =>
       authService.changePassword(values.current_password, values.new_password),
     onSuccess: () => {
@@ -33,6 +34,7 @@ export default function SecuritySection() {
   })
 
   const resendVerification = useMutation({
+    meta: { silent: true },
     mutationFn: () => authService.resendVerification(),
     onSuccess: () => setSnackbar({ open: true, message: copy.emailVerification.sent, severity: 'success' }),
     onError: (err) => setSnackbar({ open: true, message: getApiErrorMessage(err, t.errors.network), severity: 'error' }),

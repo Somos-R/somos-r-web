@@ -12,6 +12,7 @@ import VerifyEmailPage from './features/auth/VerifyEmailPage'
 import { t } from './lib/i18n'
 import { RequirePermission } from './components/layout/RequirePermission'
 import { APP_ROUTES } from './routes'
+import { NotificationHost } from './components/layout/NotificationHost'
 
 function NotFound() {
   return (
@@ -89,6 +90,7 @@ export default function App() {
 
         <Route path="*" element={<NotFound />} />
       </Routes>
+      <NotificationHost />
     </Router>
   )
 }

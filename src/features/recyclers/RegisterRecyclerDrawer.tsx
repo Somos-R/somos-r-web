@@ -39,6 +39,7 @@ export default function RegisterRecyclerDrawer({ open, onClose }: Props) {
   })
 
   const mutation = useMutation({
+    meta: { silent: true },
     mutationFn: (values: Record<string, string>) =>
       recyclersService.create({
         user_type_code: 'recycler',

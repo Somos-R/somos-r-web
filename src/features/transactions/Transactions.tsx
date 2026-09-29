@@ -93,6 +93,8 @@ export default function Transactions() {
   }
 
   const createSaleMutation = useMutation({
+    // Shown inline in the sale modal; a failed sale usually means the stock changed.
+    meta: { silent: true, refreshOnError: [['inventory']] },
     mutationFn: (payload: CreateSalePayload) => transactionsService.createSale(payload),
     onSuccess: () => { invalidate(); setShowSaleModal(false); setSaleForm(EMPTY_SALE) },
     onError: (err: unknown) => {
@@ -103,8 +105,10 @@ export default function Transactions() {
   const updateStatusMutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: TransactionStatus }) =>
       transactionsService.updateStatus(id, status),
-    onSuccess: () => { invalidate(); setActionLoadingId(null); setCancelTargetId(null) },
-    onError: () => setActionLoadingId(null),
+    meta: { refreshOnError: [['transactions'], ['inventory'], ['weighings']] },
+    onSuccess: invalidate,
+    // Also closes the cancel dialog so the error notification isn't hidden behind it.
+    onSettled: () => { setActionLoadingId(null); setCancelTargetId(null) },
   })
 
   const handleSaleSubmit = () => {

@@ -70,6 +70,7 @@ export default function RegisterWeighingDrawer({ open, onClose }: Props) {
   }
 
   const mutation = useMutation({
+    meta: { silent: true },
     mutationFn: (f: FormState) =>
       weighingsService.create({
         recycler_id: f.recycler_id,

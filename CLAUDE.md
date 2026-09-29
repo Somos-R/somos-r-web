@@ -55,6 +55,16 @@ npx vitest run src/components/ui/__tests__/FormDrawer.test.tsx
 
 The backend base URL is `VITE_API_URL` env var (default `http://localhost:8000`). Login, logout and profile calls live in `src/services/auth.ts`.
 
+### Errors from the server
+
+Failures are reported once, globally: `queryClient` has a `QueryCache` and a `MutationCache` whose `onError` raises an app-wide notification (`lib/notifier.ts`, rendered by `<NotificationHost />`). A 5xx gets a friendly text, a 4xx shows the server's own `detail` (e.g. "the recycler is no longer verified"), 401 is left to the session layer, and a 403 also reloads the profile because the role may have changed. So **a new mutation needs no `onError`**: it just works.
+
+Opt out only when the screen renders the error itself, with `meta`:
+- `meta: { silent: true }` — the caller shows its own message (inline error, dialog, snackbar) or, for a query, renders the failure (like the profile).
+- `meta: { refreshOnError: [['weighings']] }` — query keys to reload when the action fails, because the data on screen is probably stale (someone else validated it, stock ran out). Works together with `silent`.
+
+A query only notifies on its first failure, never when a background refetch fails and the user already has data. After a mutation that changes other screens' data (validating a weighing moves stock and creates a purchase), invalidate those keys in `onSuccess`.
+
 ### Feature structure
 
 Each route lives in `src/features/<name>/`. A feature folder contains the page component plus any feature-specific subcomponents (tables, drawers that wrap UI primitives). Features handle data fetching and mutations; they delegate rendering to `src/components/ui/`.

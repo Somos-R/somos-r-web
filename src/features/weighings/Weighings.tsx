@@ -66,8 +66,13 @@ export default function Weighings() {
   const statusMutation = useMutation({
     mutationFn: ({ id, status, reason }: { id: string; status: WeighingStatusTransition; reason?: string }) =>
       weighingsService.updateStatus(id, { status, rejection_reason: reason }),
+    // On a conflict (already validated by someone else, recycler no longer verified...) the
+    // global handler shows the server's message and this reloads the row.
+    meta: { refreshOnError: [['weighings']] },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['weighings'] })
+      queryClient.invalidateQueries({ queryKey: ['inventory'] })
+      queryClient.invalidateQueries({ queryKey: ['transactions'] })
     },
     onSettled: () => {
       setActionLoadingId(null)

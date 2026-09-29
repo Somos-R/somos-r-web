@@ -312,7 +312,10 @@
     "network": "No pudimos conectar con el servidor. Revisa tu conexión e inténtalo de nuevo",
     "tooManyRequests": "Demasiadas solicitudes. Espera un momento antes de volver a intentarlo",
     "tooManyRequestsWait": "Demasiadas solicitudes. Vuelve a intentarlo en {{seconds}} segundos",
-    "validation": "Revisa los datos ingresados"
+    "validation": "Revisa los datos ingresados",
+    "server": "Ocurrió un error en el servidor. Inténtalo de nuevo en unos minutos.",
+    "generic": "No se pudo completar la acción. Inténtalo de nuevo.",
+    "forbidden": "No tienes permisos para realizar esta acción."
   },
   "account": {
     "backToLogin": "Volver a iniciar sesión",
