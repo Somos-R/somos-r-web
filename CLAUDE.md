@@ -53,7 +53,7 @@ npx vitest run src/components/ui/__tests__/FormDrawer.test.tsx
 
 `queryClient` lives in `src/lib/queryClient.ts` (default `staleTime` 30 s, no retries on 4xx) and is wiped whenever the session ends (logout, rejected refresh, logout in another tab).
 
-The backend base URL is `VITE_API_URL` env var (default `http://localhost:8000`). Login, logout and profile calls live in `src/services/auth.ts`.
+The backend base URL is the `VITE_API_URL` env var (default `http://localhost:8000` in development only). A production build **refuses to build** without a real `https` URL, or with one pointing at localhost (`config/buildEnv.ts`, wired in `vite.config.ts`): the value is compiled into the bundle, so a wrong one would ship to every user. To try a production build locally on purpose: `ALLOW_LOCAL_API_URL=1 pnpm build`. The Dockerfile has no default; CI passes a placeholder on pull requests (nothing is published) and requires the `VITE_API_URL` repository variable on pushes to `main`. Login, logout and profile calls live in `src/services/auth.ts`.
 
 ### Lists: the server paginates and filters
 
