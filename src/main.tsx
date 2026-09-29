@@ -7,14 +7,18 @@ import { theme } from './styles/theme'
 import { queryClient } from './lib/queryClient'
 import './index.css'
 import App from './App.tsx'
+import { ErrorBoundary } from './components/layout/ErrorBoundary'
+import { ErrorScreen } from './components/layout/ErrorScreen'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <QueryClientProvider client={queryClient}>
-        <App />
-      </QueryClientProvider>
+      <ErrorBoundary fallback={({ error, reset }) => <ErrorScreen fullScreen error={error} onRetry={reset} />}>
+        <QueryClientProvider client={queryClient}>
+          <App />
+        </QueryClientProvider>
+      </ErrorBoundary>
     </ThemeProvider>
   </StrictMode>,
 )
