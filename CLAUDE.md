@@ -49,7 +49,7 @@ npx vitest run src/components/ui/__tests__/FormDrawer.test.tsx
 | Server data | TanStack React Query — `useQuery` / `useMutation` |
 | API calls | Axios — `apiClient` in `src/lib/apiClient.ts` |
 
-`apiClient` injects `Authorization: Bearer <token>` from `lib/session`. Access tokens last 15 minutes: on a 401 it refreshes once (`lib/tokenRefresh.ts`, single-flight across requests and tabs, because the backend revokes the whole session if a rotated refresh token is reused) and replays the request. If the refresh is rejected the session is cleared and the router sends the user to `/login`. Auth endpoints pass `skipAuthRefresh: true`.
+`apiClient` injects `Authorization: Bearer <token>` from `lib/session`. Access tokens are short-lived (30 minutes today, set by the backend): on a 401 it refreshes once (`lib/tokenRefresh.ts`, single-flight across requests and tabs, because the backend revokes the whole session if a rotated refresh token is reused) and replays the request. If the refresh is rejected the session is cleared and the router sends the user to `/login`. Auth endpoints pass `skipAuthRefresh: true`.
 
 `queryClient` lives in `src/lib/queryClient.ts` (default `staleTime` 30 s, no retries on 4xx) and is wiped whenever the session ends (logout, rejected refresh, logout in another tab).
 
