@@ -1,11 +1,5 @@
 import { ArrowLeftRight, BarChart2, LayoutDashboard, Package, Scale, Settings, Users } from 'lucide-react'
-import Dashboard from './features/dashboard/Dashboard'
-import Inventory from './features/inventory/Inventory'
-import Recyclers from './features/recyclers/Recyclers'
-import Reports from './features/reports/Reports'
-import SettingsPage from './features/settings/Settings'
-import Transactions from './features/transactions/Transactions'
-import Weighings from './features/weighings/Weighings'
+import { Dashboard, Inventory, Recyclers, Reports, SettingsPage, Transactions, Weighings } from './lazyPages'
 import { t } from './lib/i18n'
 import type { Permission } from './lib/permissions'
 

@@ -103,4 +103,30 @@ describe('ErrorScreen', () => {
     rerender(<ErrorScreen fullScreen error={new Error('x')} onRetry={() => undefined} />)
     expect(screen.getByRole('button', { name: t.errorScreen.reload })).toBeInTheDocument()
   })
+
+  describe('when a page fails to download (stale deploy or dropped connection)', () => {
+    const chunkError = () => new Error('Failed to fetch dynamically imported module: /assets/Inventory-abc.js')
+
+    it('asks for a reload instead of offering a retry that cannot work', () => {
+      render(<ErrorScreen error={chunkError()} onRetry={() => undefined} />)
+      expect(screen.getByText(t.errorScreen.chunkMessage)).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: t.errorScreen.reload })).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: t.errorScreen.retry })).not.toBeInTheDocument()
+    })
+
+    it('reloads the page when asked', async () => {
+      const reload = vi.fn()
+      vi.stubGlobal('location', { ...window.location, reload })
+      render(<ErrorScreen error={chunkError()} onRetry={() => undefined} />)
+      await userEvent.click(screen.getByRole('button', { name: t.errorScreen.reload }))
+      expect(reload).toHaveBeenCalledTimes(1)
+      vi.unstubAllGlobals()
+    })
+
+    it('does not show the reload-only message for ordinary render errors', () => {
+      render(<ErrorScreen error={new Error('boom')} onRetry={() => undefined} />)
+      expect(screen.queryByText(t.errorScreen.chunkMessage)).not.toBeInTheDocument()
+      expect(screen.getByRole('button', { name: t.errorScreen.retry })).toBeInTheDocument()
+    })
+  })
 })

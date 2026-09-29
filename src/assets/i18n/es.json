@@ -4,7 +4,8 @@
     "cancel": "Cancelar",
     "close": "Cerrar",
     "register": "Registrar",
-    "validate": "Validar"
+    "validate": "Validar",
+    "loading": "Cargando…"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -392,6 +393,7 @@
     "title": "Algo salió mal",
     "message": "Ocurrió un error inesperado al mostrar esta pantalla. Puedes intentarlo de nuevo; si sigue pasando, avisa al equipo de soporte.",
     "retry": "Reintentar",
-    "reload": "Recargar la página"
+    "reload": "Recargar la página",
+    "chunkMessage": "No se pudo cargar esta pantalla. Puede que haya una versión nueva de la aplicación o que la conexión se haya interrumpido. Recarga la página para continuar."
   }
 }

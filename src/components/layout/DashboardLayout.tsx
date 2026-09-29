@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import Box from '@mui/material/Box'
+import CircularProgress from '@mui/material/CircularProgress'
 import Typography from '@mui/material/Typography'
 import { Outlet, useLocation } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
@@ -8,6 +9,14 @@ import { ErrorBoundary } from './ErrorBoundary'
 import { Alert, Dialog, DialogTitle, DialogContent, DialogActions, Button, Snackbar } from '../ui'
 import { useAuth } from '../../hooks/useAuth'
 import { t } from '../../lib/i18n'
+
+function PageLoader() {
+  return (
+    <Box role="status" aria-label={t.common.loading} sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
+      <CircularProgress />
+    </Box>
+  )
+}
 
 export default function DashboardLayout() {
   const { user, logout } = useAuth()
@@ -33,7 +42,9 @@ export default function DashboardLayout() {
           {pendingRole && <Alert severity="warning" sx={{ mb: 3 }}>{t.account.pendingRole}</Alert>}
           {/* A crash in one page must not take down the menu; changing route clears it. */}
           <ErrorBoundary resetKeys={[location.pathname]}>
-            <Outlet />
+            <Suspense fallback={<PageLoader />}>
+              <Outlet />
+            </Suspense>
           </ErrorBoundary>
         </Box>
       </Box>
