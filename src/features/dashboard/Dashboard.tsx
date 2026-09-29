@@ -19,17 +19,17 @@ export default function Dashboard() {
 
   const { data: weighingStats } = useQuery({
     queryKey: ['weighings', 'stats'],
-    queryFn: () => weighingsService.stats(),
+    queryFn: ({ signal }) => weighingsService.stats({ signal }),
   })
 
   const { data: recyclersData } = useQuery({
     queryKey: ['recyclers', 'dashboard'],
-    queryFn: () => recyclersService.list({ limit: 100 }),
+    queryFn: ({ signal }) => recyclersService.list({ limit: 100 }, { signal }),
   })
 
   const { data: recentWeighings, isLoading: recentLoading } = useQuery({
     queryKey: ['weighings', 'recent'],
-    queryFn: () => weighingsService.list({ limit: 5 }),
+    queryFn: ({ signal }) => weighingsService.list({ limit: 5 }, { signal }),
   })
 
   const activeRecyclers = recyclersData?.items.filter((r) => r.verification_status === 'verified').length ?? 0

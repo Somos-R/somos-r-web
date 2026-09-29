@@ -1,4 +1,4 @@
-import { apiClient } from '../lib/apiClient'
+import { apiClient, type RequestOptions } from '../lib/apiClient'
 
 export type InventoryStatus = 'available' | 'low_stock' | 'out_of_stock'
 
@@ -47,21 +47,21 @@ export interface UpdateInventoryPayload {
 }
 
 export const inventoryService = {
-  list: (params: { limit?: number; offset?: number } = {}): Promise<InventoryListResponse> =>
-    apiClient.get('/inventory', { params: { limit: 100, ...params } }).then((r) => r.data),
+  list: (params: { limit?: number; offset?: number } = {}, options?: RequestOptions): Promise<InventoryListResponse> =>
+    apiClient.get('/inventory', { params: { limit: 100, ...params }, signal: options?.signal }).then((r) => r.data),
 
-  stats: (): Promise<InventoryStats> =>
-    apiClient.get('/inventory/stats').then((r) => r.data),
+  stats: (options?: RequestOptions): Promise<InventoryStats> =>
+    apiClient.get('/inventory/stats', { signal: options?.signal }).then((r) => r.data),
 
-  getById: (id: string): Promise<InventoryItemAPI> =>
-    apiClient.get(`/inventory/${id}`).then((r) => r.data),
+  getById: (id: string, options?: RequestOptions): Promise<InventoryItemAPI> =>
+    apiClient.get(`/inventory/${id}`, { signal: options?.signal }).then((r) => r.data),
 
   update: (id: string, payload: UpdateInventoryPayload): Promise<InventoryItemAPI> =>
     apiClient.patch(`/inventory/${id}`, payload).then((r) => r.data),
 
-  materials: (): Promise<MaterialInfo[]> =>
-    apiClient.get('/inventory/materials').then((r) => r.data),
+  materials: (options?: RequestOptions): Promise<MaterialInfo[]> =>
+    apiClient.get('/inventory/materials', { signal: options?.signal }).then((r) => r.data),
 
-  warehouses: (): Promise<WarehouseInfo[]> =>
-    apiClient.get('/inventory/warehouses').then((r) => r.data),
+  warehouses: (options?: RequestOptions): Promise<WarehouseInfo[]> =>
+    apiClient.get('/inventory/warehouses', { signal: options?.signal }).then((r) => r.data),
 }

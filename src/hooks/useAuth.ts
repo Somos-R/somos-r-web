@@ -18,7 +18,7 @@ export function useAuth() {
 
   const me = useQuery({
     queryKey: ME_QUERY_KEY,
-    queryFn: authService.me,
+    queryFn: ({ signal }) => authService.me({ signal }),
     enabled: isAuthenticated,
     staleTime: ME_STALE_TIME,
     meta: { silent: true }, // App shows its own retry / logout screen
@@ -27,7 +27,7 @@ export function useAuth() {
   const login = async (email: string, password: string) => {
     await authService.login(email, password)
     try {
-      await queryClient.fetchQuery({ queryKey: ME_QUERY_KEY, queryFn: authService.me, staleTime: ME_STALE_TIME, meta: { silent: true } })
+      await queryClient.fetchQuery({ queryKey: ME_QUERY_KEY, queryFn: ({ signal }) => authService.me({ signal }), staleTime: ME_STALE_TIME, meta: { silent: true } })
     } catch (error) {
       // Tokens without a profile are unusable: don't leave a half-open session behind.
       clearSession()

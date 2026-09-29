@@ -55,6 +55,10 @@ npx vitest run src/components/ui/__tests__/FormDrawer.test.tsx
 
 The backend base URL is `VITE_API_URL` env var (default `http://localhost:8000`). Login, logout and profile calls live in `src/services/auth.ts`.
 
+### Timeouts and cancellation
+
+`apiClient` has a 15 s timeout (`REQUEST_TIMEOUT_MS`), so a hung server ends in an error instead of a spinner that never stops; the message says to check whether an action went through before repeating it. Read calls in `src/services/` take a last `options?: RequestOptions` argument, and every `queryFn` forwards React Query's signal (`queryFn: ({ signal }) => service.list({}, { signal })`), so leaving a screen cancels its in-flight requests. A cancelled request is never shown as an error or retried. Reads are retried by React Query (twice for network/5xx, once for a timeout, never for 4xx); writes are never retried.
+
 ### Errors from the server
 
 Failures are reported once, globally: `queryClient` has a `QueryCache` and a `MutationCache` whose `onError` raises an app-wide notification (`lib/notifier.ts`, rendered by `<NotificationHost />`). A 5xx gets a friendly text, a 4xx shows the server's own `detail` (e.g. "the recycler is no longer verified"), 401 is left to the session layer, and a 403 also reloads the profile because the role may have changed. So **a new mutation needs no `onError`**: it just works.

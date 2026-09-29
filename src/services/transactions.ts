@@ -1,4 +1,4 @@
-import { apiClient } from '../lib/apiClient'
+import { apiClient, type RequestOptions } from '../lib/apiClient'
 
 export type TransactionType = 'purchase' | 'sale'
 export type TransactionStatus = 'pending' | 'paid' | 'cancelled' | 'delivered'
@@ -74,14 +74,14 @@ export const transactionsService = {
     material_code?: string
     limit?: number
     offset?: number
-  } = {}): Promise<TransactionListResponse> =>
-    apiClient.get('/transactions', { params: { limit: 50, ...params } }).then((r) => r.data),
+  } = {}, options?: RequestOptions): Promise<TransactionListResponse> =>
+    apiClient.get('/transactions', { params: { limit: 50, ...params }, signal: options?.signal }).then((r) => r.data),
 
-  stats: (): Promise<TransactionStats> =>
-    apiClient.get('/transactions/stats').then((r) => r.data),
+  stats: (options?: RequestOptions): Promise<TransactionStats> =>
+    apiClient.get('/transactions/stats', { signal: options?.signal }).then((r) => r.data),
 
-  getById: (id: string): Promise<TransactionAPI> =>
-    apiClient.get(`/transactions/${id}`).then((r) => r.data),
+  getById: (id: string, options?: RequestOptions): Promise<TransactionAPI> =>
+    apiClient.get(`/transactions/${id}`, { signal: options?.signal }).then((r) => r.data),
 
   createSale: (payload: CreateSalePayload): Promise<TransactionAPI> =>
     apiClient.post('/transactions', payload).then((r) => r.data),

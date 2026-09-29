@@ -315,7 +315,8 @@
     "validation": "Revisa los datos ingresados",
     "server": "Ocurrió un error en el servidor. Inténtalo de nuevo en unos minutos.",
     "generic": "No se pudo completar la acción. Inténtalo de nuevo.",
-    "forbidden": "No tienes permisos para realizar esta acción."
+    "forbidden": "No tienes permisos para realizar esta acción.",
+    "timeout": "El servidor tardó demasiado en responder. Si era una acción, revisa si se completó antes de repetirla."
   },
   "account": {
     "backToLogin": "Volver a iniciar sesión",

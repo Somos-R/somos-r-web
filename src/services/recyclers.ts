@@ -1,4 +1,4 @@
-import { apiClient } from '../lib/apiClient'
+import { apiClient, type RequestOptions } from '../lib/apiClient'
 
 export interface RecyclerItem {
   id: string
@@ -49,15 +49,16 @@ export interface RecyclersListParams {
 }
 
 export const recyclersService = {
-  list: (params: RecyclersListParams = {}): Promise<RecyclersListResponse> =>
+  list: (params: RecyclersListParams = {}, options?: RequestOptions): Promise<RecyclersListResponse> =>
     apiClient
       .get('/users', {
         params: { user_type_code: 'recycler', limit: 100, ...params },
+        signal: options?.signal,
       })
       .then((r) => r.data),
 
-  getById: (userId: string): Promise<RecyclerItem> =>
-    apiClient.get(`/users/${userId}`).then((r) => r.data),
+  getById: (userId: string, options?: RequestOptions): Promise<RecyclerItem> =>
+    apiClient.get(`/users/${userId}`, { signal: options?.signal }).then((r) => r.data),
 
   create: (payload: CreateRecyclerPayload) =>
     apiClient.post('/auth/register', payload).then((r) => r.data),

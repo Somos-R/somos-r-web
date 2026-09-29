@@ -1,4 +1,4 @@
-import { apiClient } from '../lib/apiClient'
+import { apiClient, type RequestOptions } from '../lib/apiClient'
 import { clearSession, getSessionUserId, setTokens, type SessionTokens } from '../lib/session'
 import { t } from '../lib/i18n'
 import { ROLE_USER_TYPE, isStaffRole } from '../lib/permissions'
@@ -67,10 +67,10 @@ export const authService = {
     setTokens(data)
   },
 
-  async me(): Promise<AuthUser> {
+  async me(options?: RequestOptions): Promise<AuthUser> {
     const userId = getSessionUserId()
     if (!userId) throw new Error('No active session')
-    const { data } = await apiClient.get<BackendUserResponse>(`/users/${userId}`)
+    const { data } = await apiClient.get<BackendUserResponse>(`/users/${userId}`, { signal: options?.signal })
     return mapToAuthUser(data)
   },
 

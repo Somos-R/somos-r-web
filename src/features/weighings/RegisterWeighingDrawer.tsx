@@ -40,25 +40,25 @@ export default function RegisterWeighingDrawer({ open, onClose }: Props) {
 
   const { data: recyclersData } = useQuery({
     queryKey: ['recyclers', 'verified'],
-    queryFn: () => recyclersService.list({ verification_status: 'verified' }),
+    queryFn: ({ signal }) => recyclersService.list({ verification_status: 'verified' }, { signal }),
     enabled: open,
   })
 
   const { data: materials = [] } = useQuery({
     queryKey: ['inventory', 'materials'],
-    queryFn: () => inventoryService.materials(),
+    queryFn: ({ signal }) => inventoryService.materials({ signal }),
     enabled: open,
   })
 
   const { data: warehouses = [] } = useQuery({
     queryKey: ['inventory', 'warehouses'],
-    queryFn: () => inventoryService.warehouses(),
+    queryFn: ({ signal }) => inventoryService.warehouses({ signal }),
     enabled: open,
   })
 
   const { data: inventoryItems } = useQuery({
     queryKey: ['inventory'],
-    queryFn: () => inventoryService.list(),
+    queryFn: ({ signal }) => inventoryService.list({}, { signal }),
     enabled: open,
   })
 

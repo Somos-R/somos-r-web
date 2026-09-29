@@ -33,7 +33,7 @@ export default function RegisterRecyclerDrawer({ open, onClose }: Props) {
 
   const { data: documentTypes = FALLBACK_DOC_TYPES } = useQuery<DocumentType[]>({
     queryKey: ['document-types'],
-    queryFn: () => apiClient.get('/catalogs/document-types').then((r) => r.data),
+    queryFn: ({ signal }) => apiClient.get('/catalogs/document-types', { signal }).then((r) => r.data),
     staleTime: Infinity,
     retry: false,
   })

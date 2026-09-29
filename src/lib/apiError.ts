@@ -27,6 +27,17 @@ function retryAfterSeconds(headers: Record<string, unknown> | undefined): number
   return Number.isInteger(seconds) && seconds > 0 ? seconds : null
 }
 
+/** The request took longer than the client's timeout (axios reports it without a response). */
+export function isTimeoutError(error: unknown): boolean {
+  const code = (error as { code?: string })?.code
+  return code === 'ECONNABORTED' || code === 'ETIMEDOUT'
+}
+
+/** The caller aborted the request (screen closed, query key changed): not a failure. */
+export function isCancelError(error: unknown): boolean {
+  return (error as { code?: string })?.code === 'ERR_CANCELED' || (error as { name?: string })?.name === 'CanceledError'
+}
+
 /**
  * Turns a failed API call into text that is safe to render.
  *
@@ -36,7 +47,7 @@ function retryAfterSeconds(headers: Record<string, unknown> | undefined): number
  */
 export function getApiErrorMessage(error: unknown, fallback: string): string {
   const response = (error as ApiErrorShape)?.response
-  if (!response) return t.errors.network
+  if (!response) return isTimeoutError(error) ? t.errors.timeout : t.errors.network
 
   const detail = response.data?.detail
   switch (response.status) {
