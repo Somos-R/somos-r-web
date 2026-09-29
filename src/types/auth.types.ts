@@ -16,6 +16,8 @@ export interface AuthUser {
   /** Backend `user_type_code`: association, eca, recycler, citizen, building or b2b_client. */
   user_type: string
   role: StaffRole | null
+  /** What the server says this user may do (`weighings.create`...); empty without a role. */
+  capabilities: string[]
   is_active: boolean
   /** ISO date once the email was confirmed; null while pending. */
   email_verified_at: string | null

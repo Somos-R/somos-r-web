@@ -9,6 +9,7 @@ import { resetNotifier } from '../lib/notifier'
 import { clearSession, setTokens } from '../lib/session'
 import { t } from '../lib/i18n'
 import { fakeJwt, mockAdapter } from '../test/helpers'
+import { capabilitiesForRole } from '../test/capabilities'
 
 // Lists are paginated and filtered BY THE SERVER. The fake API below really filters and slices by
 // the request's params, so these tests show what each screen asks for, and that it never assumes
@@ -94,11 +95,11 @@ function serveApi() {
     const params = (c.params ?? {}) as Params
     if (c.method === 'get') requests.push({ url, params })
 
-    if (/^\/users\/[^/]+$/.test(url)) {
+    if (url === '/auth/me') {
       return {
         data: {
           id: 'me', email: 'me@x.co', full_name: 'Admin ECA', phone: null, id_type: 'CC', id_number: '9',
-          user_type_code: 'eca', role_code: 'eca_admin', is_active: true,
+          user_type_code: 'eca', role_code: 'eca_admin', capabilities: capabilitiesForRole('eca_admin'), is_active: true,
           email_verified_at: '2026-01-01T00:00:00Z', created_at: '2026-01-01T00:00:00Z',
         },
       }

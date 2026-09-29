@@ -45,7 +45,7 @@ npx vitest run src/components/ui/__tests__/FormDrawer.test.tsx
 |---|---|
 | Session (access + refresh tokens) | `src/lib/session.ts` — plain module with `subscribe`, no state library |
 | Auth (user profile) | React Query, key `['me']`, read through `useAuth()` in `src/hooks/useAuth.ts` |
-| Permission checks | `useRoles().can('weighings.review')` — ask for a capability, never compare `user.role`. The role→permission table lives in `src/lib/permissions.ts` and mirrors the backend's `docs/matriz-permisos.md`; update both together. It only decides what the UI shows: the backend enforces every rule and answers 403 |
+| Permission checks | `useRoles().can('weighings.review')` — ask for a capability, never compare `user.role`. The list of capabilities comes from the server: `GET /auth/me` returns `capabilities` (evaluated with the same rule that protects the endpoints), stored on the profile (`user.capabilities`). `src/lib/permissions.ts` only maps screen-level permissions onto them (`dashboard.view` = `weighings.view`, etc.). To gate something new, the backend must expose the capability first. It only decides what the UI shows: the backend enforces every rule and answers 403 |
 | Server data | TanStack React Query — `useQuery` / `useMutation` |
 | API calls | Axios — `apiClient` in `src/lib/apiClient.ts` |
 
@@ -213,4 +213,4 @@ When adding new screens or UI text:
 - Any new or modified `src/components/ui/` component requires a unit test.
 - Use `FormDrawer` for all forms — do not build one-off inline form UIs in feature components.
 - **The API contract is in English** (`status`, `price_per_kg`, `occurred_at`, `pending_validation`, `purchase`, material codes like `plastic`). Catalog codes are stable English; the Spanish text shown to users comes from `es.json` (statuses) or from the API's own `label` (materials, warehouses). Never hardcode a material list: read it from `GET /inventory/materials`, and look statuses up with `getStatusStyle` / colors with `getMaterialColor` (`src/lib/catalog.ts`) so a value this build doesn't know yet renders as its raw code instead of crashing.
-- Permission checks go through `useRoles().can(...)`. To gate something new, add a `Permission` in `src/lib/permissions.ts` (with its roles) and a row to the matrix test in `src/lib/__tests__/permissions.test.ts`. Hide actions by not passing their handler / not rendering the button, as the pages already do.
+- Permission checks go through `useRoles().can(...)`. To gate something new, add the capability's name to `ServerPermission` in `src/lib/permissions.ts` (once the backend announces it in `/auth/me`), give it to the roles in `src/test/capabilities.ts` (transcribed from the backend) and add a row to the matrix test in `src/lib/__tests__/permissions.test.ts`. Hide actions by not passing their handler / not rendering the button, as the pages already do.

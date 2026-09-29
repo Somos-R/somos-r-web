@@ -1,5 +1,5 @@
 import { apiClient, type RequestOptions } from '../lib/apiClient'
-import { clearSession, getSessionUserId, setTokens, type SessionTokens } from '../lib/session'
+import { clearSession, setTokens, type SessionTokens } from '../lib/session'
 import { t } from '../lib/i18n'
 import { getErrorCode, translateErrorCode } from '../lib/apiError'
 import { ROLE_USER_TYPE, isStaffRole } from '../lib/permissions'
@@ -22,6 +22,7 @@ interface BackendUserResponse {
   is_active?: boolean
   created_at: string
   email_verified_at?: string | null
+  capabilities?: string[]
 }
 
 export function mapToAuthUser(data: BackendUserResponse): AuthUser {
@@ -35,6 +36,7 @@ export function mapToAuthUser(data: BackendUserResponse): AuthUser {
     phone: data.phone,
     user_type: data.user_type_code,
     role,
+    capabilities: data.capabilities ?? [],
     is_active: data.is_active ?? true,
     email_verified_at: data.email_verified_at ?? null,
     created_at: data.created_at,
@@ -72,9 +74,7 @@ export const authService = {
   },
 
   async me(options?: RequestOptions): Promise<AuthUser> {
-    const userId = getSessionUserId()
-    if (!userId) throw new Error('No active session')
-    const { data } = await apiClient.get<BackendUserResponse>(`/users/${userId}`, { signal: options?.signal })
+    const { data } = await apiClient.get<BackendUserResponse>('/auth/me', { signal: options?.signal })
     return mapToAuthUser(data)
   },
 

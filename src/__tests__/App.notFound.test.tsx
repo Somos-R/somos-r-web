@@ -8,6 +8,7 @@ import { queryClient } from '../lib/queryClient'
 import { clearSession, setTokens } from '../lib/session'
 import { t } from '../lib/i18n'
 import { fakeJwt, mockAdapter } from '../test/helpers'
+import { capabilitiesForRole } from '../test/capabilities'
 
 describe('page not found', () => {
   beforeEach(() => {
@@ -15,11 +16,11 @@ describe('page not found', () => {
     queryClient.clear()
     setTokens({ access_token: fakeJwt({ sub: 'me' }), refresh_token: 'r' })
     apiClient.defaults.adapter = mockAdapter((c) =>
-      /^\/users\/[^/]+$/.test(String(c.url))
+      String(c.url) === '/auth/me'
         ? {
             data: {
               id: 'me', email: 'me@x.co', full_name: 'Admin ECA', phone: null, id_type: 'CC', id_number: '9',
-              user_type_code: 'eca', role_code: 'eca_admin', is_active: true,
+              user_type_code: 'eca', role_code: 'eca_admin', capabilities: capabilitiesForRole('eca_admin'), is_active: true,
               email_verified_at: '2026-01-01T00:00:00Z', created_at: '2026-01-01T00:00:00Z',
             },
           }

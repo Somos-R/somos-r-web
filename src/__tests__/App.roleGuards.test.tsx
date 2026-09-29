@@ -8,6 +8,7 @@ import { clearSession, setTokens } from '../lib/session'
 import { ROLE_USER_TYPE, type StaffRole } from '../lib/permissions'
 import { t } from '../lib/i18n'
 import { fakeJwt, mockAdapter } from '../test/helpers'
+import { capabilitiesForRole } from '../test/capabilities'
 
 const RECYCLER = {
   id: 'r1', full_name: 'Rita Reciclaje', email: 'rita@x.co', id_type: 'CC', id_number: '1234567',
@@ -28,11 +29,11 @@ function signInAs(role: StaffRole | null, userType = role ? ROLE_USER_TYPE[role]
   setTokens({ access_token: fakeJwt({ sub: 'me' }), refresh_token: 'r' })
   apiClient.defaults.adapter = mockAdapter((c) => {
     const url = String(c.url)
-    if (/^\/users\/[^/]+$/.test(url)) {
+    if (url === '/auth/me') {
       return {
         data: {
           id: 'me', email: 'me@x.co', full_name: 'Persona Prueba', phone: null, id_type: 'CC', id_number: '9',
-          user_type_code: userType, role_code: role, is_active: true, email_verified_at: '2026-01-01T00:00:00Z',
+          user_type_code: userType, role_code: role, capabilities: capabilitiesForRole(role), is_active: true, email_verified_at: '2026-01-01T00:00:00Z',
           created_at: '2026-01-01T00:00:00Z',
         },
       }

@@ -9,6 +9,7 @@ import { resetNotifier } from '../lib/notifier'
 import { t } from '../lib/i18n'
 import { clearSession, setTokens } from '../lib/session'
 import { fakeJwt, mockAdapter } from '../test/helpers'
+import { capabilitiesForRole } from '../test/capabilities'
 import type { InternalAxiosRequestConfig } from 'axios'
 
 // Errors as the user meets them: an action fails on the server and they must be told why, with
@@ -43,11 +44,11 @@ function serveApi(extra: Handler = () => undefined) {
     calls.push(`${String(c.method).toUpperCase()} ${url}`)
     const override = extra(c)
     if (override) return override
-    if (/^\/users\/[^/]+$/.test(url)) {
+    if (url === '/auth/me') {
       return {
         data: {
           id: 'me', email: 'me@x.co', full_name: 'Admin ECA', phone: null, id_type: 'CC', id_number: '9',
-          user_type_code: 'eca', role_code: 'eca_admin', is_active: true,
+          user_type_code: 'eca', role_code: 'eca_admin', capabilities: capabilitiesForRole('eca_admin'), is_active: true,
           email_verified_at: '2026-01-01T00:00:00Z', created_at: '2026-01-01T00:00:00Z',
         },
       }
@@ -149,6 +150,6 @@ describe('errors shown to the user', () => {
     serveApi((c) => (String(c.url) === '/inventory' ? { status: 403, data: { detail: 'No tienes permisos para realizar esta acción' } } : undefined))
     renderAt('/inventario')
     expect(await screen.findByText('No tienes permisos para realizar esta acción')).toBeInTheDocument()
-    await waitFor(() => expect(calls.filter((c) => /^GET \/users\/[^/]+$/.test(c)).length).toBeGreaterThanOrEqual(2))
+    await waitFor(() => expect(calls.filter((c) => c === 'GET /auth/me').length).toBeGreaterThanOrEqual(2))
   })
 })

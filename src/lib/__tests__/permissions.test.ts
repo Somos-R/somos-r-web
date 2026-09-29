@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { can, isStaffRole, type Permission, type StaffRole } from '../permissions'
 import { mapToAuthUser } from '../../services/auth'
+import { capabilitiesForRole } from '../../test/capabilities'
 
 // Expected matrix, transcribed from the backend's docs/matriz-permisos.md (not derived from the
 // implementation under test). Column order below.
@@ -8,10 +9,6 @@ const ROLES: StaffRole[] = [
   'association_admin', 'association_operator', 'route_manager',
   'eca_admin', 'eca_operator', 'eca_warehouse',
 ]
-const USER_TYPE: Record<StaffRole, string> = {
-  association_admin: 'association', association_operator: 'association', route_manager: 'association',
-  eca_admin: 'eca', eca_operator: 'eca', eca_warehouse: 'eca',
-}
 
 //                                   assoc  assoc  route  eca    eca    eca
 //                                   admin  oper   mgr    admin  oper   wh
@@ -34,7 +31,8 @@ const MATRIX: Record<Exclude<Permission, 'settings.view'>, boolean[]> = {
   'reports.view':         [true,  true,  false, true,  true,  true],
 }
 
-const staff = (role: StaffRole) => ({ user_type: USER_TYPE[role], role })
+const staff = (role: StaffRole) => ({ role, capabilities: capabilitiesForRole(role) })
+const noRole = { role: null, capabilities: [] }
 
 describe('can() against the backend permission matrix', () => {
   const cases = Object.entries(MATRIX).flatMap(([permission, allowed]) =>
@@ -47,15 +45,13 @@ describe('can() against the backend permission matrix', () => {
 
   it('every signed-in user can open settings, including staff without a role', () => {
     ROLES.forEach((role) => expect(can(staff(role), 'settings.view')).toBe(true))
-    expect(can({ user_type: 'eca', role: null }, 'settings.view')).toBe(true)
-    expect(can({ user_type: 'recycler', role: null }, 'settings.view')).toBe(true)
+    expect(can(noRole, 'settings.view')).toBe(true)
+    expect(can(noRole, 'settings.view')).toBe(true)
   })
 
   it('grants nothing to users without a role (recycler, citizen, roleless staff)', () => {
     for (const permission of Object.keys(MATRIX) as Permission[]) {
-      expect(can({ user_type: 'recycler', role: null }, permission)).toBe(false)
-      expect(can({ user_type: 'citizen', role: null }, permission)).toBe(false)
-      expect(can({ user_type: 'eca', role: null }, permission)).toBe(false)
+      expect(can(noRole, permission)).toBe(false)
     }
   })
 
@@ -98,7 +94,12 @@ describe('mapToAuthUser role handling', () => {
   it('does not fabricate profile fields the API did not send', () => {
     const user = mapToAuthUser(profile({ role_code: 'eca_admin' }))
     expect(Object.keys(user).sort()).toEqual([
-      'created_at', 'email', 'email_verified_at', 'full_name', 'id', 'is_active', 'phone', 'role', 'user_type',
+      'capabilities', 'created_at', 'email', 'email_verified_at', 'full_name', 'id', 'is_active', 'phone', 'role', 'user_type',
     ])
+  })
+
+  it('takes capabilities from the server and never invents them', () => {
+    expect(mapToAuthUser(profile({ role_code: 'eca_admin', capabilities: ['weighings.view'] })).capabilities).toEqual(['weighings.view'])
+    expect(mapToAuthUser(profile({ role_code: 'eca_admin' })).capabilities).toEqual([])
   })
 })

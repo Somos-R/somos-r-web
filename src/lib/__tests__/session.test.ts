@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { clearSession, getAccessToken, getRefreshToken, getSessionUserId, setTokens, subscribe } from '../session'
-import { fakeJwt } from '../../test/helpers'
+import { clearSession, getAccessToken, getRefreshToken, setTokens, subscribe } from '../session'
 
 describe('session', () => {
   beforeEach(() => {
@@ -40,16 +39,5 @@ describe('session', () => {
     window.dispatchEvent(new StorageEvent('storage', { key: 'unrelated' }))
     expect(listener).toHaveBeenCalledTimes(1)
     unsubscribe()
-  })
-
-  it('reads the user id from the access token', () => {
-    setTokens({ access_token: fakeJwt({ sub: 'user-123' }), refresh_token: 'r' })
-    expect(getSessionUserId()).toBe('user-123')
-  })
-
-  it('returns null user id without a token or with a malformed one', () => {
-    expect(getSessionUserId()).toBeNull()
-    setTokens({ access_token: 'not-a-jwt', refresh_token: 'r' })
-    expect(getSessionUserId()).toBeNull()
   })
 })
