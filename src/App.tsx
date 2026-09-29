@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom'
 import Box from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
 import Typography from '@mui/material/Typography'
@@ -20,7 +20,7 @@ function NotFound() {
       <div style={{ textAlign: 'center' }}>
         <h1>{t.notFound.title}</h1>
         <p>{t.notFound.message}</p>
-        <a href="/">{t.notFound.backLink}</a>
+        <Link to="/">{t.notFound.backLink}</Link>
       </div>
     </div>
   )

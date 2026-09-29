@@ -49,28 +49,28 @@ export default function Dashboard() {
     {
       label: t.dashboard.metrics.activeRecyclers,
       value: String(activeRecyclers),
-      trend: pendingRecyclers > 0 ? `${pendingRecyclers} pendientes` : 'Sin pendientes',
+      trend: pendingRecyclers > 0 ? interpolate(t.dashboard.trends.pendingRecyclers, { count: pendingRecyclers }) : t.dashboard.trends.noPending,
       up: pendingRecyclers === 0,
       icon: <Users size={22} color="#059669" />,
     },
     {
       label: t.dashboard.metrics.monthlyWeighings,
       value: String(totalWeighings),
-      trend: 'este mes',
+      trend: t.dashboard.trends.thisMonth,
       up: totalWeighings > 0,
       icon: <Scale size={22} color="#059669" />,
     },
     {
       label: t.dashboard.metrics.pendingRequests,
       value: String(pendingWeighings),
-      trend: 'por validar',
+      trend: t.dashboard.trends.toValidate,
       up: pendingWeighings === 0,
       icon: <ClipboardList size={22} color={pendingWeighings > 0 ? '#f59e0b' : '#059669'} />,
     },
     {
       label: t.dashboard.metrics.collectedKg,
       value: collectedKg.toLocaleString('es-CO'),
-      trend: 'kg este mes',
+      trend: t.dashboard.trends.kgThisMonth,
       up: collectedKg > 0,
       icon: <Package size={22} color="#059669" />,
     },
@@ -80,7 +80,7 @@ export default function Dashboard() {
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       <Box>
         <Typography variant="h5" fontWeight={600}>
-          {interpolate(t.dashboard.greeting, { name: user?.full_name ?? 'Admin' })}
+          {interpolate(t.dashboard.greeting, { name: user?.full_name ?? t.sidebar.defaultUser })}
         </Typography>
         <Typography variant="body2" color="text.secondary" mt={0.5}>{t.dashboard.subtitle}</Typography>
       </Box>
@@ -141,7 +141,7 @@ export default function Dashboard() {
             {(recentWeighings?.items ?? []).length === 0 && (
               <ListItem sx={{ px: 2, py: 2 }}>
                 <ListItemText
-                  primary="No hay pesajes registrados aún"
+                  primary={t.dashboard.noWeighings}
                   primaryTypographyProps={{ variant: 'body2', color: 'text.secondary', textAlign: 'center' }}
                 />
               </ListItem>

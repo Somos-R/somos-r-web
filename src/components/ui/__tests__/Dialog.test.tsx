@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi } from 'vitest'
 import { Dialog, DialogTitle, DialogContent } from '../Dialog'
+import { t } from '../../../lib/i18n'
 
 describe('Dialog', () => {
   it('renders content when open is true', () => {
@@ -29,6 +30,8 @@ describe('Dialog', () => {
       </Dialog>
     )
     expect(screen.getByLabelText('Cerrar')).toBeInTheDocument()
+    // The label is read from the dictionary, so it stays translatable in one place.
+    expect(screen.getByLabelText(t.common.close)).toBe(screen.getByLabelText('Cerrar'))
   })
 
   it('does not show close button when showClose is not passed', () => {

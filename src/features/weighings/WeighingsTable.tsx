@@ -124,7 +124,7 @@ export default function WeighingsTable({
                 <TableCell align="right">{t.pesajes.table.pricePerKg}</TableCell>
                 <TableCell align="right">{t.pesajes.table.total}</TableCell>
                 <TableCell>{t.pesajes.table.status}</TableCell>
-                {hasActions && <TableCell align="right">Acciones</TableCell>}
+                {hasActions && <TableCell align="right">{t.common.actions}</TableCell>}
               </TableRow>
             </TableHead>
             <TableBody>
@@ -166,7 +166,7 @@ export default function WeighingsTable({
                             disabled={actionLoadingId === p.id}
                             onClick={() => onValidate(p.id)}
                           >
-                            Validar
+                            {t.common.validate}
                           </Button>
                         )}
                         {p.status === 'pending_validation' && onReject && (
@@ -177,7 +177,7 @@ export default function WeighingsTable({
                             disabled={actionLoadingId === p.id}
                             onClick={() => onReject(p.id)}
                           >
-                            Rechazar
+                            {t.pesajes.actions.reject}
                           </Button>
                         )}
                         {p.status === 'validated' && onMarkPaid && (
@@ -187,7 +187,7 @@ export default function WeighingsTable({
                             disabled={actionLoadingId === p.id}
                             onClick={() => onMarkPaid(p.id)}
                           >
-                            Marcar pagado
+                            {t.pesajes.actions.markPaid}
                           </Button>
                         )}
                       </Box>
