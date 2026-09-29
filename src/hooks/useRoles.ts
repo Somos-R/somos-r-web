@@ -1,7 +1,7 @@
-import { useAuthStore } from './useAuth'
+import { useAuth } from './useAuth'
 
 export function useRoles() {
-  const { user } = useAuthStore()
+  const { user } = useAuth()
   const role = user?.role
 
   return {

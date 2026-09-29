@@ -3,10 +3,10 @@ import AppBar from '@mui/material/AppBar'
 import Toolbar from '@mui/material/Toolbar'
 import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
-import { useAuthStore } from '../../hooks/useAuth'
+import { useAuth } from '../../hooks/useAuth'
 
 export function Header() {
-  const { user } = useAuthStore()
+  const { user } = useAuth()
   const [now, setNow] = useState(new Date())
 
   useEffect(() => {

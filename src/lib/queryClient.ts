@@ -1,4 +1,5 @@
 import { QueryClient } from '@tanstack/react-query'
+import { getAccessToken, subscribe } from './session'
 
 const MAX_RETRIES = 2
 
@@ -17,4 +18,10 @@ export const queryClient = new QueryClient({
       retry: shouldRetry,
     },
   },
+})
+
+// Cached server data belongs to the user who fetched it: when the session ends (logout,
+// expired refresh token, logout in another tab) wipe it so the next user never sees it.
+subscribe(() => {
+  if (getAccessToken() === null) queryClient.clear()
 })

@@ -107,7 +107,7 @@ Servidor en `http://localhost:5173`
 - Vite 8.0.4
 - React Router 7.14.0
 - Tailwind CSS 3.4.19
-- shadcn/ui, React Query 5, Zustand 5, Axios
+- shadcn/ui, React Query 5, Axios
 
 ### Mobile
 

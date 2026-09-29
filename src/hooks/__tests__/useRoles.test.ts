@@ -5,7 +5,7 @@ import { act } from 'react'
 vi.mock('../useAuth', () => {
   let mockUser: { role: string } | null = null
   return {
-    useAuthStore: () => ({ user: mockUser }),
+    useAuth: () => ({ user: mockUser }),
     __setMockUser: (user: { role: string } | null) => { mockUser = user },
   }
 })

@@ -1,14 +1,25 @@
 import axios from 'axios'
+import { API_URL } from './env'
+import { getAccessToken } from './session'
+import { refreshAccessToken } from './tokenRefresh'
+
+declare module 'axios' {
+  interface AxiosRequestConfig {
+    /** Auth endpoints answer 401 for their own reasons; never try to refresh on them. */
+    skipAuthRefresh?: boolean
+    _retried?: boolean
+  }
+}
 
 export const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL ?? 'http://localhost:8000',
+  baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
 })
 
 apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('auth_token')
+  const token = getAccessToken()
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
@@ -17,12 +28,22 @@ apiClient.interceptors.request.use((config) => {
 
 apiClient.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('auth_token')
-      localStorage.removeItem('auth_user')
-      window.location.href = '/login'
+  async (error) => {
+    const config = error.config
+    if (error.response?.status !== 401 || !config || config.skipAuthRefresh || config._retried) {
+      return Promise.reject(error)
     }
-    return Promise.reject(error)
+
+    // Access tokens live 15 minutes: swap in a fresh one and replay the request once.
+    // If the refresh fails, the session is cleared and the app falls back to the login screen.
+    const sentToken = (config.headers?.Authorization as string | undefined)?.replace(/^Bearer /, '') ?? null
+    try {
+      const token = await refreshAccessToken(sentToken)
+      config._retried = true
+      config.headers.Authorization = `Bearer ${token}`
+      return apiClient(config)
+    } catch {
+      return Promise.reject(error)
+    }
   }
 )

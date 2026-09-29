@@ -1,140 +1,46 @@
-import { create } from 'zustand'
-import { queryClient } from '../lib/queryClient'
-import { apiClient } from '../lib/apiClient'
-import type { AuthUser, UserRole } from '../types/auth.types'
+import { useSyncExternalStore } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { authService } from '../services/auth'
+import { clearSession, getAccessToken, subscribe } from '../lib/session'
 
-interface AuthStore {
-  user: AuthUser | null
-  token: string | null
-  isAuthenticated: boolean
-  isLoading: boolean
-  error: string | null
-  login: (email: string, password: string) => Promise<void>
-  logout: () => Promise<void>
-  setUser: (user: AuthUser | null) => void
-}
+export const ME_QUERY_KEY = ['me'] as const
+const ME_STALE_TIME = 5 * 60_000
 
-interface BackendTokenResponse {
-  access_token: string
-  token_type: string
-}
+const useHasSession = () => useSyncExternalStore(subscribe, () => getAccessToken() !== null)
 
-interface BackendUserResponse {
-  id: string
-  email: string
-  full_name: string
-  phone: string | null
-  id_type: string
-  id_number: string
-  user_type_code: string
-  role_code: string | null
-  created_at: string
-}
+/**
+ * Session (tokens) lives in lib/session; the user profile is server data, so it lives in
+ * React Query under ['me']. Components read both through this hook.
+ */
+export function useAuth() {
+  const queryClient = useQueryClient()
+  const isAuthenticated = useHasSession()
 
-function decodeJwtPayload(token: string): Record<string, unknown> {
-  const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
-  return JSON.parse(atob(base64))
-}
+  const me = useQuery({
+    queryKey: ME_QUERY_KEY,
+    queryFn: authService.me,
+    enabled: isAuthenticated,
+    staleTime: ME_STALE_TIME,
+  })
 
-const ROLE_MAP: Record<string, UserRole> = {
-  eca_admin:         'admin_eca',
-  eca_operator:      'operador_eca',
-  association_admin: 'admin_asociacion',
-  superadmin:        'superadmin',
-  recycler:          'recycler',
-  citizen:           'citizen',
-  eca:               'operador_eca',
-  association:       'admin_asociacion',
-}
-
-function mapToAuthUser(data: BackendUserResponse): AuthUser {
-  const raw = data.role_code ?? data.user_type_code ?? ''
-  const role = (ROLE_MAP[raw] ?? 'citizen') as UserRole
-  const base = {
-    id: data.id,
-    email: data.email,
-    full_name: data.full_name,
-    status: 'active' as const,
-    created_at: data.created_at,
-  }
-  if (role === 'operador_eca' || role === 'admin_eca') {
-    return { ...base, role, eca_id: '', employee_code: '' }
-  }
-  if (role === 'admin_asociacion') {
-    return { ...base, role, asociacion_id: '' }
-  }
-  if (role === 'superadmin') {
-    return { ...base, role }
-  }
-  if (role === 'recycler') {
-    return {
-      ...base,
-      role,
-      phone: data.phone ?? '',
-      cedula: data.id_number,
-      association_id: '',
-      vehicle_type: 'bike' as const,
+  const login = async (email: string, password: string) => {
+    await authService.login(email, password)
+    try {
+      await queryClient.fetchQuery({ queryKey: ME_QUERY_KEY, queryFn: authService.me, staleTime: ME_STALE_TIME })
+    } catch (error) {
+      // Tokens without a profile are unusable: don't leave a half-open session behind.
+      clearSession()
+      throw error
     }
   }
-  return { ...base, role: 'citizen', phone: data.phone ?? '', address: '', lat: 0, lng: 0 }
-}
-
-const getInitialState = () => {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null
-  const user = typeof window !== 'undefined'
-    ? JSON.parse(localStorage.getItem('auth_user') || 'null')
-    : null
-  return { user, token }
-}
-
-export const useAuthStore = create<AuthStore>((set) => {
-  const { user: initialUser, token: initialToken } = getInitialState()
 
   return {
-    user: initialUser,
-    token: initialToken,
-    isAuthenticated: !!initialToken,
-    isLoading: false,
-    error: null,
-
-    login: async (email: string, password: string) => {
-      set({ isLoading: true, error: null })
-      try {
-        const { data: tokenData } = await apiClient.post<BackendTokenResponse>('/auth/login', { email, password })
-        const { access_token } = tokenData
-
-        const payload = decodeJwtPayload(access_token)
-        const userId = payload['sub'] as string
-
-        const { data: userData } = await apiClient.get<BackendUserResponse>(`/users/${userId}`, {
-          headers: { Authorization: `Bearer ${access_token}` },
-        })
-
-        const user = mapToAuthUser(userData)
-        localStorage.setItem('auth_token', access_token)
-        localStorage.setItem('auth_user', JSON.stringify(user))
-        set({ user, token: access_token, isAuthenticated: true, isLoading: false })
-      } catch (err) {
-        set({
-          error: err instanceof Error ? err.message : 'Login falló',
-          isLoading: false,
-        })
-        throw err
-      }
-    },
-
-    logout: async () => {
-      try {
-        await apiClient.post('/auth/logout')
-      } catch {
-        // Token already expired or network error — proceed with local cleanup
-      }
-      localStorage.removeItem('auth_token')
-      localStorage.removeItem('auth_user')
-      queryClient.clear()
-      set({ user: null, token: null, isAuthenticated: false, error: null })
-    },
-
-    setUser: (user) => set({ user }),
+    user: isAuthenticated ? (me.data ?? null) : null,
+    isAuthenticated,
+    isUserLoading: isAuthenticated && me.isPending,
+    userError: isAuthenticated && me.isError,
+    retryUser: () => me.refetch(),
+    login,
+    logout: authService.logout,
   }
-})
+}

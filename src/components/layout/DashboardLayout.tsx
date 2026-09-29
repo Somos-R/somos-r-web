@@ -5,11 +5,11 @@ import { Outlet } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { Header } from './Header'
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Snackbar } from '../ui'
-import { useAuthStore } from '../../hooks/useAuth'
+import { useAuth } from '../../hooks/useAuth'
 import { t } from '../../lib/i18n'
 
 export default function DashboardLayout() {
-  const { logout } = useAuthStore()
+  const { logout } = useAuth()
   const [showConfirm, setShowConfirm] = useState(false)
   const [showToast, setShowToast] = useState(false)
 

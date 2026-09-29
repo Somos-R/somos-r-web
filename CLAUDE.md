@@ -31,28 +31,29 @@ npx vitest run src/components/ui/__tests__/FormDrawer.test.tsx
 
 ## Architecture
 
-**Stack:** React 19 + TypeScript, Vite 8, MUI v6, React Router v7, TanStack React Query v5, Zustand, Axios.
+**Stack:** React 19 + TypeScript, Vite 8, MUI v6, React Router v7, TanStack React Query v5, Axios.
 
 **Path alias:** `@` → `src/` (configured in both `vite.config.ts` and `vitest.config.ts`).
 
 ### Routing and auth gate
 
-`App.tsx` reads `token` from `useAuthStore`. Authenticated routes render inside `DashboardLayout` (Sidebar + Header + `<Outlet />`). Unauthenticated requests redirect to `/login`. There is no route guard component — the gate is the conditional `{token ? ... : ...}` in `App.tsx`.
+`App.tsx` reads `isAuthenticated` from `useAuth()` (a session exists) and shows a loader until the user profile arrives, because roles come from the server. Authenticated routes render inside `DashboardLayout` (Sidebar + Header + `<Outlet />`). Unauthenticated requests redirect to `/login`. There is no route guard component — the gate is the conditional `{isAuthenticated ? ... : ...}` in `App.tsx`.
 
 ### State layers
 
 | Concern | Tool |
 |---|---|
-| Auth (user, token) | Zustand — `useAuthStore` in `src/hooks/useAuth.ts` |
+| Session (access + refresh tokens) | `src/lib/session.ts` — plain module with `subscribe`, no state library |
+| Auth (user profile) | React Query, key `['me']`, read through `useAuth()` in `src/hooks/useAuth.ts` |
 | Role-based checks | `useRoles()` hook — never read `user.role` directly in components |
 | Server data | TanStack React Query — `useQuery` / `useMutation` |
 | API calls | Axios — `apiClient` in `src/lib/apiClient.ts` |
 
-`apiClient` automatically injects `Authorization: Bearer <token>` from `localStorage` and redirects to `/login` on 401.
+`apiClient` injects `Authorization: Bearer <token>` from `lib/session`. Access tokens last 15 minutes: on a 401 it refreshes once (`lib/tokenRefresh.ts`, single-flight across requests and tabs, because the backend revokes the whole session if a rotated refresh token is reused) and replays the request. If the refresh is rejected the session is cleared and the router sends the user to `/login`. Auth endpoints pass `skipAuthRefresh: true`.
 
-`queryClient` lives in `src/lib/queryClient.ts` (default `staleTime` 30 s, no retries on 4xx) and is used by `useAuthStore.logout()` to clear the cache.
+`queryClient` lives in `src/lib/queryClient.ts` (default `staleTime` 30 s, no retries on 4xx) and is wiped whenever the session ends (logout, rejected refresh, logout in another tab).
 
-The backend base URL is `VITE_API_URL` env var (default `http://localhost:8000`). Auth is still mocked in `useAuthStore.login()` — replace with a real `POST /auth/login` call when the backend is ready.
+The backend base URL is `VITE_API_URL` env var (default `http://localhost:8000`). Login, logout and profile calls live in `src/services/auth.ts`.
 
 ### Feature structure
 
@@ -126,7 +127,7 @@ Tests use Vitest + React Testing Library (`@testing-library/react`) + `@testing-
 **Rules:**
 - Every new or modified file in `src/components/ui/` must have a corresponding test file in `__tests__/`.
 - No `ThemeProvider` is needed in tests — MUI renders without a theme in jsdom.
-- For components that call `apiClient` or `useAuthStore`, use `vi.mock`.
+- For code that calls `apiClient`, prefer `mockAdapter` from `src/test/helpers.ts` (fake axios adapter) over `vi.mock`, so interceptors are exercised. Use `vi.mock` for hooks like `useAuth`.
 - Prefer `userEvent` over `fireEvent` except when bypassing CSS pointer-events (see `Button.test.tsx`).
 - When a field has `required`, MUI appends ` *` to the label text. Use regex (`getByLabelText(/Label name/)`) instead of exact strings for those queries.
 

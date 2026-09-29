@@ -1,16 +1,16 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Box from '@mui/material/Box'
-import { useAuthStore } from '../../hooks/useAuth'
+import { useAuth } from '../../hooks/useAuth'
 import { LoginForm } from './LoginForm'
 
 export default function LoginPage() {
   const navigate = useNavigate()
-  const { token } = useAuthStore()
+  const { isAuthenticated } = useAuth()
 
   useEffect(() => {
-    if (token) navigate('/')
-  }, [token, navigate])
+    if (isAuthenticated) navigate('/')
+  }, [isAuthenticated, navigate])
 
   return (
     <Box
