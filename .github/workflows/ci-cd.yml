@@ -45,7 +45,12 @@ jobs:
           node-version: 20
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm build
+      - name: Build, only to measure sizes (this job publishes nothing)
+        run: pnpm build
+        env:
+          # Production builds refuse to run without an API URL (config/buildEnv.ts); the size does
+          # not depend on which one, so a placeholder is enough here.
+          VITE_API_URL: https://api.example.com
       - run: pnpm check:bundle
 
   # ─── Supply chain: fail on high/critical advisories in shipped dependencies ─
