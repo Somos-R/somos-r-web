@@ -1,7 +1,7 @@
 import path from 'path'
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
-import { assertProductionEnv } from './config/buildEnv'
+import { assertProductionEnv } from './config/buildEnv.ts'
 
 export default defineConfig(({ command, mode }) => {
   // Fail the build, not the users: a production bundle without a usable API URL can't work.
@@ -13,7 +13,7 @@ export default defineConfig(({ command, mode }) => {
     plugins: [react()],
     resolve: {
       alias: {
-        '@': path.resolve(__dirname, './src'),
+        '@': path.resolve(import.meta.dirname, './src'),
       },
     },
     build: {
