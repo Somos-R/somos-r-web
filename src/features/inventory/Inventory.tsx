@@ -2,11 +2,10 @@ import { useState } from 'react'
 import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
-import CircularProgress from '@mui/material/CircularProgress'
 import MuiTextField from '@mui/material/TextField'
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import InventoryTable, { type InventoryItem } from './InventoryTable'
-import { Card, CardContent, Dialog, DialogTitle, DialogContent, DialogActions, Button, Snackbar } from '../../components/ui'
+import { Card, CardContent, Dialog, DialogTitle, DialogContent, DialogActions, Button, Snackbar, Loader } from '../../components/ui'
 import { t, interpolate } from '../../lib/i18n'
 import { inventoryService, type InventoryItemAPI, type InventoryStatus } from '../../services/inventory'
 import { toPaginationProps, usePagination } from '../../lib/pagination'
@@ -31,7 +30,7 @@ function StatCard({ label, value, sub, color = 'text.primary' }: StatCardProps) 
     <Card>
       <CardContent>
         <Typography variant="caption" color="text.secondary" textTransform="uppercase" letterSpacing={0.5}>{label}</Typography>
-        <Typography variant="h5" fontWeight={700} color={color} mt={0.5}>{value}</Typography>
+        <Typography variant="h5" component="p" fontWeight={700} color={color} mt={0.5}>{value}</Typography>
         <Typography variant="caption" color="text.secondary">{sub}</Typography>
       </CardContent>
     </Card>
@@ -132,13 +131,13 @@ export default function Inventory() {
   const total = listData?.total ?? 0
 
   if (isLoading && items.length === 0) {
-    return <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}><CircularProgress /></Box>
+    return <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}><Loader /></Box>
   }
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       <Box>
-        <Typography variant="h5" fontWeight={600}>{t.inventario.title}</Typography>
+        <Typography variant="h5" component="h1" fontWeight={600}>{t.inventario.title}</Typography>
         <Typography variant="body2" color="text.secondary" mt={0.5}>{t.inventario.subtitle}</Typography>
       </Box>
 

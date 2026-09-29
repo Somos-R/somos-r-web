@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link as RouterLink, useNavigate } from 'react-router-dom'
-import CircularProgress from '@mui/material/CircularProgress'
 import Link from '@mui/material/Link'
 import Typography from '@mui/material/Typography'
-import { Alert, Button } from '../../components/ui'
+import { Alert, Button, Loader } from '../../components/ui'
 import { getApiErrorMessage } from '../../lib/apiError'
 import { t } from '../../lib/i18n'
 import { authService } from '../../services/auth'
@@ -36,7 +35,7 @@ export default function VerifyEmailPage() {
     <AuthShell>
       {state === 'verifying' && (
         <AuthCard title={t.account.verify.verifying}>
-          <CircularProgress sx={{ alignSelf: 'center' }} />
+          <Loader sx={{ alignSelf: 'center' }} />
         </AuthCard>
       )}
       {state === 'verified' && (

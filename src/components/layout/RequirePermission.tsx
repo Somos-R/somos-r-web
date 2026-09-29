@@ -27,7 +27,7 @@ export function RequirePermission({ permission, redirectIfDenied = false, childr
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1.5, py: 10, textAlign: 'center' }}>
-      <Typography variant="h5" fontWeight={600}>{t.forbidden.title}</Typography>
+      <Typography variant="h5" component="h1" fontWeight={600}>{t.forbidden.title}</Typography>
       <Typography variant="body2" color="text.secondary">{t.forbidden.message}</Typography>
       <Button onClick={() => navigate(getHomePath(can), { replace: true })}>{t.forbidden.back}</Button>
     </Box>

@@ -5,11 +5,11 @@ import Grid from '@mui/material/Grid'
 import Tabs from '@mui/material/Tabs'
 import Tab from '@mui/material/Tab'
 import Tooltip from '@mui/material/Tooltip'
-import CircularProgress from '@mui/material/CircularProgress'
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import {
   Table, TableHead, TableBody, TableRow, TableCell, TableContainer, TablePagination,
   Badge, Button, Input, Select, Dialog, DialogTitle, DialogContent, DialogActions, Card, CardContent,
+  Loader,
 } from '../../components/ui'
 import { t, interpolate } from '../../lib/i18n'
 import {
@@ -36,7 +36,7 @@ function StatCard({ label, value, sub, color = 'text.primary' }: StatCardProps) 
     <Card>
       <CardContent>
         <Typography variant="caption" color="text.secondary" textTransform="uppercase">{label}</Typography>
-        <Typography variant="h5" fontWeight={700} color={color} mt={0.5}>{value}</Typography>
+        <Typography variant="h5" component="p" fontWeight={700} color={color} mt={0.5}>{value}</Typography>
         <Typography variant="caption" color="text.secondary">{sub}</Typography>
       </CardContent>
     </Card>
@@ -191,7 +191,7 @@ export default function Transactions() {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       <Box>
-        <Typography variant="h5" fontWeight={600}>{t.transacciones.title}</Typography>
+        <Typography variant="h5" component="h1" fontWeight={600}>{t.transacciones.title}</Typography>
         <Typography variant="body2" color="text.secondary" mt={0.5}>{t.transacciones.subtitle}</Typography>
       </Box>
 
@@ -216,7 +216,7 @@ export default function Transactions() {
           </Grid>
 
           {purchasesLoading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}><CircularProgress /></Box>
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}><Loader /></Box>
           ) : (
             <TableContainer sx={{ opacity: purchasesFetching ? 0.6 : 1, transition: 'opacity 120ms' }}>
               <Table>
@@ -297,7 +297,7 @@ export default function Transactions() {
           )}
 
           {salesLoading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}><CircularProgress /></Box>
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}><Loader /></Box>
           ) : (
             <TableContainer sx={{ opacity: salesFetching ? 0.6 : 1, transition: 'opacity 120ms' }}>
               <Table>

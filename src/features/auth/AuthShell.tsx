@@ -6,6 +6,7 @@ import Typography from '@mui/material/Typography'
 export function AuthShell({ children }: { children: React.ReactNode }) {
   return (
     <Box
+      component="main"
       sx={{
         minHeight: '100vh',
         display: 'flex',
@@ -29,7 +30,7 @@ interface AuthCardProps {
 export function AuthCard({ title, subtitle, children }: AuthCardProps) {
   return (
     <Paper elevation={4} sx={{ p: 4, borderRadius: 2 }}>
-      <Typography variant="h6" fontWeight={700} textAlign="center" mb={subtitle ? 1 : 3}>
+      <Typography variant="h6" component="h1" fontWeight={700} textAlign="center" mb={subtitle ? 1 : 3}>
         {title}
       </Typography>
       {subtitle && (

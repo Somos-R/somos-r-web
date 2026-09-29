@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
-import CircularProgress from '@mui/material/CircularProgress'
 import MenuItem from '@mui/material/MenuItem'
 import MuiSelect from '@mui/material/Select'
 import { UserPlus } from 'lucide-react'
 import {
   Input, Badge, Button,
   Table, TableHead, TableBody, TableRow, TableCell, TableContainer, TablePagination,
+  Loader,
 } from '../../components/ui'
 import { t, interpolate } from '../../lib/i18n'
 import { PAGE_SIZE_OPTIONS, type PaginationProps } from '../../lib/pagination'
@@ -70,7 +70,7 @@ export default function RecyclersTable({
   if (isLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
-        <CircularProgress color="primary" />
+        <Loader />
       </Box>
     )
   }
@@ -93,6 +93,7 @@ export default function RecyclersTable({
           />
           <MuiSelect
             size="small"
+            inputProps={{ 'aria-label': t.common.filterByStatus }}
             value={status}
             onChange={(e) => onStatusChange(e.target.value as StatusFilter)}
             sx={{ minWidth: 170, fontSize: '0.875rem' }}

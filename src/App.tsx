@@ -1,9 +1,8 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom'
 import Box from '@mui/material/Box'
-import CircularProgress from '@mui/material/CircularProgress'
 import Typography from '@mui/material/Typography'
 import { useAuth } from './hooks/useAuth'
-import { Button } from './components/ui'
+import { Button, Loader } from './components/ui'
 import DashboardLayout from './components/layout/DashboardLayout'
 import LoginPage from './features/auth/LoginPage'
 import ForgotPasswordPage from './features/auth/ForgotPasswordPage'
@@ -16,19 +15,19 @@ import { NotificationHost } from './components/layout/NotificationHost'
 
 function NotFound() {
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+    <main style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
       <div style={{ textAlign: 'center' }}>
         <h1>{t.notFound.title}</h1>
         <p>{t.notFound.message}</p>
         <Link to="/">{t.notFound.backLink}</Link>
       </div>
-    </div>
+    </main>
   )
 }
 
 function FullScreen({ children }: { children: React.ReactNode }) {
   return (
-    <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
+    <Box component="main" sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
       {children}
     </Box>
   )
@@ -41,7 +40,7 @@ export default function App() {
   if (isAuthenticated && isUserLoading) {
     return (
       <FullScreen>
-        <CircularProgress />
+        <Loader />
         <Typography variant="body2" color="text.secondary">{t.auth.session.loading}</Typography>
       </FullScreen>
     )

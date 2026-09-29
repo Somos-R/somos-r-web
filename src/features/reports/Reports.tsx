@@ -7,7 +7,7 @@ export default function Reports() {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       <Box>
-        <Typography variant="h5" fontWeight={600}>{t.reportes.title}</Typography>
+        <Typography variant="h5" component="h1" fontWeight={600}>{t.reportes.title}</Typography>
         <Typography variant="body2" color="text.secondary" mt={0.5}>{t.reportes.subtitle}</Typography>
       </Box>
       <Card>

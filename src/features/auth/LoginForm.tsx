@@ -59,7 +59,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
 
   return (
     <Paper elevation={4} sx={{ p: 4, borderRadius: 2 }}>
-      <Typography variant="h6" fontWeight={700} textAlign="center" mb={3}>
+      <Typography variant="h6" component="h1" fontWeight={700} textAlign="center" mb={3}>
         {t.auth.loginTitle}
       </Typography>
 
@@ -85,7 +85,12 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
           error={!!passwordError}
           helperText={passwordError}
           endAdornment={
-            <IconButton size="small" onClick={() => setShowPassword((v) => !v)} tabIndex={-1}>
+            <IconButton
+              size="small"
+              aria-label={t.ui.formDrawer.togglePasswordVisibility}
+              onClick={() => setShowPassword((v) => !v)}
+              tabIndex={-1}
+            >
               {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </IconButton>
           }

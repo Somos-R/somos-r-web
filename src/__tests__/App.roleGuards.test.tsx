@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { QueryClientProvider } from '@tanstack/react-query'
 import App from '../App'
 import { apiClient } from '../lib/apiClient'
@@ -54,7 +54,7 @@ function renderAt(path: string) {
   )
 }
 
-const navEntry = (label: string) => screen.queryByRole('button', { name: label })
+const navEntry = (label: string) => screen.queryByRole('link', { name: label })
 
 describe('role-based navigation and guards (full app)', () => {
   beforeEach(() => {
@@ -72,6 +72,16 @@ describe('role-based navigation and guards (full app)', () => {
     for (const hidden of [t.nav.dashboard, t.nav.pesajes, t.nav.inventario, t.nav.transacciones, t.nav.reportes]) {
       expect(navEntry(hidden)).not.toBeInTheDocument()
     }
+  })
+
+  it('the menu is a labelled navigation region whose entries are links, with the current page marked', async () => {
+    signInAs('eca_admin')
+    renderAt('/inventario')
+    await screen.findByRole('heading', { name: t.inventario.title, level: 1 })
+    const nav = screen.getByRole('navigation', { name: t.sidebar.navigation })
+    expect(within(nav).getByRole('link', { name: t.nav.inventario })).toHaveAttribute('aria-current', 'page')
+    expect(within(nav).getByRole('link', { name: t.nav.pesajes })).not.toHaveAttribute('aria-current')
+    expect(within(nav).getByRole('link', { name: t.nav.pesajes })).toHaveAttribute('href', '/pesajes')
   })
 
   it('typing a forbidden URL shows the 403 screen, not the page', async () => {

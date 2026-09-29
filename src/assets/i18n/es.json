@@ -10,7 +10,11 @@
     "actions": "Acciones",
     "warehouse": "Bodega",
     "saving": "Guardando…",
-    "saveChanges": "Guardar cambios"
+    "saveChanges": "Guardar cambios",
+    "filterByStatus": "Filtrar por estado",
+    "filterByMaterial": "Filtrar por material",
+    "filterByWarehouse": "Filtrar por bodega",
+    "skipToContent": "Saltar al contenido"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -40,7 +44,9 @@
       "b2b_client": "Empresa",
       "eca": "ECA",
       "association": "Asociación"
-    }
+    },
+    "navigation": "Navegación principal",
+    "label": "Barra lateral"
   },
   "auth": {
     "loginTitle": "Portal ECA — Somos R",
