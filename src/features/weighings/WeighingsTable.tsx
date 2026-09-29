@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import CircularProgress from '@mui/material/CircularProgress'
@@ -6,10 +5,12 @@ import MenuItem from '@mui/material/MenuItem'
 import TextField from '@mui/material/TextField'
 import Tooltip from '@mui/material/Tooltip'
 import {
-  Input, Badge, Button,
+  Badge, Button,
   Table, TableHead, TableBody, TableRow, TableCell, TableContainer, TablePagination,
 } from '../../components/ui'
-import { t, interpolate } from '../../lib/i18n'
+import { t } from '../../lib/i18n'
+import type { PaginationProps } from '../../lib/pagination'
+import { PAGE_SIZE_OPTIONS } from '../../lib/pagination'
 import { getMaterialColor, getStatusStyle, type CatalogRef } from '../../lib/catalog'
 import type { WeighingStatus } from '../../services/weighings'
 
@@ -25,8 +26,17 @@ export interface Weighing {
 }
 
 interface WeighingsTableProps {
+  /** The rows of the current page, already filtered by the server. */
   data: Weighing[]
   isLoading?: boolean
+  /** A new page or filter is loading while the previous rows are still shown. */
+  isFetching?: boolean
+  status: WeighingStatus | ''
+  onStatusChange: (status: WeighingStatus | '') => void
+  materialCode: string
+  onMaterialChange: (code: string) => void
+  materialOptions: CatalogRef[]
+  pagination: PaginationProps
   onValidate?: (id: string) => void
   onReject?: (id: string) => void
   onMarkPaid?: (id: string) => void
@@ -42,34 +52,21 @@ const STATUS_CONFIG: Record<WeighingStatus, { label: string; color: 'warning' | 
 
 const statusStyle = (status: string) => getStatusStyle(STATUS_CONFIG, status, 'default' as const)
 
-type StatusFilter = '' | WeighingStatus
-
-const PAGE_SIZE = 8
-
 export default function WeighingsTable({
   data,
   isLoading,
+  isFetching,
+  status,
+  onStatusChange,
+  materialCode,
+  onMaterialChange,
+  materialOptions,
+  pagination,
   onValidate,
   onReject,
   onMarkPaid,
   actionLoadingId,
 }: WeighingsTableProps) {
-  const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('')
-  const [page, setPage] = useState(0)
-  const [rowsPerPage, setRowsPerPage] = useState(PAGE_SIZE)
-
-  const filtered = data.filter((p) => {
-    const q = search.toLowerCase()
-    const matchesSearch =
-      p.reciclador_nombre.toLowerCase().includes(q) ||
-      p.material.label.toLowerCase().includes(q)
-    const matchesStatus = statusFilter === '' || p.status === statusFilter
-    return matchesSearch && matchesStatus
-  })
-
-  const paginated = filtered.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-
   if (isLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
@@ -78,25 +75,30 @@ export default function WeighingsTable({
     )
   }
 
-  const countLabel = `${filtered.length} ${filtered.length !== 1 ? t.pesajes.countPlural : t.pesajes.countSingular}`
+  const total = pagination.total
+  const countLabel = `${total.toLocaleString('es-CO')} ${total !== 1 ? t.pesajes.countPlural : t.pesajes.countSingular}`
   const hasActions = onValidate || onReject || onMarkPaid
+  const hasFilters = status !== '' || materialCode !== ''
 
   return (
-    <TableContainer>
+    <TableContainer sx={{ opacity: isFetching ? 0.6 : 1, transition: 'opacity 120ms' }}>
       <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1.5, px: 2, py: 1.5, borderBottom: '1px solid', borderColor: 'divider' }}>
-        <Input
-          placeholder={t.pesajes.searchPlaceholder}
-          value={search}
-          onChange={(e) => { setSearch(e.target.value); setPage(0) }}
-          fullWidth={false}
-          sx={{ width: 280 }}
-        />
         <TextField
-          select size="small" value={statusFilter}
-          onChange={(e) => { setStatusFilter(e.target.value as StatusFilter); setPage(0) }}
-          sx={{ width: 160 }}
+          select size="small" SelectProps={{ displayEmpty: true }} value={materialCode}
+          onChange={(e) => onMaterialChange(e.target.value)}
+          sx={{ width: 180 }}
         >
-          <MenuItem value="">Todos los estados</MenuItem>
+          <MenuItem value="">{t.pesajes.filterAllMaterials}</MenuItem>
+          {materialOptions.map((m) => (
+            <MenuItem key={m.code} value={m.code}>{m.label}</MenuItem>
+          ))}
+        </TextField>
+        <TextField
+          select size="small" SelectProps={{ displayEmpty: true }} value={status}
+          onChange={(e) => onStatusChange(e.target.value as WeighingStatus | '')}
+          sx={{ width: 180 }}
+        >
+          <MenuItem value="">{t.pesajes.filterAllStatuses}</MenuItem>
           {Object.entries(STATUS_CONFIG).map(([k, v]) => (
             <MenuItem key={k} value={k}>{v.label}</MenuItem>
           ))}
@@ -104,12 +106,10 @@ export default function WeighingsTable({
         <Typography variant="caption" color="text.secondary" sx={{ ml: 'auto' }}>{countLabel}</Typography>
       </Box>
 
-      {filtered.length === 0 ? (
+      {data.length === 0 ? (
         <Box sx={{ py: 6, textAlign: 'center' }}>
           <Typography variant="body2" color="text.secondary">
-            {search || statusFilter
-              ? interpolate(t.pesajes.emptySearch, { query: search || statusFilter })
-              : t.pesajes.emptyState}
+            {hasFilters ? t.pesajes.emptyFiltered : t.pesajes.emptyState}
           </Typography>
         </Box>
       ) : (
@@ -128,7 +128,7 @@ export default function WeighingsTable({
               </TableRow>
             </TableHead>
             <TableBody>
-              {paginated.map((p) => (
+              {data.map((p) => (
                 <TableRow key={p.id} hover>
                   <TableCell sx={{ color: 'text.secondary', fontSize: '0.85rem' }}>
                     {new Date(p.occurred_at).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' })}
@@ -198,11 +198,12 @@ export default function WeighingsTable({
             </TableBody>
           </Table>
           <TablePagination
-            count={filtered.length}
-            page={page}
-            rowsPerPage={rowsPerPage}
-            onPageChange={(_, p) => setPage(p)}
-            onRowsPerPageChange={(e) => { setRowsPerPage(+e.target.value); setPage(0) }}
+            count={pagination.total}
+            page={pagination.page}
+            rowsPerPage={pagination.rowsPerPage}
+            rowsPerPageOptions={PAGE_SIZE_OPTIONS}
+            onPageChange={(_, page) => pagination.onPageChange(page)}
+            onRowsPerPageChange={(e) => pagination.onRowsPerPageChange(+e.target.value)}
           />
         </>
       )}

@@ -22,9 +22,16 @@ export default function Dashboard() {
     queryFn: ({ signal }) => weighingsService.stats({ signal }),
   })
 
-  const { data: recyclersData } = useQuery({
-    queryKey: ['recyclers', 'dashboard'],
-    queryFn: ({ signal }) => recyclersService.list({ limit: 100 }, { signal }),
+  // Counts come from the server's `total` (limit 1 = no rows shipped): filtering a page of 100
+  // in the browser stops being true as soon as there are more recyclers than that.
+  const { data: verifiedRecyclers } = useQuery({
+    queryKey: ['recyclers', 'count', 'verified'],
+    queryFn: ({ signal }) => recyclersService.list({ verification_status: 'verified', limit: 1 }, { signal }),
+  })
+
+  const { data: pendingRecyclersData } = useQuery({
+    queryKey: ['recyclers', 'count', 'pending'],
+    queryFn: ({ signal }) => recyclersService.list({ verification_status: 'pending', limit: 1 }, { signal }),
   })
 
   const { data: recentWeighings, isLoading: recentLoading } = useQuery({
@@ -32,8 +39,8 @@ export default function Dashboard() {
     queryFn: ({ signal }) => weighingsService.list({ limit: 5 }, { signal }),
   })
 
-  const activeRecyclers = recyclersData?.items.filter((r) => r.verification_status === 'verified').length ?? 0
-  const pendingRecyclers = recyclersData?.items.filter((r) => r.verification_status === 'pending').length ?? 0
+  const activeRecyclers = verifiedRecyclers?.total ?? 0
+  const pendingRecyclers = pendingRecyclersData?.total ?? 0
   const totalWeighings = weighingStats?.total_weighings_month ?? 0
   const pendingWeighings = weighingStats?.pending_count ?? 0
   const collectedKg = weighingStats ? Number(weighingStats.total_kg_month) : 0

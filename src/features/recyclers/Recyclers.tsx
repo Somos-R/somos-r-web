@@ -2,13 +2,14 @@ import { useState } from 'react'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import TextField from '@mui/material/TextField'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import RecyclersTable, { type Recycler } from './RecyclersTable'
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
+import RecyclersTable, { type Recycler, type StatusFilter } from './RecyclersTable'
 import RegisterRecyclerDrawer from './RegisterRecyclerDrawer'
 import { Snackbar, Dialog, DialogTitle, DialogContent, DialogActions, Button } from '../../components/ui'
 import { recyclersService } from '../../services/recyclers'
 import { t } from '../../lib/i18n'
 import { useRoles } from '../../hooks/useRoles'
+import { toPaginationProps, usePagination } from '../../lib/pagination'
 import { getApiErrorMessage } from '../../lib/apiError'
 
 export default function Recyclers() {
@@ -32,10 +33,20 @@ export default function Recyclers() {
     severity: 'success',
   })
 
-  const { data: response, isLoading } = useQuery({
-    queryKey: ['recyclers'],
-    queryFn: ({ signal }) => recyclersService.list({}, { signal }),
+  const [status, setStatus] = useState<StatusFilter>('all')
+  const pagination = usePagination()
+
+  // The server filters by status and paginates; the previous page stays while the next loads.
+  const { data: response, isLoading, isFetching } = useQuery({
+    queryKey: ['recyclers', 'list', { status, page: pagination.page, rowsPerPage: pagination.rowsPerPage }],
+    queryFn: ({ signal }) =>
+      recyclersService.list(
+        { verification_status: status === 'all' ? undefined : status, limit: pagination.limit, offset: pagination.offset },
+        { signal },
+      ),
+    placeholderData: keepPreviousData,
   })
+  pagination.clamp(response?.total)
 
   const recyclers: Recycler[] = (response?.items ?? []).map((item) => ({
     id: item.id,
@@ -114,6 +125,10 @@ export default function Recyclers() {
       <RecyclersTable
         data={recyclers}
         isLoading={isLoading}
+        isFetching={isFetching}
+        status={status}
+        onStatusChange={(next) => { setStatus(next); pagination.resetPage() }}
+        pagination={toPaginationProps(pagination, response?.total ?? 0)}
         onRegisterClick={can('recyclers.register') ? () => setDrawerOpen(true) : undefined}
         onValidate={can('recyclers.verify') ? (id) => validateMutation.mutate(id) : undefined}
         onReject={can('recyclers.verify') ? handleOpenRejectDialog : undefined}

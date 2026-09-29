@@ -162,12 +162,12 @@
         "TI": "Tarjeta de Identidad",
         "PA": "Pasaporte"
       }
-    }
+    },
+    "searchPageOnly": "La búsqueda solo recorre los {{count}} de esta página. Filtra por estado o cambia de página para ver el resto."
   },
   "pesajes": {
     "title": "Pesajes",
     "subtitle": "Registro y validación de pesajes por material",
-    "searchPlaceholder": "Buscar por reciclador o material...",
     "countSingular": "pesaje",
     "countPlural": "pesajes",
     "emptySearch": "Sin resultados para \"{{query}}\"",
@@ -186,12 +186,14 @@
       "validated": "Validado",
       "paid": "Pagado",
       "rejected": "Rechazado"
-    }
+    },
+    "filterAllStatuses": "Todos los estados",
+    "filterAllMaterials": "Todos los materiales",
+    "emptyFiltered": "No hay pesajes con los filtros seleccionados"
   },
   "inventario": {
     "title": "Inventario de Reciclaje",
     "subtitle": "Control de stock por material y punto de acopio",
-    "searchPlaceholder": "Buscar por material o bodega...",
     "countSingular": "ítem",
     "countPlural": "ítems",
     "filterAllMaterials": "Todos los materiales",
@@ -222,7 +224,8 @@
       "available": "Disponible",
       "low_stock": "Bajo stock",
       "out_of_stock": "Agotado"
-    }
+    },
+    "filterAllWarehouses": "Todas las bodegas"
   },
   "transacciones": {
     "title": "Transacciones",

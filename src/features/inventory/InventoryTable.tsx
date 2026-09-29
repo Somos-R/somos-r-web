@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import CircularProgress from '@mui/material/CircularProgress'
@@ -8,12 +7,13 @@ import IconButton from '@mui/material/IconButton'
 import Tooltip from '@mui/material/Tooltip'
 import { Pencil } from 'lucide-react'
 import {
-  Badge, Input,
+  Badge,
   Table, TableHead, TableBody, TableRow, TableCell, TableContainer, TablePagination,
 } from '../../components/ui'
 import { t } from '../../lib/i18n'
 import { getMaterialColor, getStatusStyle, type CatalogRef } from '../../lib/catalog'
 import type { InventoryStatus } from '../../services/inventory'
+import { PAGE_SIZE_OPTIONS, type PaginationProps } from '../../lib/pagination'
 
 export interface InventoryItem {
   id: string
@@ -27,8 +27,20 @@ export interface InventoryItem {
 }
 
 interface InventoryTableProps {
+  /** The rows of the current page, already filtered by the server. */
   data: InventoryItem[]
   isLoading?: boolean
+  /** A new page or filter is loading while the previous rows are still shown. */
+  isFetching?: boolean
+  status: InventoryStatus | ''
+  onStatusChange: (status: InventoryStatus | '') => void
+  materialCode: string
+  onMaterialChange: (code: string) => void
+  materialOptions: CatalogRef[]
+  warehouseId: string
+  onWarehouseChange: (id: string) => void
+  warehouseOptions: { id: string; name: string }[]
+  pagination: PaginationProps
   onEdit?: (item: InventoryItem) => void
 }
 
@@ -54,48 +66,35 @@ function StockBar({ actual, minimo }: { actual: number; minimo: number }) {
   )
 }
 
-const PAGE_SIZE = 8
-
-export default function InventoryTable({ data, isLoading, onEdit }: InventoryTableProps) {
-  const [search, setSearch] = useState('')
-  const [materialFilter, setMaterialFilter] = useState('')
-  const [statusFilter, setStatusFilter] = useState<InventoryStatus | ''>('')
-  const [page, setPage] = useState(0)
-  const [rowsPerPage, setRowsPerPage] = useState(PAGE_SIZE)
-
-  // Filter options come from the materials present in the data, not from a hardcoded list.
-  const materialOptions = [...new Map(data.map((item) => [item.material.code, item.material])).values()]
-
-  const filtered = data.filter((item) => {
-    const q = search.toLowerCase()
-    return (
-      (item.bodega.toLowerCase().includes(q) || item.material.label.toLowerCase().includes(q)) &&
-      (materialFilter === '' || item.material.code === materialFilter) &&
-      (statusFilter === '' || item.status === statusFilter)
-    )
-  })
-
-  const paginated = filtered.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-
+export default function InventoryTable({
+  data,
+  isLoading,
+  isFetching,
+  status,
+  onStatusChange,
+  materialCode,
+  onMaterialChange,
+  materialOptions,
+  warehouseId,
+  onWarehouseChange,
+  warehouseOptions,
+  pagination,
+  onEdit,
+}: InventoryTableProps) {
   if (isLoading) {
     return <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}><CircularProgress /></Box>
   }
 
-  const countLabel = `${filtered.length} ${filtered.length !== 1 ? t.inventario.countPlural : t.inventario.countSingular}`
+  const total = pagination.total
+  const countLabel = `${total.toLocaleString('es-CO')} ${total !== 1 ? t.inventario.countPlural : t.inventario.countSingular}`
+  const hasFilters = status !== '' || materialCode !== '' || warehouseId !== ''
 
   return (
-    <TableContainer>
+    <TableContainer sx={{ opacity: isFetching ? 0.6 : 1, transition: 'opacity 120ms' }}>
       <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1.5, px: 2, py: 1.5, borderBottom: '1px solid', borderColor: 'divider' }}>
-        <Input
-          placeholder={t.inventario.searchPlaceholder}
-          value={search}
-          onChange={(e) => { setSearch(e.target.value); setPage(0) }}
-          fullWidth={false}
-          sx={{ width: 240 }}
-        />
         <TextField
-          select size="small" value={materialFilter}
-          onChange={(e) => { setMaterialFilter(e.target.value); setPage(0) }}
+          select size="small" SelectProps={{ displayEmpty: true }} value={materialCode}
+          onChange={(e) => onMaterialChange(e.target.value)}
           sx={{ width: 180 }}
         >
           <MenuItem value="">{t.inventario.filterAllMaterials}</MenuItem>
@@ -104,8 +103,18 @@ export default function InventoryTable({ data, isLoading, onEdit }: InventoryTab
           ))}
         </TextField>
         <TextField
-          select size="small" value={statusFilter}
-          onChange={(e) => { setStatusFilter(e.target.value as InventoryStatus | ''); setPage(0) }}
+          select size="small" SelectProps={{ displayEmpty: true }} value={warehouseId}
+          onChange={(e) => onWarehouseChange(e.target.value)}
+          sx={{ width: 180 }}
+        >
+          <MenuItem value="">{t.inventario.filterAllWarehouses}</MenuItem>
+          {warehouseOptions.map((w) => (
+            <MenuItem key={w.id} value={w.id}>{w.name}</MenuItem>
+          ))}
+        </TextField>
+        <TextField
+          select size="small" SelectProps={{ displayEmpty: true }} value={status}
+          onChange={(e) => onStatusChange(e.target.value as InventoryStatus | '')}
           sx={{ width: 160 }}
         >
           <MenuItem value="">{t.inventario.filterAllStatuses}</MenuItem>
@@ -118,10 +127,10 @@ export default function InventoryTable({ data, isLoading, onEdit }: InventoryTab
         </Typography>
       </Box>
 
-      {filtered.length === 0 ? (
+      {data.length === 0 ? (
         <Box sx={{ py: 6, textAlign: 'center' }}>
           <Typography variant="body2" color="text.secondary">
-            {search || materialFilter || statusFilter
+            {hasFilters
               ? t.inventario.emptySearch
               : t.inventario.emptyState}
           </Typography>
@@ -143,7 +152,7 @@ export default function InventoryTable({ data, isLoading, onEdit }: InventoryTab
               </TableRow>
             </TableHead>
             <TableBody>
-              {paginated.map((item) => (
+              {data.map((item) => (
                 <TableRow key={item.id} hover>
                   <TableCell><Badge label={item.material.label} color={getMaterialColor(item.material.code)} /></TableCell>
                   <TableCell sx={{ fontWeight: 500 }}>{item.bodega}</TableCell>
@@ -169,9 +178,12 @@ export default function InventoryTable({ data, isLoading, onEdit }: InventoryTab
             </TableBody>
           </Table>
           <TablePagination
-            count={filtered.length} page={page} rowsPerPage={rowsPerPage}
-            onPageChange={(_, p) => setPage(p)}
-            onRowsPerPageChange={(e) => { setRowsPerPage(+e.target.value); setPage(0) }}
+            count={pagination.total}
+            page={pagination.page}
+            rowsPerPage={pagination.rowsPerPage}
+            rowsPerPageOptions={PAGE_SIZE_OPTIONS}
+            onPageChange={(_, page) => pagination.onPageChange(page)}
+            onRowsPerPageChange={(e) => pagination.onRowsPerPageChange(+e.target.value)}
           />
         </>
       )}

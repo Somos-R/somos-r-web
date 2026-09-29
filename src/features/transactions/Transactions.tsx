@@ -6,7 +6,7 @@ import Tabs from '@mui/material/Tabs'
 import Tab from '@mui/material/Tab'
 import Tooltip from '@mui/material/Tooltip'
 import CircularProgress from '@mui/material/CircularProgress'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import {
   Table, TableHead, TableBody, TableRow, TableCell, TableContainer, TablePagination,
   Badge, Button, Input, Select, Dialog, DialogTitle, DialogContent, DialogActions, Card, CardContent,
@@ -21,6 +21,7 @@ import {
 import { inventoryService } from '../../services/inventory'
 import { getApiErrorMessage } from '../../lib/apiError'
 import { useRoles } from '../../hooks/useRoles'
+import { PAGE_SIZE_OPTIONS, usePagination } from '../../lib/pagination'
 
 const STATUS_CONFIG: Record<string, { label: string; color: 'warning' | 'success' | 'info' | 'error' | 'default' }> = {
   pending:   { label: t.transacciones.status.pending,   color: 'warning' },
@@ -55,17 +56,34 @@ export default function Transactions() {
   const [cancelTargetId, setCancelTargetId] = useState<string | null>(null)
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null)
 
-  const [purchasePage, setPurchasePage] = useState(0)
-  const [salePage, setSalePage] = useState(0)
+  // Each tab pages on its own: the server sends one page at a time and the total for that type.
+  const purchasePagination = usePagination()
+  const salePagination = usePagination()
 
-  const { data: purchasesData, isLoading: purchasesLoading } = useQuery({
-    queryKey: ['transactions', 'purchase'],
-    queryFn: ({ signal }) => transactionsService.list({ type: 'purchase', limit: 100 }, { signal }),
+  const { data: purchasesData, isLoading: purchasesLoading, isFetching: purchasesFetching } = useQuery({
+    queryKey: ['transactions', 'list', 'purchase', { page: purchasePagination.page, rowsPerPage: purchasePagination.rowsPerPage }],
+    queryFn: ({ signal }) =>
+      transactionsService.list({ type: 'purchase', limit: purchasePagination.limit, offset: purchasePagination.offset }, { signal }),
+    placeholderData: keepPreviousData,
   })
+  purchasePagination.clamp(purchasesData?.total)
 
-  const { data: salesData, isLoading: salesLoading } = useQuery({
-    queryKey: ['transactions', 'sale'],
-    queryFn: ({ signal }) => transactionsService.list({ type: 'sale', limit: 100 }, { signal }),
+  const { data: salesData, isLoading: salesLoading, isFetching: salesFetching } = useQuery({
+    queryKey: ['transactions', 'list', 'sale', { page: salePagination.page, rowsPerPage: salePagination.rowsPerPage }],
+    queryFn: ({ signal }) =>
+      transactionsService.list({ type: 'sale', limit: salePagination.limit, offset: salePagination.offset }, { signal }),
+    placeholderData: keepPreviousData,
+  })
+  salePagination.clamp(salesData?.total)
+
+  // "How many are pending" must be a count over ALL rows, not over the page on screen.
+  const { data: pendingPurchasesData } = useQuery({
+    queryKey: ['transactions', 'count', 'purchase', 'pending'],
+    queryFn: ({ signal }) => transactionsService.list({ type: 'purchase', status: 'pending', limit: 1 }, { signal }),
+  })
+  const { data: pendingSalesData } = useQuery({
+    queryKey: ['transactions', 'count', 'sale', 'pending'],
+    queryFn: ({ signal }) => transactionsService.list({ type: 'sale', status: 'pending', limit: 1 }, { signal }),
   })
 
   const { data: stats } = useQuery({
@@ -132,13 +150,16 @@ export default function Transactions() {
   const purchases = purchasesData?.items ?? []
   const sales = salesData?.items ?? []
 
-  const totalKgPurchases = stats ? Number(stats.total_kg_purchases) : purchases.reduce((s, c) => s + Number(c.kg), 0)
-  const totalValuePurchases = stats ? Number(stats.total_value_purchases) : purchases.reduce((s, c) => s + Number(c.total_value), 0)
-  const pendingPurchases = purchases.filter((c) => c.status === 'pending').length
+  // Totals come from the server's stats: summing the rows loaded would only cover one page.
+  const totalKgPurchases = Number(stats?.total_kg_purchases ?? 0)
+  const totalValuePurchases = Number(stats?.total_value_purchases ?? 0)
+  const pendingPurchases = pendingPurchasesData?.total ?? 0
+  const purchasesTotal = purchasesData?.total ?? 0
 
-  const totalKgSales = stats ? Number(stats.total_kg_sales) : sales.reduce((s, v) => s + Number(v.kg), 0)
-  const totalValueSales = stats ? Number(stats.total_value_sales) : sales.reduce((s, v) => s + Number(v.total_value), 0)
-  const pendingSales = sales.filter((v) => v.status === 'pending').length
+  const totalKgSales = Number(stats?.total_kg_sales ?? 0)
+  const totalValueSales = Number(stats?.total_value_sales ?? 0)
+  const pendingSales = pendingSalesData?.total ?? 0
+  const salesTotal = salesData?.total ?? 0
 
   const renderPurchaseActions = (tx: TransactionAPI) => {
     if (tx.status === 'pending' && can('transactions.pay')) {
@@ -190,14 +211,14 @@ export default function Transactions() {
               <StatCard label={t.transacciones.purchaseStats.valuePaid} value={`$${totalValuePurchases.toLocaleString('es-CO')}`} sub={t.transacciones.purchaseStats.valuePaidSub} color="error.main" />
             </Grid>
             <Grid item xs={12} sm={4}>
-              <StatCard label={t.transacciones.purchaseStats.pendingPayment} value={String(pendingPurchases)} sub={interpolate(t.transacciones.purchaseStats.pendingPaymentSub, { total: purchases.length })} color="warning.main" />
+              <StatCard label={t.transacciones.purchaseStats.pendingPayment} value={String(pendingPurchases)} sub={interpolate(t.transacciones.purchaseStats.pendingPaymentSub, { total: purchasesTotal })} color="warning.main" />
             </Grid>
           </Grid>
 
           {purchasesLoading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}><CircularProgress /></Box>
           ) : (
-            <TableContainer>
+            <TableContainer sx={{ opacity: purchasesFetching ? 0.6 : 1, transition: 'opacity 120ms' }}>
               <Table>
                 <TableHead>
                   <TableRow>
@@ -212,7 +233,7 @@ export default function Transactions() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {purchases.slice(purchasePage * 8, purchasePage * 8 + 8).map((c) => (
+                  {purchases.map((c) => (
                     <TableRow key={c.id} hover>
                       <TableCell sx={{ fontSize: '0.85rem', color: 'text.secondary' }}>
                         {new Date(c.occurred_at).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' })}
@@ -237,7 +258,14 @@ export default function Transactions() {
                   )}
                 </TableBody>
               </Table>
-              <TablePagination count={purchases.length} page={purchasePage} rowsPerPage={8} onPageChange={(_, p) => setPurchasePage(p)} />
+              <TablePagination
+                count={purchasesTotal}
+                page={purchasePagination.page}
+                rowsPerPage={purchasePagination.rowsPerPage}
+                rowsPerPageOptions={PAGE_SIZE_OPTIONS}
+                onPageChange={(_, p) => purchasePagination.setPage(p)}
+                onRowsPerPageChange={(e) => purchasePagination.setRowsPerPage(+e.target.value)}
+              />
             </TableContainer>
           )}
         </>
@@ -254,7 +282,7 @@ export default function Transactions() {
               <StatCard label={t.transacciones.saleStats.valueCharged} value={`$${totalValueSales.toLocaleString('es-CO')}`} sub={t.transacciones.saleStats.valueChargedSub} color="primary.main" />
             </Grid>
             <Grid item xs={12} sm={4}>
-              <StatCard label={t.transacciones.saleStats.toInvoice} value={String(pendingSales)} sub={interpolate(t.transacciones.saleStats.toInvoiceSub, { total: sales.length })} color="warning.main" />
+              <StatCard label={t.transacciones.saleStats.toInvoice} value={String(pendingSales)} sub={interpolate(t.transacciones.saleStats.toInvoiceSub, { total: salesTotal })} color="warning.main" />
             </Grid>
           </Grid>
 
@@ -271,7 +299,7 @@ export default function Transactions() {
           {salesLoading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}><CircularProgress /></Box>
           ) : (
-            <TableContainer>
+            <TableContainer sx={{ opacity: salesFetching ? 0.6 : 1, transition: 'opacity 120ms' }}>
               <Table>
                 <TableHead>
                   <TableRow>
@@ -286,7 +314,7 @@ export default function Transactions() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {sales.slice(salePage * 8, salePage * 8 + 8).map((v) => (
+                  {sales.map((v) => (
                     <TableRow key={v.id} hover>
                       <TableCell sx={{ fontSize: '0.85rem', color: 'text.secondary' }}>
                         {new Date(v.occurred_at).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' })}
@@ -313,7 +341,14 @@ export default function Transactions() {
                   )}
                 </TableBody>
               </Table>
-              <TablePagination count={sales.length} page={salePage} rowsPerPage={8} onPageChange={(_, p) => setSalePage(p)} />
+              <TablePagination
+                count={salesTotal}
+                page={salePagination.page}
+                rowsPerPage={salePagination.rowsPerPage}
+                rowsPerPageOptions={PAGE_SIZE_OPTIONS}
+                onPageChange={(_, p) => salePagination.setPage(p)}
+                onRowsPerPageChange={(e) => salePagination.setRowsPerPage(+e.target.value)}
+              />
             </TableContainer>
           )}
         </>
