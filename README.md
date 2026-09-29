@@ -16,7 +16,7 @@ echo "VITE_API_URL=http://localhost:8000" > .env.local   # opcional: es el valor
 pnpm dev                     # http://localhost:5173
 ```
 
-`VITE_API_URL` es la URL del backend (por defecto `http://localhost:8000`). Se necesita el backend levantado para iniciar sesión.
+`VITE_API_URL` es la URL del backend. En desarrollo el valor por defecto es `http://localhost:8000`; un **build de producción exige** una URL `https` real y falla si falta o apunta a `localhost` (se compila dentro del JavaScript, así que un valor equivocado llegaría a todos los usuarios). Para probar un build de producción en tu máquina a propósito: `ALLOW_LOCAL_API_URL=1 pnpm build`. En Docker se pasa con `--build-arg VITE_API_URL=...`; en el CI sale de la variable del repositorio `VITE_API_URL`.
 
 ## Comandos
 

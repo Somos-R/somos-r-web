@@ -9,7 +9,9 @@ RUN pnpm install --frozen-lockfile
 
 COPY . .
 
-ARG VITE_API_URL=https://somosr.com/api
+# No default on purpose: the build fails (config/buildEnv.ts) if it isn't passed, instead of
+# shipping an image that points at a guessed URL.
+ARG VITE_API_URL
 ENV VITE_API_URL=$VITE_API_URL
 
 RUN pnpm build

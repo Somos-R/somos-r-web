@@ -97,7 +97,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            VITE_API_URL=${{ vars.VITE_API_URL }}
+            VITE_API_URL=${{ github.event_name == 'pull_request' && 'https://api.example.com' || vars.VITE_API_URL }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
