@@ -45,3 +45,7 @@ coverage/
 
 # Claude Code: local, machine-specific permissions
 .claude/settings.local.json
+
+# Playwright
+test-results/
+playwright-report/
