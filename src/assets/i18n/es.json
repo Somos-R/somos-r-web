@@ -394,7 +394,8 @@
         "resend": "Reenviar confirmación",
         "sent": "Si tu correo no estaba confirmado, te enviamos un nuevo enlace."
       }
-    }
+    },
+    "pendingRole": "Tu cuenta está pendiente de asignación de rol. Un administrador de tu organización debe asignártelo para que puedas usar el portal."
   },
   "forbidden": {
     "title": "No tienes acceso a esta página",

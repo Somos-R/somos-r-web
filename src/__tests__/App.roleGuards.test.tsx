@@ -89,10 +89,32 @@ describe('role-based navigation and guards (full app)', () => {
     expect(navEntry(t.nav.recicladores)).not.toBeInTheDocument()
   })
 
-  it('staff without a role get no module access (roleless ECA user)', async () => {
+  it('staff without a role get no module access and are told their account is pending a role', async () => {
     signInAs(null, 'eca')
     renderAt('/inventario')
     expect(await screen.findByText(t.forbidden.title)).toBeInTheDocument()
+    expect(screen.getByText(t.account.pendingRole)).toBeInTheDocument()
+    expect(navEntry(t.nav.inventario)).not.toBeInTheDocument()
+  })
+
+  it('association staff without a role get the same pending-role notice', async () => {
+    signInAs(null, 'association')
+    renderAt('/')
+    expect(await screen.findByText(t.account.pendingRole)).toBeInTheDocument()
+  })
+
+  it('users with a role, and recyclers, do not see the pending-role notice', async () => {
+    signInAs('route_manager')
+    renderAt('/recicladores')
+    await screen.findByRole('heading', { name: t.recicladores.title })
+    expect(screen.queryByText(t.account.pendingRole)).not.toBeInTheDocument()
+  })
+
+  it('a recycler is not told to wait for a role', async () => {
+    signInAs(null, 'recycler')
+    renderAt('/configuracion')
+    await screen.findByRole('heading', { name: t.configuracion.title })
+    expect(screen.queryByText(t.account.pendingRole)).not.toBeInTheDocument()
   })
 
   it('an unknown legacy role is treated as no role at all', async () => {
