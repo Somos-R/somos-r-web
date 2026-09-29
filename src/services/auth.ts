@@ -1,7 +1,8 @@
 import { apiClient } from '../lib/apiClient'
 import { clearSession, getSessionUserId, setTokens, type SessionTokens } from '../lib/session'
 import { t } from '../lib/i18n'
-import type { AuthUser, UserRole } from '../types/auth.types'
+import { ROLE_USER_TYPE, isStaffRole } from '../lib/permissions'
+import type { AuthUser } from '../types/auth.types'
 
 interface BackendTokenResponse extends SessionTokens {
   token_type: string
@@ -17,52 +18,26 @@ interface BackendUserResponse {
   id_number: string
   user_type_code: string
   role_code: string | null
+  is_active?: boolean
   created_at: string
   email_verified_at?: string | null
 }
 
-const ROLE_MAP: Record<string, UserRole> = {
-  eca_admin:         'admin_eca',
-  eca_operator:      'operador_eca',
-  association_admin: 'admin_asociacion',
-  superadmin:        'superadmin',
-  recycler:          'recycler',
-  citizen:           'citizen',
-  eca:               'operador_eca',
-  association:       'admin_asociacion',
-}
-
 export function mapToAuthUser(data: BackendUserResponse): AuthUser {
-  const raw = data.role_code ?? data.user_type_code ?? ''
-  const role = (ROLE_MAP[raw] ?? 'citizen') as UserRole
-  const base = {
+  const roleCode = data.role_code
+  // Same rule as the backend: a role only counts for the actor type it belongs to.
+  const role = isStaffRole(roleCode) && ROLE_USER_TYPE[roleCode] === data.user_type_code ? roleCode : null
+  return {
     id: data.id,
     email: data.email,
     full_name: data.full_name,
-    status: 'active' as const,
-    created_at: data.created_at,
+    phone: data.phone,
+    user_type: data.user_type_code,
+    role,
+    is_active: data.is_active ?? true,
     email_verified_at: data.email_verified_at ?? null,
+    created_at: data.created_at,
   }
-  if (role === 'operador_eca' || role === 'admin_eca') {
-    return { ...base, role, eca_id: '', employee_code: '' }
-  }
-  if (role === 'admin_asociacion') {
-    return { ...base, role, asociacion_id: '' }
-  }
-  if (role === 'superadmin') {
-    return { ...base, role }
-  }
-  if (role === 'recycler') {
-    return {
-      ...base,
-      role,
-      phone: data.phone ?? '',
-      cedula: data.id_number,
-      association_id: '',
-      vehicle_type: 'bike' as const,
-    }
-  }
-  return { ...base, role: 'citizen', phone: data.phone ?? '', address: '', lat: 0, lng: 0 }
 }
 
 /** Maps a failed auth request to a message that is safe to show, without leaking backend detail. */

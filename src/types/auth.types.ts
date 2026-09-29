@@ -1,62 +1,23 @@
-export type UserRole = 'citizen' | 'recycler' | 'operador_eca' | 'admin_eca' | 'admin_asociacion' | 'superadmin'
+import type { StaffRole } from '../lib/permissions'
 
-export type UserStatus = 'active' | 'inactive' | 'suspended'
+export type { StaffRole }
 
-export type VehicleType = 'bike' | 'cart' | 'motorcycle' | 'truck'
-
-export interface BaseUser {
+/**
+ * The signed-in user, as much of the backend profile as the portal needs.
+ *
+ * `role` is only set for staff whose role fits their actor type; recyclers, citizens and
+ * anyone with an unknown or mismatched role get null and therefore no permissions.
+ */
+export interface AuthUser {
   id: string
   email: string
   full_name: string
-  role: UserRole
-  status: UserStatus
+  phone: string | null
+  /** Backend `user_type_code`: association, eca, recycler, citizen, building or b2b_client. */
+  user_type: string
+  role: StaffRole | null
+  is_active: boolean
+  /** ISO date once the email was confirmed; null while pending. */
+  email_verified_at: string | null
   created_at: string
-  /** ISO date once the email was confirmed; null/undefined while pending. */
-  email_verified_at?: string | null
-}
-
-export interface Citizen extends BaseUser {
-  role: 'citizen'
-  phone: string
-  address: string
-  lat: number
-  lng: number
-}
-
-export interface Recycler extends BaseUser {
-  role: 'recycler'
-  phone: string
-  cedula: string
-  association_id: string
-  vehicle_type: VehicleType
-  bank_account?: string
-  verified_at?: string
-}
-
-export interface EcaUser extends BaseUser {
-  role: 'operador_eca' | 'admin_eca'
-  eca_id: string
-  employee_code: string
-}
-
-export interface AsociacionAdmin extends BaseUser {
-  role: 'admin_asociacion'
-  asociacion_id: string
-}
-
-export interface SuperAdmin extends BaseUser {
-  role: 'superadmin'
-}
-
-export type AuthUser = Citizen | Recycler | EcaUser | AsociacionAdmin | SuperAdmin
-
-export interface LoginPayload {
-  email: string
-  password: string
-}
-
-export interface AuthResponse {
-  user: AuthUser
-  token: string
-  expires_in: number
 }

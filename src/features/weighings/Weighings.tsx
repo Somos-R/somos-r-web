@@ -14,6 +14,7 @@ import RegisterWeighingDrawer from './RegisterWeighingDrawer'
 import { Card, CardContent, Button } from '../../components/ui'
 import { t } from '../../lib/i18n'
 import { weighingsService, type WeighingAPI } from '../../services/weighings'
+import { useRoles } from '../../hooks/useRoles'
 
 function toViewModel(w: WeighingAPI): Weighing {
   return {
@@ -43,6 +44,7 @@ function StatCard({ label, value, sub, color = 'text.primary' }: StatCardProps) 
 }
 
 export default function Weighings() {
+  const { can } = useRoles()
   const queryClient = useQueryClient()
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false)
@@ -116,7 +118,7 @@ export default function Weighings() {
           <Typography variant="h5" fontWeight={600}>{t.pesajes.title}</Typography>
           <Typography variant="body2" color="text.secondary" mt={0.5}>{t.pesajes.subtitle}</Typography>
         </Box>
-        <Button onClick={() => setDrawerOpen(true)}>Nuevo pesaje</Button>
+        {can('weighings.create') && <Button onClick={() => setDrawerOpen(true)}>Nuevo pesaje</Button>}
       </Box>
 
       <Grid container spacing={2}>
@@ -148,9 +150,9 @@ export default function Weighings() {
       <WeighingsTable
         data={items}
         isLoading={listLoading}
-        onValidate={handleValidate}
-        onReject={handleOpenReject}
-        onMarkPaid={handleMarkPaid}
+        onValidate={can('weighings.review') ? handleValidate : undefined}
+        onReject={can('weighings.review') ? handleOpenReject : undefined}
+        onMarkPaid={can('weighings.pay') ? handleMarkPaid : undefined}
         actionLoadingId={actionLoadingId}
       />
 

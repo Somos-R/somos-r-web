@@ -10,7 +10,7 @@ import { fakeJwt, httpError, mockAdapter } from '../../test/helpers'
 const ACCESS = fakeJwt({ sub: 'user-123' })
 const backendUser = (over: object = {}) => ({
   id: 'user-123', email: 'a@b.co', full_name: 'Ana', phone: null, id_type: 'CC', id_number: '1',
-  user_type_code: 'eca_staff', role_code: 'eca_admin', created_at: '2024-01-01T00:00:00Z', ...over,
+  user_type_code: 'eca', role_code: 'eca_admin', created_at: '2024-01-01T00:00:00Z', ...over,
 })
 
 describe('authService', () => {
@@ -34,7 +34,7 @@ describe('authService', () => {
     })
     const user = await authService.me()
     expect(urls).toEqual(['/users/user-123'])
-    expect(user.role).toBe('admin_eca')
+    expect(user.role).toBe('eca_admin')
   })
 
   it('me rejects without a session', async () => {
@@ -66,8 +66,8 @@ describe('authService', () => {
 })
 
 describe('mapToAuthUser', () => {
-  it('falls back to citizen for unknown roles', () => {
-    expect(mapToAuthUser(backendUser({ role_code: 'something-new' })).role).toBe('citizen')
+  it('gives no role (and so no permissions) to unknown role codes', () => {
+    expect(mapToAuthUser(backendUser({ role_code: 'something-new' })).role).toBeNull()
   })
 })
 

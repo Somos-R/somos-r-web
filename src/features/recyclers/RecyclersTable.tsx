@@ -49,6 +49,7 @@ export default function RecyclersTable({
   validatingId,
   rejectingId,
 }: RecyclersTableProps) {
+  const hasActions = !!(onValidate || onReject)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const [page, setPage] = useState(0)
@@ -111,9 +112,11 @@ export default function RecyclersTable({
             {countLabel}
           </Typography>
         </Box>
-        <Button size="small" startIcon={<UserPlus size={16} />} onClick={onRegisterClick}>
-          {t.recicladores.registerButton}
-        </Button>
+        {onRegisterClick && (
+          <Button size="small" startIcon={<UserPlus size={16} />} onClick={onRegisterClick}>
+            {t.recicladores.registerButton}
+          </Button>
+        )}
       </Box>
 
       {filtered.length === 0 ? (
@@ -134,7 +137,7 @@ export default function RecyclersTable({
                 <TableCell>{t.recicladores.table.phone}</TableCell>
                 <TableCell>{t.recicladores.table.status}</TableCell>
                 <TableCell>{t.recicladores.table.registration}</TableCell>
-                <TableCell>{t.recicladores.table.actions}</TableCell>
+                {hasActions && <TableCell>{t.recicladores.table.actions}</TableCell>}
               </TableRow>
             </TableHead>
             <TableBody>
@@ -149,31 +152,37 @@ export default function RecyclersTable({
                   <TableCell sx={{ color: 'text.secondary', fontSize: '0.85rem' }}>
                     {new Date(r.created_at).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' })}
                   </TableCell>
-                  <TableCell>
-                    {r.status === 'pending' && (
-                      <Box sx={{ display: 'flex', gap: 1 }}>
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          loading={validatingId === r.id}
-                          disabled={!!validatingId || !!rejectingId}
-                          onClick={() => onValidate?.(r.id)}
-                        >
-                          {t.common.validate}
-                        </Button>
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          color="error"
-                          loading={rejectingId === r.id}
-                          disabled={!!validatingId || !!rejectingId}
-                          onClick={() => onReject?.(r.id)}
-                        >
-                          {t.recicladores.reject.button}
-                        </Button>
-                      </Box>
-                    )}
-                  </TableCell>
+                  {hasActions && (
+                    <TableCell>
+                      {r.status === 'pending' && (
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          {onValidate && (
+                            <Button
+                              variant="outlined"
+                              size="small"
+                              loading={validatingId === r.id}
+                              disabled={!!validatingId || !!rejectingId}
+                              onClick={() => onValidate(r.id)}
+                            >
+                              {t.common.validate}
+                            </Button>
+                          )}
+                          {onReject && (
+                            <Button
+                              variant="outlined"
+                              size="small"
+                              color="error"
+                              loading={rejectingId === r.id}
+                              disabled={!!validatingId || !!rejectingId}
+                              onClick={() => onReject(r.id)}
+                            >
+                              {t.recicladores.reject.button}
+                            </Button>
+                          )}
+                        </Box>
+                      )}
+                    </TableCell>
+                  )}
                 </TableRow>
               ))}
             </TableBody>
