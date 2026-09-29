@@ -3,10 +3,13 @@ import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 import MuiTextField from '@mui/material/TextField'
-import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import InventoryTable, { type InventoryItem } from './InventoryTable'
 import { Card, CardContent, Dialog, DialogTitle, DialogContent, DialogActions, Button, Snackbar, Loader } from '../../components/ui'
 import { t, interpolate } from '../../lib/i18n'
+import { inventoryQueries } from '../../queries/inventory'
+import { catalogQueries } from '../../queries/catalogs'
+import { AFFECTED, invalidateAffected } from '../../queries/invalidation'
 import { inventoryService, type InventoryItemAPI, type InventoryStatus } from '../../services/inventory'
 import { toPaginationProps, usePagination } from '../../lib/pagination'
 import { useRoles } from '../../hooks/useRoles'
@@ -55,46 +58,23 @@ export default function Inventory() {
   const pagination = usePagination()
 
   // The server filters and paginates; the previous page stays on screen while the next loads.
-  const { data: listData, isLoading: listLoading, isFetching: listFetching } = useQuery({
-    queryKey: ['inventory', 'list', { status, materialCode, warehouseId, page: pagination.page, rowsPerPage: pagination.rowsPerPage }],
-    queryFn: ({ signal }) =>
-      inventoryService.list(
-        {
-          status: status || undefined,
-          material_code: materialCode || undefined,
-          warehouse_id: warehouseId || undefined,
-          limit: pagination.limit,
-          offset: pagination.offset,
-        },
-        { signal },
-      ),
-    placeholderData: keepPreviousData,
-  })
+  const { data: listData, isLoading: listLoading, isFetching: listFetching } = useQuery(
+    inventoryQueries.list({ status, materialCode, warehouseId, page: pagination.page, rowsPerPage: pagination.rowsPerPage }),
+  )
   pagination.clamp(listData?.total)
 
   // Filter options come from the catalogs, not from whatever happens to be on the current page.
-  const { data: materials = [] } = useQuery({
-    queryKey: ['inventory', 'materials'],
-    queryFn: ({ signal }) => inventoryService.materials({ signal }),
-    staleTime: 10 * 60_000,
-  })
-  const { data: warehouses = [] } = useQuery({
-    queryKey: ['inventory', 'warehouses'],
-    queryFn: ({ signal }) => inventoryService.warehouses({ signal }),
-    staleTime: 10 * 60_000,
-  })
+  const { data: materials = [] } = useQuery(catalogQueries.materials())
+  const { data: warehouses = [] } = useQuery(catalogQueries.warehouses())
 
-  const { data: stats, isLoading: statsLoading } = useQuery({
-    queryKey: ['inventory', 'stats'],
-    queryFn: ({ signal }) => inventoryService.stats({ signal }),
-  })
+  const { data: stats, isLoading: statsLoading } = useQuery(inventoryQueries.stats())
 
   const editMutation = useMutation({
     meta: { silent: true },
     mutationFn: ({ id, stock_min_kg, price_per_kg }: { id: string; stock_min_kg: number; price_per_kg: number }) =>
       inventoryService.update(id, { stock_min_kg, price_per_kg }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['inventory'] })
+      invalidateAffected(queryClient, AFFECTED.inventoryEdited)
       setEditTarget(null)
       setSnackbar({ open: true, message: t.inventario.updated, severity: 'success' })
     },

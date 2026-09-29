@@ -11,33 +11,19 @@ import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, Badge, Button } from '../../components/ui'
 import { useAuth } from '../../hooks/useAuth'
 import { t, interpolate } from '../../lib/i18n'
-import { weighingsService } from '../../services/weighings'
-import { recyclersService } from '../../services/recyclers'
+import { weighingsQueries } from '../../queries/weighings'
+import { recyclersQueries } from '../../queries/recyclers'
 
 export default function Dashboard() {
   const { user } = useAuth()
 
-  const { data: weighingStats } = useQuery({
-    queryKey: ['weighings', 'stats'],
-    queryFn: ({ signal }) => weighingsService.stats({ signal }),
-  })
+  const { data: weighingStats } = useQuery(weighingsQueries.stats())
 
   // Counts come from the server's `total` (limit 1 = no rows shipped): filtering a page of 100
   // in the browser stops being true as soon as there are more recyclers than that.
-  const { data: verifiedRecyclers } = useQuery({
-    queryKey: ['recyclers', 'count', 'verified'],
-    queryFn: ({ signal }) => recyclersService.list({ verification_status: 'verified', limit: 1 }, { signal }),
-  })
-
-  const { data: pendingRecyclersData } = useQuery({
-    queryKey: ['recyclers', 'count', 'pending'],
-    queryFn: ({ signal }) => recyclersService.list({ verification_status: 'pending', limit: 1 }, { signal }),
-  })
-
-  const { data: recentWeighings, isLoading: recentLoading } = useQuery({
-    queryKey: ['weighings', 'recent'],
-    queryFn: ({ signal }) => weighingsService.list({ limit: 5 }, { signal }),
-  })
+  const { data: verifiedRecyclers } = useQuery(recyclersQueries.count('verified'))
+  const { data: pendingRecyclersData } = useQuery(recyclersQueries.count('pending'))
+  const { data: recentWeighings, isLoading: recentLoading } = useQuery(weighingsQueries.recent())
 
   const activeRecyclers = verifiedRecyclers?.total ?? 0
   const pendingRecyclers = pendingRecyclersData?.total ?? 0

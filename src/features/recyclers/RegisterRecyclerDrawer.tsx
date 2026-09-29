@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { FormDrawer, Snackbar, type FormFieldDef } from '../../components/ui'
-import { apiClient } from '../../lib/apiClient'
+import { catalogQueries } from '../../queries/catalogs'
+import { AFFECTED, invalidateAffected } from '../../queries/invalidation'
 import { recyclersService } from '../../services/recyclers'
 import { t } from '../../lib/i18n'
 import { getApiErrorMessage } from '../../lib/apiError'
@@ -31,12 +32,7 @@ export default function RegisterRecyclerDrawer({ open, onClose }: Props) {
     severity: 'success',
   })
 
-  const { data: documentTypes = FALLBACK_DOC_TYPES } = useQuery<DocumentType[]>({
-    queryKey: ['document-types'],
-    queryFn: ({ signal }) => apiClient.get('/catalogs/document-types', { signal }).then((r) => r.data),
-    staleTime: Infinity,
-    retry: false,
-  })
+  const { data: documentTypes = FALLBACK_DOC_TYPES } = useQuery(catalogQueries.documentTypes())
 
   const mutation = useMutation({
     meta: { silent: true },
@@ -50,7 +46,7 @@ export default function RegisterRecyclerDrawer({ open, onClose }: Props) {
         phone: values.phone?.trim() || null,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['recyclers'] })
+      invalidateAffected(queryClient, AFFECTED.recyclerChanged)
       setSnackbar({ open: true, message: t.recicladores.register.successMessage, severity: 'success' })
       onClose()
     },

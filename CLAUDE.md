@@ -55,15 +55,23 @@ npx vitest run src/components/ui/__tests__/FormDrawer.test.tsx
 
 The backend base URL is the `VITE_API_URL` env var (default `http://localhost:8000` in development only). A production build **refuses to build** without a real `https` URL, or with one pointing at localhost (`config/buildEnv.ts`, wired in `vite.config.ts`): the value is compiled into the bundle, so a wrong one would ship to every user. To try a production build locally on purpose: `ALLOW_LOCAL_API_URL=1 pnpm build`. The Dockerfile has no default; CI passes a placeholder on pull requests (nothing is published) and requires the `VITE_API_URL` repository variable on pushes to `main`. Login, logout and profile calls live in `src/services/auth.ts`.
 
+### Server data: `src/queries/`
+
+Every query is defined once, in `src/queries/`, never inline in a screen (a test enforces it):
+- `keys.ts`: the `queryKeys` factory. First element = resource root (`weighings`, `inventory`, `transactions`, `recyclers`, `catalogs`); keys carry every input of the request. Catalogs have their own root so refreshing inventory never refetches materials.
+- `<resource>.ts`: `queryOptions` factories (`weighingsQueries.list(filters)`, `catalogQueries.materials()`...). Screens do `useQuery(weighingsQueries.stats())`, or `useQuery({ ...catalogQueries.materials(), enabled: open })` to override.
+- `config.ts`: `STALE_TIME` per kind of data (catalogs 10 min, document types never); everything else uses the 30 s default.
+- `invalidation.ts`: the `AFFECTED` table says what goes stale after each action. Use it for both `onSuccess` (`invalidateAffected(queryClient, AFFECTED.weighingReviewed)`) and `meta.refreshOnError: AFFECTED.weighingReviewed`. A new action = a new entry there, not ad-hoc `invalidateQueries` calls.
+
 ### Lists: the server paginates and filters
 
 Never load "all" rows and filter in the browser: the API returns one page (`limit`/`offset`, at most 100) plus the `total` for the current filters. The pattern (see Weighings, Inventory, Transactions, Recyclers):
 - The screen owns `usePagination()` and the filter state, sends `limit`/`offset` and the filters to the service, and calls `pagination.clamp(total)` during render (so a page that stops existing falls back to the last one).
 - Changing a filter calls `pagination.resetPage()`.
-- The query uses `placeholderData: keepPreviousData` (the old page stays, dimmed, while the next one loads) and puts the filters and page in its key under `['<resource>', 'list', {...}]`, so `invalidateQueries({ queryKey: ['<resource>'] })` still reloads it.
+- The query uses `placeholderData: keepPreviousData` (the old page stays, dimmed, while the next one loads) and puts the filters and page in its key under `queryKeys.<resource>.list(...)`, so invalidating the resource root still reloads it.
 - The table is controlled: it receives the page's rows and a `PaginationProps` (`toPaginationProps(pagination, total)`); the count shown is the server `total`, never `data.length`.
 - Counts and totals (dashboard, "pending" cards) come from the server: `list({ ..., limit: 1 }).total` or the stats endpoints, never from filtering a page.
-- Filter options come from the catalogs (`inventoryService.materials()/warehouses()`), not from the rows on screen.
+- Filter options come from the catalogs (`catalogQueries.materials()/warehouses()`), not from the rows on screen.
 - The API has no text search yet, so search boxes only narrow the loaded page and say so (Recyclers). When it does, send it as a param, debounced.
 
 ### Code splitting

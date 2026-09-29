@@ -5,7 +5,7 @@ import Grid from '@mui/material/Grid'
 import Tabs from '@mui/material/Tabs'
 import Tab from '@mui/material/Tab'
 import Tooltip from '@mui/material/Tooltip'
-import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Table, TableHead, TableBody, TableRow, TableCell, TableContainer, TablePagination,
   Badge, Button, Input, Select, Dialog, DialogTitle, DialogContent, DialogActions, Card, CardContent,
@@ -18,7 +18,9 @@ import {
   type TransactionStatus,
   type CreateSalePayload,
 } from '../../services/transactions'
-import { inventoryService } from '../../services/inventory'
+import { transactionsQueries } from '../../queries/transactions'
+import { catalogQueries } from '../../queries/catalogs'
+import { AFFECTED, invalidateAffected } from '../../queries/invalidation'
 import { getApiErrorMessage } from '../../lib/apiError'
 import { useRoles } from '../../hooks/useRoles'
 import { PAGE_SIZE_OPTIONS, usePagination } from '../../lib/pagination'
@@ -60,59 +62,32 @@ export default function Transactions() {
   const purchasePagination = usePagination()
   const salePagination = usePagination()
 
-  const { data: purchasesData, isLoading: purchasesLoading, isFetching: purchasesFetching } = useQuery({
-    queryKey: ['transactions', 'list', 'purchase', { page: purchasePagination.page, rowsPerPage: purchasePagination.rowsPerPage }],
-    queryFn: ({ signal }) =>
-      transactionsService.list({ type: 'purchase', limit: purchasePagination.limit, offset: purchasePagination.offset }, { signal }),
-    placeholderData: keepPreviousData,
-  })
+  const { data: purchasesData, isLoading: purchasesLoading, isFetching: purchasesFetching } = useQuery(
+    transactionsQueries.list('purchase', { page: purchasePagination.page, rowsPerPage: purchasePagination.rowsPerPage }),
+  )
   purchasePagination.clamp(purchasesData?.total)
 
-  const { data: salesData, isLoading: salesLoading, isFetching: salesFetching } = useQuery({
-    queryKey: ['transactions', 'list', 'sale', { page: salePagination.page, rowsPerPage: salePagination.rowsPerPage }],
-    queryFn: ({ signal }) =>
-      transactionsService.list({ type: 'sale', limit: salePagination.limit, offset: salePagination.offset }, { signal }),
-    placeholderData: keepPreviousData,
-  })
+  const { data: salesData, isLoading: salesLoading, isFetching: salesFetching } = useQuery(
+    transactionsQueries.list('sale', { page: salePagination.page, rowsPerPage: salePagination.rowsPerPage }),
+  )
   salePagination.clamp(salesData?.total)
 
   // "How many are pending" must be a count over ALL rows, not over the page on screen.
-  const { data: pendingPurchasesData } = useQuery({
-    queryKey: ['transactions', 'count', 'purchase', 'pending'],
-    queryFn: ({ signal }) => transactionsService.list({ type: 'purchase', status: 'pending', limit: 1 }, { signal }),
-  })
-  const { data: pendingSalesData } = useQuery({
-    queryKey: ['transactions', 'count', 'sale', 'pending'],
-    queryFn: ({ signal }) => transactionsService.list({ type: 'sale', status: 'pending', limit: 1 }, { signal }),
-  })
+  const { data: pendingPurchasesData } = useQuery(transactionsQueries.pendingCount('purchase'))
+  const { data: pendingSalesData } = useQuery(transactionsQueries.pendingCount('sale'))
 
-  const { data: stats } = useQuery({
-    queryKey: ['transactions', 'stats'],
-    queryFn: ({ signal }) => transactionsService.stats({ signal }),
-  })
-
-  const { data: warehouses = [] } = useQuery({
-    queryKey: ['inventory', 'warehouses'],
-    queryFn: ({ signal }) => inventoryService.warehouses({ signal }),
-  })
-
-  const { data: materials = [] } = useQuery({
-    queryKey: ['inventory', 'materials'],
-    queryFn: ({ signal }) => inventoryService.materials({ signal }),
-  })
+  const { data: stats } = useQuery(transactionsQueries.stats())
+  const { data: warehouses = [] } = useQuery(catalogQueries.warehouses())
+  const { data: materials = [] } = useQuery(catalogQueries.materials())
 
   const warehouseOptions = warehouses.map((w) => ({ value: w.id, label: w.name }))
   const materialOptions = materials.map((m) => ({ value: m.code, label: m.label }))
 
-  const invalidate = () => {
-    queryClient.invalidateQueries({ queryKey: ['transactions'] })
-    queryClient.invalidateQueries({ queryKey: ['inventory'] })
-    queryClient.invalidateQueries({ queryKey: ['weighings'] })
-  }
+  const invalidate = () => invalidateAffected(queryClient, AFFECTED.transactionChanged)
 
   const createSaleMutation = useMutation({
     // Shown inline in the sale modal; a failed sale usually means the stock changed.
-    meta: { silent: true, refreshOnError: [['inventory']] },
+    meta: { silent: true, refreshOnError: AFFECTED.transactionChanged },
     mutationFn: (payload: CreateSalePayload) => transactionsService.createSale(payload),
     onSuccess: () => { invalidate(); setShowSaleModal(false); setSaleForm(EMPTY_SALE) },
     onError: (err: unknown) => {
@@ -123,7 +98,7 @@ export default function Transactions() {
   const updateStatusMutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: TransactionStatus }) =>
       transactionsService.updateStatus(id, status),
-    meta: { refreshOnError: [['transactions'], ['inventory'], ['weighings']] },
+    meta: { refreshOnError: AFFECTED.transactionChanged },
     onSuccess: invalidate,
     // Also closes the cancel dialog so the error notification isn't hidden behind it.
     onSettled: () => { setActionLoadingId(null); setCancelTargetId(null) },

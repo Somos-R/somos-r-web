@@ -2,10 +2,11 @@ import { MutationCache, QueryCache, QueryClient, type QueryKey } from '@tanstack
 import { getApiErrorMessage, isCancelError, isTimeoutError } from './apiError'
 import { t } from './i18n'
 import { notify } from './notifier'
+import { queryKeys } from '../queries/keys'
 import { getAccessToken, subscribe } from './session'
 
 /** React Query key of the signed-in user's profile. */
-export const ME_QUERY_KEY = ['me'] as const
+export const ME_QUERY_KEY = queryKeys.me
 
 declare module '@tanstack/react-query' {
   interface Register {
@@ -17,7 +18,7 @@ declare module '@tanstack/react-query' {
       /** The caller shows its own message (inline error, dialog, snackbar). */
       silent?: boolean
       /** Queries to reload when the action fails: it usually means the data on screen is stale. */
-      refreshOnError?: QueryKey[]
+      refreshOnError?: readonly QueryKey[]
     }
   }
 }

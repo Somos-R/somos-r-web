@@ -10,8 +10,10 @@ import InputAdornment from '@mui/material/InputAdornment'
 import { X } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Button, Snackbar } from '../../components/ui'
-import { recyclersService } from '../../services/recyclers'
-import { inventoryService } from '../../services/inventory'
+import { recyclersQueries } from '../../queries/recyclers'
+import { catalogQueries } from '../../queries/catalogs'
+import { inventoryQueries } from '../../queries/inventory'
+import { AFFECTED, invalidateAffected } from '../../queries/invalidation'
 import { weighingsService } from '../../services/weighings'
 import { t } from '../../lib/i18n'
 import { getApiErrorMessage } from '../../lib/apiError'
@@ -39,31 +41,15 @@ export default function RegisterWeighingDrawer({ open, onClose }: Props) {
     open: false, message: '', severity: 'success',
   })
 
-  const { data: recyclersData } = useQuery({
-    queryKey: ['recyclers', 'verified'],
-    queryFn: ({ signal }) => recyclersService.list({ verification_status: 'verified' }, { signal }),
-    enabled: open,
-  })
-
-  const { data: materials = [] } = useQuery({
-    queryKey: ['inventory', 'materials'],
-    queryFn: ({ signal }) => inventoryService.materials({ signal }),
-    enabled: open,
-  })
-
-  const { data: warehouses = [] } = useQuery({
-    queryKey: ['inventory', 'warehouses'],
-    queryFn: ({ signal }) => inventoryService.warehouses({ signal }),
-    enabled: open,
-  })
+  const { data: recyclersData } = useQuery({ ...recyclersQueries.verified(), enabled: open })
+  const { data: materials = [] } = useQuery({ ...catalogQueries.materials(), enabled: open })
+  const { data: warehouses = [] } = useQuery({ ...catalogQueries.warehouses(), enabled: open })
 
   // The reference price of the chosen material + warehouse: one filtered row from the server,
   // instead of loading the whole inventory just to look one up.
   const pairKey = form.material_code && form.warehouse_id ? `${form.material_code}|${form.warehouse_id}` : ''
   const { data: priceLookup } = useQuery({
-    queryKey: ['inventory', 'price-suggestion', form.material_code, form.warehouse_id],
-    queryFn: ({ signal }) =>
-      inventoryService.list({ material_code: form.material_code, warehouse_id: form.warehouse_id, limit: 1 }, { signal }),
+    ...inventoryQueries.priceSuggestion(form.material_code, form.warehouse_id),
     enabled: open && pairKey !== '',
   })
   const suggestedPrice = priceLookup?.items[0]?.price_per_kg
@@ -92,7 +78,7 @@ export default function RegisterWeighingDrawer({ open, onClose }: Props) {
         price_per_kg: Number(f.price_per_kg),
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['weighings'] })
+      invalidateAffected(queryClient, AFFECTED.weighingRegistered)
       setSnackbar({ open: true, message: t.pesajes.drawer.success, severity: 'success' })
       onClose()
     },

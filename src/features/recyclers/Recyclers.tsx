@@ -2,10 +2,12 @@ import { useState } from 'react'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import TextField from '@mui/material/TextField'
-import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import RecyclersTable, { type Recycler, type StatusFilter } from './RecyclersTable'
 import RegisterRecyclerDrawer from './RegisterRecyclerDrawer'
 import { Snackbar, Dialog, DialogTitle, DialogContent, DialogActions, Button } from '../../components/ui'
+import { recyclersQueries } from '../../queries/recyclers'
+import { AFFECTED, invalidateAffected } from '../../queries/invalidation'
 import { recyclersService } from '../../services/recyclers'
 import { t } from '../../lib/i18n'
 import { useRoles } from '../../hooks/useRoles'
@@ -37,15 +39,9 @@ export default function Recyclers() {
   const pagination = usePagination()
 
   // The server filters by status and paginates; the previous page stays while the next loads.
-  const { data: response, isLoading, isFetching } = useQuery({
-    queryKey: ['recyclers', 'list', { status, page: pagination.page, rowsPerPage: pagination.rowsPerPage }],
-    queryFn: ({ signal }) =>
-      recyclersService.list(
-        { verification_status: status === 'all' ? undefined : status, limit: pagination.limit, offset: pagination.offset },
-        { signal },
-      ),
-    placeholderData: keepPreviousData,
-  })
+  const { data: response, isLoading, isFetching } = useQuery(
+    recyclersQueries.list({ status, page: pagination.page, rowsPerPage: pagination.rowsPerPage }),
+  )
   pagination.clamp(response?.total)
 
   const recyclers: Recycler[] = (response?.items ?? []).map((item) => ({
@@ -58,13 +54,13 @@ export default function Recyclers() {
   }))
 
   const validateMutation = useMutation({
-    meta: { silent: true, refreshOnError: [['recyclers']] },
+    meta: { silent: true, refreshOnError: AFFECTED.recyclerChanged },
     mutationFn: (userId: string) => {
       setValidatingId(userId)
       return recyclersService.updateStatus(userId, { status: 'verified' })
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['recyclers'] })
+      invalidateAffected(queryClient, AFFECTED.recyclerChanged)
       setSnackbar({ open: true, message: t.recicladores.validate.successMessage, severity: 'success' })
     },
     onError: (err: unknown) => {
@@ -75,13 +71,13 @@ export default function Recyclers() {
   })
 
   const rejectMutation = useMutation({
-    meta: { silent: true, refreshOnError: [['recyclers']] },
+    meta: { silent: true, refreshOnError: AFFECTED.recyclerChanged },
     mutationFn: ({ userId, reason }: { userId: string; reason: string }) => {
       setRejectingId(userId)
       return recyclersService.updateStatus(userId, { status: 'rejected', rejection_reason: reason })
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['recyclers'] })
+      invalidateAffected(queryClient, AFFECTED.recyclerChanged)
       setSnackbar({ open: true, message: t.recicladores.reject.successMessage, severity: 'success' })
       handleCloseRejectDialog()
     },
