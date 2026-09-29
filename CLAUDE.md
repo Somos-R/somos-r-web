@@ -174,6 +174,8 @@ Tests use Vitest + React Testing Library (`@testing-library/react`) + `@testing-
 - Prefer `userEvent` over `fireEvent` except when bypassing CSS pointer-events (see `Button.test.tsx`).
 - When a field has `required`, MUI appends ` *` to the label text. Use regex (`getByLabelText(/Label name/)`) instead of exact strings for those queries.
 
+**Coverage is enforced in CI** (`vitest run --coverage`, floors in `vitest.config.ts`: overall, `features/`, `components/ui/`, `lib/`). Feature behaviour is tested through the whole app (`src/__tests__/App.*.test.tsx`, with the fake axios adapter, not MSW), so interceptors, permissions and the query layer run for real. If CI reports a threshold failure, add tests; raise the floors as coverage grows, never lower them to pass.
+
 ## Accessibility
 
 Every screen and overlay is checked with axe-core in `src/__tests__/a11y.test.tsx` (runs in CI with the rest of the tests), and keyboard/focus behaviour in `src/__tests__/keyboard.test.tsx`. **A new screen, dialog or drawer must be added to `a11y.test.tsx`** (the shared fake API is in `src/test/fakeApi.tsx`). Whole-page renders also enforce one `<h1>`, a `<main>` and content inside landmarks; jsdom can't check color contrast, so review that by eye. The rules that keep it passing:
