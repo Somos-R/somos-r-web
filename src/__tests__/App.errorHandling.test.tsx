@@ -6,6 +6,7 @@ import App from '../App'
 import { apiClient } from '../lib/apiClient'
 import { queryClient } from '../lib/queryClient'
 import { resetNotifier } from '../lib/notifier'
+import { t } from '../lib/i18n'
 import { clearSession, setTokens } from '../lib/session'
 import { fakeJwt, mockAdapter } from '../test/helpers'
 import type { InternalAxiosRequestConfig } from 'axios'
@@ -94,6 +95,18 @@ describe('errors shown to the user', () => {
     expect(await screen.findByText('El reciclador no está verificado o su cuenta está desactivada')).toBeInTheDocument()
     // The row is reloaded so the user sees what the server now says, not what they clicked on.
     await waitFor(() => expect(count('GET /weighings')).toBeGreaterThanOrEqual(2))
+  })
+
+  it('shows the translated message for the backend error code, not its wording', async () => {
+    serveApi((c) =>
+      c.method === 'patch' && String(c.url) === '/weighings/w1/status'
+        ? { status: 400, data: { detail: 'Texto del backend que puede cambiar', code: 'recycler_not_verified' } }
+        : undefined,
+    )
+    renderAt('/pesajes')
+    await userEvent.click(await screen.findByRole('button', { name: /Validar/ }))
+    expect(await screen.findByText(t.apiErrors.recycler_not_verified)).toBeInTheDocument()
+    expect(screen.queryByText('Texto del backend que puede cambiar')).not.toBeInTheDocument()
   })
 
   it('a successful validation marks inventory and transactions stale, since it changes both', async () => {
