@@ -11,6 +11,9 @@ export function shouldRetry(failureCount: number, error: unknown): boolean {
   return failureCount < MAX_RETRIES
 }
 
+/** React Query key of the signed-in user's profile. */
+export const ME_QUERY_KEY = ['me'] as const
+
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

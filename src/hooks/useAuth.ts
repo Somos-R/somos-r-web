@@ -1,9 +1,9 @@
 import { useSyncExternalStore } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { authService } from '../services/auth'
+import { ME_QUERY_KEY } from '../lib/queryClient'
 import { clearSession, getAccessToken, subscribe } from '../lib/session'
 
-export const ME_QUERY_KEY = ['me'] as const
 const ME_STALE_TIME = 5 * 60_000
 
 const useHasSession = () => useSyncExternalStore(subscribe, () => getAccessToken() !== null)

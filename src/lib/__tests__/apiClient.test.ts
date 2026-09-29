@@ -4,6 +4,7 @@ import { apiClient } from '../apiClient'
 import { refreshClient } from '../tokenRefresh'
 import { getAccessToken, getRefreshToken, setTokens } from '../session'
 import { mockAdapter } from '../../test/helpers'
+import { ME_QUERY_KEY, queryClient } from '../queryClient'
 
 const bearer = (c: InternalAxiosRequestConfig) => String(c.headers.Authorization ?? '')
 
@@ -43,6 +44,22 @@ describe('apiClient token refresh', () => {
     expect(refreshCalls).toBe(1)
     expect(getAccessToken()).toBe('new-access')
     expect(getRefreshToken()).toBe('new-refresh')
+  })
+
+  it('marks the cached profile stale after a refresh so a changed role is picked up', async () => {
+    setTokens({ access_token: 'expired', refresh_token: 'old-refresh' })
+    queryClient.setQueryData(ME_QUERY_KEY, { role: 'eca_operator' })
+    expect(queryClient.getQueryState(ME_QUERY_KEY)?.isInvalidated).toBe(false)
+    await apiClient.get('/users')
+    expect(queryClient.getQueryState(ME_QUERY_KEY)?.isInvalidated).toBe(true)
+  })
+
+  it('leaves the cached profile alone when the refresh fails', async () => {
+    setTokens({ access_token: 'expired', refresh_token: 'valid' })
+    queryClient.setQueryData(ME_QUERY_KEY, { role: 'eca_operator' })
+    refreshReply = () => ({ status: 503 })
+    await expect(apiClient.get('/users')).rejects.toBeTruthy()
+    expect(queryClient.getQueryState(ME_QUERY_KEY)?.isInvalidated).toBe(false)
   })
 
   it('sends a single refresh for many parallel expired requests', async () => {
