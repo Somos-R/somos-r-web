@@ -55,6 +55,10 @@ npx vitest run src/components/ui/__tests__/FormDrawer.test.tsx
 
 The backend base URL is `VITE_API_URL` env var (default `http://localhost:8000`). Login, logout and profile calls live in `src/services/auth.ts`.
 
+### Code splitting
+
+Pages are loaded lazily (`src/lazyPages.ts`, wired in `src/routes.tsx`), so the first download only carries the shell; each page is fetched when first opened and shows a loader meanwhile. **A new page must be added to `lazyPages.ts` with `lazy(() => import(...))`, never imported directly** (a test fails otherwise). React and the router are grouped in their own chunk in `vite.config.ts` so a release doesn't re-download them; MUI is left to split with the pages that use it, since grouping it forced parts only some pages use into the first load. If a page file can't be downloaded (new deploy, dropped connection), `ErrorScreen` asks for a reload: retrying the same import cannot succeed because React caches the failure.
+
 ### Render errors
 
 Two `ErrorBoundary` layers (`components/layout/`): one around each page inside `DashboardLayout` (keeps the sidebar working; navigating clears it via `resetKeys`) and one around the whole app in `main.tsx` (full-screen, with a reload button). A crash shows `ErrorScreen`, never a blank page, and never the technical message outside development. Boundaries only catch errors thrown while rendering; failures in event handlers and requests go through React Query's global handling (see below). Unexpected errors are reported through `lib/reportError.ts`, the one place to connect error monitoring.
