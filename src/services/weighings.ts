@@ -1,4 +1,4 @@
-import { apiClient } from '../lib/apiClient'
+import { apiClient, type RequestOptions } from '../lib/apiClient'
 
 export type WeighingStatus = 'pending_validation' | 'validated' | 'rejected' | 'paid'
 
@@ -74,14 +74,14 @@ export const weighingsService = {
     status?: WeighingStatus
     limit?: number
     offset?: number
-  } = {}): Promise<WeighingListResponse> =>
-    apiClient.get('/weighings', { params: { limit: 50, ...params } }).then((r) => r.data),
+  } = {}, options?: RequestOptions): Promise<WeighingListResponse> =>
+    apiClient.get('/weighings', { params: { limit: 50, ...params }, signal: options?.signal }).then((r) => r.data),
 
-  stats: (): Promise<WeighingStats> =>
-    apiClient.get('/weighings/stats').then((r) => r.data),
+  stats: (options?: RequestOptions): Promise<WeighingStats> =>
+    apiClient.get('/weighings/stats', { signal: options?.signal }).then((r) => r.data),
 
-  getById: (id: string): Promise<WeighingAPI> =>
-    apiClient.get(`/weighings/${id}`).then((r) => r.data),
+  getById: (id: string, options?: RequestOptions): Promise<WeighingAPI> =>
+    apiClient.get(`/weighings/${id}`, { signal: options?.signal }).then((r) => r.data),
 
   create: (payload: CreateWeighingPayload): Promise<WeighingAPI> =>
     apiClient.post('/weighings', payload).then((r) => r.data),

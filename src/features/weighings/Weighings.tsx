@@ -55,12 +55,12 @@ export default function Weighings() {
 
   const { data: listData, isLoading: listLoading } = useQuery({
     queryKey: ['weighings'],
-    queryFn: () => weighingsService.list({ limit: 50 }),
+    queryFn: ({ signal }) => weighingsService.list({ limit: 50 }, { signal }),
   })
 
   const { data: stats } = useQuery({
     queryKey: ['weighings', 'stats'],
-    queryFn: () => weighingsService.stats(),
+    queryFn: ({ signal }) => weighingsService.stats({ signal }),
   })
 
   const statusMutation = useMutation({

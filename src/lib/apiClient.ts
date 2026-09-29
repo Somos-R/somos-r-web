@@ -11,8 +11,18 @@ declare module 'axios' {
   }
 }
 
+/** Optional last argument of read calls: lets the caller cancel an in-flight request. */
+export interface RequestOptions {
+  signal?: AbortSignal
+}
+
+// Without a timeout axios waits forever, so a hung server leaves the screen spinning with no way
+// out. 15 s is long enough for a slow request and short enough that the user gets an answer.
+export const REQUEST_TIMEOUT_MS = 15_000
+
 export const apiClient = axios.create({
   baseURL: API_URL,
+  timeout: REQUEST_TIMEOUT_MS,
   headers: {
     'Content-Type': 'application/json',
   },

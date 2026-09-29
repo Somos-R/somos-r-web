@@ -51,12 +51,12 @@ export default function Inventory() {
 
   const { data: listData, isLoading: listLoading } = useQuery({
     queryKey: ['inventory'],
-    queryFn: () => inventoryService.list(),
+    queryFn: ({ signal }) => inventoryService.list({}, { signal }),
   })
 
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ['inventory', 'stats'],
-    queryFn: () => inventoryService.stats(),
+    queryFn: ({ signal }) => inventoryService.stats({ signal }),
   })
 
   const editMutation = useMutation({

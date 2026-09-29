@@ -34,7 +34,7 @@ export default function Recyclers() {
 
   const { data: response, isLoading } = useQuery({
     queryKey: ['recyclers'],
-    queryFn: () => recyclersService.list(),
+    queryFn: ({ signal }) => recyclersService.list({}, { signal }),
   })
 
   const recyclers: Recycler[] = (response?.items ?? []).map((item) => ({

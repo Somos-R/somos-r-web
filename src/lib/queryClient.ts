@@ -1,5 +1,5 @@
 import { MutationCache, QueryCache, QueryClient, type QueryKey } from '@tanstack/react-query'
-import { getApiErrorMessage } from './apiError'
+import { getApiErrorMessage, isCancelError, isTimeoutError } from './apiError'
 import { t } from './i18n'
 import { notify } from './notifier'
 import { getAccessToken, subscribe } from './session'
@@ -27,6 +27,10 @@ const MAX_RETRIES = 2
 // Retrying a 4xx (bad request, 401, 403, 404, 409) never helps and only delays the error;
 // only network failures and 5xx responses are worth a second attempt.
 export function shouldRetry(failureCount: number, error: unknown): boolean {
+  // The user left the screen: nothing to retry.
+  if (isCancelError(error)) return false
+  // A timeout can burn the whole request timeout on every attempt, so allow one more try only.
+  if (isTimeoutError(error)) return failureCount < 1
   const status = statusOf(error)
   if (status !== undefined && status >= 400 && status < 500) return false
   return failureCount < MAX_RETRIES
@@ -38,6 +42,7 @@ function statusOf(error: unknown): number | undefined {
 
 /** Text for the global notification, or null when this failure should not raise one. */
 function messageFor(error: unknown): string | null {
+  if (isCancelError(error)) return null // aborted on purpose, e.g. the user navigated away
   const status = statusOf(error)
   if (status === 401) return null // the session layer refreshes or ends the session
   if (status !== undefined && status >= 500) return t.errors.server

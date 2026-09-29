@@ -60,27 +60,27 @@ export default function Transactions() {
 
   const { data: purchasesData, isLoading: purchasesLoading } = useQuery({
     queryKey: ['transactions', 'purchase'],
-    queryFn: () => transactionsService.list({ type: 'purchase', limit: 100 }),
+    queryFn: ({ signal }) => transactionsService.list({ type: 'purchase', limit: 100 }, { signal }),
   })
 
   const { data: salesData, isLoading: salesLoading } = useQuery({
     queryKey: ['transactions', 'sale'],
-    queryFn: () => transactionsService.list({ type: 'sale', limit: 100 }),
+    queryFn: ({ signal }) => transactionsService.list({ type: 'sale', limit: 100 }, { signal }),
   })
 
   const { data: stats } = useQuery({
     queryKey: ['transactions', 'stats'],
-    queryFn: () => transactionsService.stats(),
+    queryFn: ({ signal }) => transactionsService.stats({ signal }),
   })
 
   const { data: warehouses = [] } = useQuery({
     queryKey: ['inventory', 'warehouses'],
-    queryFn: () => inventoryService.warehouses(),
+    queryFn: ({ signal }) => inventoryService.warehouses({ signal }),
   })
 
   const { data: materials = [] } = useQuery({
     queryKey: ['inventory', 'materials'],
-    queryFn: () => inventoryService.materials(),
+    queryFn: ({ signal }) => inventoryService.materials({ signal }),
   })
 
   const warehouseOptions = warehouses.map((w) => ({ value: w.id, label: w.name }))
