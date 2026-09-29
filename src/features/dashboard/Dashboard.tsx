@@ -125,7 +125,7 @@ export default function Dashboard() {
                   <Box sx={{ textAlign: 'right' }}>
                     <Typography variant="body2" fontWeight={500}>{Number(w.kg).toLocaleString('es-CO')} kg</Typography>
                     <Typography variant="caption" color="text.secondary">
-                      {new Date(w.fecha).toLocaleDateString('es-CO', { day: '2-digit', month: 'short' })}
+                      {new Date(w.occurred_at).toLocaleDateString('es-CO', { day: '2-digit', month: 'short' })}
                     </Typography>
                   </Box>
                 </ListItem>

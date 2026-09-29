@@ -1,5 +1,7 @@
 import { apiClient } from '../lib/apiClient'
 
+export type WeighingStatus = 'pending_validation' | 'validated' | 'rejected' | 'paid'
+
 export interface WeighingMaterial {
   code: string
   label: string
@@ -27,12 +29,12 @@ export interface WeighingAPI {
   warehouse_id: string
   warehouse: WeighingWarehouse
   kg: number
-  precio_kg: number
-  estado: 'pendiente' | 'validado' | 'pagado' | 'rechazado'
+  price_per_kg: number
+  status: WeighingStatus
   rejection_reason: string | null
   validated_by: string | null
   validated_at: string | null
-  fecha: string
+  occurred_at: string
   created_at: string
   total_value: number
 }
@@ -54,10 +56,10 @@ export interface CreateWeighingPayload {
   material_code: string
   warehouse_id: string
   kg: number
-  precio_kg: number
+  price_per_kg: number
 }
 
-export type WeighingStatusTransition = 'validado' | 'rechazado' | 'pagado'
+export type WeighingStatusTransition = 'validated' | 'rejected' | 'paid'
 
 export interface UpdateWeighingStatusPayload {
   status: WeighingStatusTransition
@@ -69,7 +71,7 @@ export const weighingsService = {
     recycler_id?: string
     material_code?: string
     warehouse_id?: string
-    estado?: string
+    status?: WeighingStatus
     limit?: number
     offset?: number
   } = {}): Promise<WeighingListResponse> =>

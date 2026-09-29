@@ -180,20 +180,11 @@
       "total": "Total",
       "status": "Estado"
     },
-    "materials": {
-      "papel": "Papel",
-      "plastico": "Plástico",
-      "vidrio": "Vidrio",
-      "metal": "Metal",
-      "carton": "Cartón",
-      "electronico": "Electrónico",
-      "organico": "Orgánico"
-    },
     "status": {
-      "pendiente": "Pendiente",
-      "validado": "Validado",
-      "pagado": "Pagado",
-      "rechazado": "Rechazado"
+      "pending_validation": "Pendiente",
+      "validated": "Validado",
+      "paid": "Pagado",
+      "rejected": "Rechazado"
     }
   },
   "inventario": {
@@ -226,19 +217,10 @@
       "updated": "Actualizado",
       "status": "Estado"
     },
-    "materials": {
-      "papel": "Papel",
-      "plastico": "Plástico",
-      "vidrio": "Vidrio",
-      "metal": "Metal",
-      "carton": "Cartón",
-      "electronico": "Electrónico",
-      "organico": "Orgánico"
-    },
     "status": {
-      "disponible": "Disponible",
-      "bajo_stock": "Bajo stock",
-      "agotado": "Agotado"
+      "available": "Disponible",
+      "low_stock": "Bajo stock",
+      "out_of_stock": "Agotado"
     }
   },
   "transacciones": {
@@ -297,10 +279,10 @@
       "companyPlaceholder": "Nombre de la empresa"
     },
     "status": {
-      "pendiente": "Pendiente",
-      "pagado": "Pagado",
-      "cancelado": "Cancelado",
-      "entregado": "Entregado"
+      "pending": "Pendiente",
+      "paid": "Pagado",
+      "cancelled": "Cancelado",
+      "delivered": "Entregado"
     }
   },
   "reportes": {

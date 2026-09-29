@@ -17,10 +17,10 @@ const RECYCLER = {
 
 const WEIGHING = {
   id: 'w1', recycler_id: 'r1', recycler: { id: 'r1', full_name: 'Rita Reciclaje', id_number: '1234567' },
-  material_code: 'plastico', material: { code: 'plastico', label: 'Plástico', unit: 'kg' },
+  material_code: 'plastic', material: { code: 'plastic', label: 'Plástico', unit: 'kg' },
   warehouse_id: 'b1', warehouse: { id: 'b1', name: 'Bodega 1', address: null },
-  kg: 10, precio_kg: 500, estado: 'validado', rejection_reason: null, validated_by: null, validated_at: null,
-  fecha: '2026-01-01T00:00:00Z', created_at: '2026-01-01T00:00:00Z', total_value: 5000,
+  kg: 10, price_per_kg: 500, status: 'validated', rejection_reason: null, validated_by: null, validated_at: null,
+  occurred_at: '2026-01-01T00:00:00Z', created_at: '2026-01-01T00:00:00Z', total_value: 5000,
 }
 
 /** Signs in as a staff member and serves just enough API for the pages under test. */

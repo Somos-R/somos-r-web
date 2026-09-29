@@ -16,32 +16,18 @@ import {
   transactionsService,
   type TransactionAPI,
   type TransactionStatus,
-  type CreateVentaPayload,
+  type CreateSalePayload,
 } from '../../services/transactions'
 import { inventoryService } from '../../services/inventory'
 import { getApiErrorMessage } from '../../lib/apiError'
 import { useRoles } from '../../hooks/useRoles'
 
-type MaterialCode = 'papel' | 'plastico' | 'vidrio' | 'metal' | 'carton' | 'electronico' | 'organico'
-
-const MATERIAL_CONFIG: Record<MaterialCode, { label: string }> = {
-  papel:       { label: t.inventario.materials.papel },
-  plastico:    { label: t.inventario.materials.plastico },
-  vidrio:      { label: t.inventario.materials.vidrio },
-  metal:       { label: t.inventario.materials.metal },
-  carton:      { label: t.inventario.materials.carton },
-  electronico: { label: t.inventario.materials.electronico },
-  organico:    { label: t.inventario.materials.organico },
-}
-
 const STATUS_CONFIG: Record<string, { label: string; color: 'warning' | 'success' | 'info' | 'error' | 'default' }> = {
-  pendiente:  { label: t.transacciones.status.pendiente,  color: 'warning' },
-  pagado:     { label: t.transacciones.status.pagado,     color: 'success' },
-  cancelado:  { label: t.transacciones.status.cancelado,  color: 'error' },
-  entregado:  { label: t.transacciones.status.entregado,  color: 'success' },
+  pending:   { label: t.transacciones.status.pending,   color: 'warning' },
+  paid:      { label: t.transacciones.status.paid,      color: 'success' },
+  cancelled: { label: t.transacciones.status.cancelled, color: 'error' },
+  delivered: { label: t.transacciones.status.delivered, color: 'success' },
 }
-
-const MATERIAL_OPTIONS = Object.entries(MATERIAL_CONFIG).map(([v, c]) => ({ value: v, label: c.label }))
 
 interface StatCardProps { label: string; value: string; sub: string; color?: string }
 function StatCard({ label, value, sub, color = 'text.primary' }: StatCardProps) {
@@ -56,15 +42,15 @@ function StatCard({ label, value, sub, color = 'text.primary' }: StatCardProps) 
   )
 }
 
-const EMPTY_VENTA: CreateVentaPayload = { material_code: 'papel', warehouse_id: '', kg: 0, precio_kg: 0 }
+const EMPTY_SALE: CreateSalePayload = { material_code: '', warehouse_id: '', kg: 0, price_per_kg: 0 }
 
 export default function Transactions() {
   const { can } = useRoles()
   const queryClient = useQueryClient()
   const [tab, setTab] = useState(0)
-  const [showVentaModal, setShowVentaModal] = useState(false)
-  const [ventaForm, setVentaForm] = useState<CreateVentaPayload>(EMPTY_VENTA)
-  const [ventaError, setVentaError] = useState('')
+  const [showSaleModal, setShowSaleModal] = useState(false)
+  const [saleForm, setSaleForm] = useState<CreateSalePayload>(EMPTY_SALE)
+  const [saleError, setSaleError] = useState('')
 
   const [cancelTargetId, setCancelTargetId] = useState<string | null>(null)
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null)
@@ -72,14 +58,14 @@ export default function Transactions() {
   const [purchasePage, setPurchasePage] = useState(0)
   const [salePage, setSalePage] = useState(0)
 
-  const { data: comprasData, isLoading: comprasLoading } = useQuery({
-    queryKey: ['transactions', 'compra'],
-    queryFn: () => transactionsService.list({ type: 'compra', limit: 100 }),
+  const { data: purchasesData, isLoading: purchasesLoading } = useQuery({
+    queryKey: ['transactions', 'purchase'],
+    queryFn: () => transactionsService.list({ type: 'purchase', limit: 100 }),
   })
 
-  const { data: ventasData, isLoading: ventasLoading } = useQuery({
-    queryKey: ['transactions', 'venta'],
-    queryFn: () => transactionsService.list({ type: 'venta', limit: 100 }),
+  const { data: salesData, isLoading: salesLoading } = useQuery({
+    queryKey: ['transactions', 'sale'],
+    queryFn: () => transactionsService.list({ type: 'sale', limit: 100 }),
   })
 
   const { data: stats } = useQuery({
@@ -92,7 +78,13 @@ export default function Transactions() {
     queryFn: () => inventoryService.warehouses(),
   })
 
+  const { data: materials = [] } = useQuery({
+    queryKey: ['inventory', 'materials'],
+    queryFn: () => inventoryService.materials(),
+  })
+
   const warehouseOptions = warehouses.map((w) => ({ value: w.id, label: w.name }))
+  const materialOptions = materials.map((m) => ({ value: m.code, label: m.label }))
 
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ['transactions'] })
@@ -100,11 +92,11 @@ export default function Transactions() {
     queryClient.invalidateQueries({ queryKey: ['weighings'] })
   }
 
-  const createVentaMutation = useMutation({
-    mutationFn: (payload: CreateVentaPayload) => transactionsService.createVenta(payload),
-    onSuccess: () => { invalidate(); setShowVentaModal(false); setVentaForm(EMPTY_VENTA) },
+  const createSaleMutation = useMutation({
+    mutationFn: (payload: CreateSalePayload) => transactionsService.createSale(payload),
+    onSuccess: () => { invalidate(); setShowSaleModal(false); setSaleForm(EMPTY_SALE) },
     onError: (err: unknown) => {
-      setVentaError(getApiErrorMessage(err, 'Error al crear la venta. Intente de nuevo.'))
+      setSaleError(getApiErrorMessage(err, 'Error al crear la venta. Intente de nuevo.'))
     },
   })
 
@@ -115,12 +107,12 @@ export default function Transactions() {
     onError: () => setActionLoadingId(null),
   })
 
-  const handleVentaSubmit = () => {
-    if (!ventaForm.warehouse_id || !ventaForm.kg || !ventaForm.precio_kg) {
-      setVentaError(t.transacciones.registerPurchase.validationError)
+  const handleSaleSubmit = () => {
+    if (!saleForm.warehouse_id || !saleForm.kg || !saleForm.price_per_kg) {
+      setSaleError(t.transacciones.registerPurchase.validationError)
       return
     }
-    createVentaMutation.mutate(ventaForm)
+    createSaleMutation.mutate(saleForm)
   }
 
   const handleUpdateStatus = (id: string, status: TransactionStatus) => {
@@ -130,24 +122,24 @@ export default function Transactions() {
 
   const handleConfirmCancel = () => {
     if (!cancelTargetId) return
-    handleUpdateStatus(cancelTargetId, 'cancelado')
+    handleUpdateStatus(cancelTargetId, 'cancelled')
   }
 
-  const compras = comprasData?.items ?? []
-  const ventas = ventasData?.items ?? []
+  const purchases = purchasesData?.items ?? []
+  const sales = salesData?.items ?? []
 
-  const totalKgCompras = stats ? Number(stats.total_kg_compras) : compras.reduce((s, c) => s + Number(c.kg), 0)
-  const totalValueCompras = stats ? Number(stats.total_value_compras) : compras.reduce((s, c) => s + Number(c.total_value), 0)
-  const pendingCompras = compras.filter((c) => c.status === 'pendiente').length
+  const totalKgPurchases = stats ? Number(stats.total_kg_purchases) : purchases.reduce((s, c) => s + Number(c.kg), 0)
+  const totalValuePurchases = stats ? Number(stats.total_value_purchases) : purchases.reduce((s, c) => s + Number(c.total_value), 0)
+  const pendingPurchases = purchases.filter((c) => c.status === 'pending').length
 
-  const totalKgVentas = stats ? Number(stats.total_kg_ventas) : ventas.reduce((s, v) => s + Number(v.kg), 0)
-  const totalValueVentas = stats ? Number(stats.total_value_ventas) : ventas.reduce((s, v) => s + Number(v.total_value), 0)
-  const pendingVentas = ventas.filter((v) => v.status === 'pendiente').length
+  const totalKgSales = stats ? Number(stats.total_kg_sales) : sales.reduce((s, v) => s + Number(v.kg), 0)
+  const totalValueSales = stats ? Number(stats.total_value_sales) : sales.reduce((s, v) => s + Number(v.total_value), 0)
+  const pendingSales = sales.filter((v) => v.status === 'pending').length
 
   const renderPurchaseActions = (tx: TransactionAPI) => {
-    if (tx.status === 'pendiente' && can('transactions.pay')) {
+    if (tx.status === 'pending' && can('transactions.pay')) {
       return (
-        <Button size="small" variant="outlined" disabled={actionLoadingId === tx.id} onClick={() => handleUpdateStatus(tx.id, 'pagado')}>
+        <Button size="small" variant="outlined" disabled={actionLoadingId === tx.id} onClick={() => handleUpdateStatus(tx.id, 'paid')}>
           Marcar pagada
         </Button>
       )
@@ -156,10 +148,10 @@ export default function Transactions() {
   }
 
   const renderSaleActions = (tx: TransactionAPI) => {
-    if (tx.status === 'pendiente' && can('transactions.manage')) {
+    if (tx.status === 'pending' && can('transactions.manage')) {
       return (
         <Box sx={{ display: 'flex', gap: 1 }}>
-          <Button size="small" variant="outlined" disabled={actionLoadingId === tx.id} onClick={() => handleUpdateStatus(tx.id, 'entregado')}>
+          <Button size="small" variant="outlined" disabled={actionLoadingId === tx.id} onClick={() => handleUpdateStatus(tx.id, 'delivered')}>
             Entregar
           </Button>
           <Button size="small" variant="destructive" disabled={actionLoadingId === tx.id} onClick={() => setCancelTargetId(tx.id)}>
@@ -188,17 +180,17 @@ export default function Transactions() {
         <>
           <Grid container spacing={2}>
             <Grid item xs={12} sm={4}>
-              <StatCard label={t.transacciones.purchaseStats.totalPurchased} value={`${totalKgCompras.toLocaleString('es-CO')} kg`} sub={t.transacciones.purchaseStats.totalPurchasedSub} />
+              <StatCard label={t.transacciones.purchaseStats.totalPurchased} value={`${totalKgPurchases.toLocaleString('es-CO')} kg`} sub={t.transacciones.purchaseStats.totalPurchasedSub} />
             </Grid>
             <Grid item xs={12} sm={4}>
-              <StatCard label={t.transacciones.purchaseStats.valuePaid} value={`$${totalValueCompras.toLocaleString('es-CO')}`} sub={t.transacciones.purchaseStats.valuePaidSub} color="error.main" />
+              <StatCard label={t.transacciones.purchaseStats.valuePaid} value={`$${totalValuePurchases.toLocaleString('es-CO')}`} sub={t.transacciones.purchaseStats.valuePaidSub} color="error.main" />
             </Grid>
             <Grid item xs={12} sm={4}>
-              <StatCard label={t.transacciones.purchaseStats.pendingPayment} value={String(pendingCompras)} sub={interpolate(t.transacciones.purchaseStats.pendingPaymentSub, { total: compras.length })} color="warning.main" />
+              <StatCard label={t.transacciones.purchaseStats.pendingPayment} value={String(pendingPurchases)} sub={interpolate(t.transacciones.purchaseStats.pendingPaymentSub, { total: purchases.length })} color="warning.main" />
             </Grid>
           </Grid>
 
-          {comprasLoading ? (
+          {purchasesLoading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}><CircularProgress /></Box>
           ) : (
             <TableContainer>
@@ -216,23 +208,23 @@ export default function Transactions() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {compras.slice(purchasePage * 8, purchasePage * 8 + 8).map((c) => (
+                  {purchases.slice(purchasePage * 8, purchasePage * 8 + 8).map((c) => (
                     <TableRow key={c.id} hover>
                       <TableCell sx={{ fontSize: '0.85rem', color: 'text.secondary' }}>
-                        {new Date(c.fecha).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' })}
+                        {new Date(c.occurred_at).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' })}
                       </TableCell>
                       <TableCell sx={{ fontWeight: 500 }}>{c.recycler?.full_name ?? '—'}</TableCell>
                       <TableCell>
                         <Badge label={c.material.label} color="default" />
                       </TableCell>
                       <TableCell align="right" sx={{ fontFamily: 'monospace' }}>{Number(c.kg).toLocaleString('es-CO')}</TableCell>
-                      <TableCell align="right" sx={{ color: 'text.secondary' }}>${Number(c.precio_kg).toLocaleString('es-CO')}</TableCell>
+                      <TableCell align="right" sx={{ color: 'text.secondary' }}>${Number(c.price_per_kg).toLocaleString('es-CO')}</TableCell>
                       <TableCell align="right" sx={{ fontWeight: 600 }}>${Number(c.total_value).toLocaleString('es-CO')}</TableCell>
                       <TableCell><Badge label={STATUS_CONFIG[c.status]?.label ?? c.status} color={STATUS_CONFIG[c.status]?.color ?? 'default'} /></TableCell>
                       <TableCell>{renderPurchaseActions(c)}</TableCell>
                     </TableRow>
                   ))}
-                  {compras.length === 0 && (
+                  {purchases.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={8} align="center" sx={{ py: 4, color: 'text.secondary' }}>
                         No hay compras registradas. Se crean automáticamente al validar pesajes.
@@ -241,7 +233,7 @@ export default function Transactions() {
                   )}
                 </TableBody>
               </Table>
-              <TablePagination count={compras.length} page={purchasePage} rowsPerPage={8} onPageChange={(_, p) => setPurchasePage(p)} />
+              <TablePagination count={purchases.length} page={purchasePage} rowsPerPage={8} onPageChange={(_, p) => setPurchasePage(p)} />
             </TableContainer>
           )}
         </>
@@ -252,27 +244,27 @@ export default function Transactions() {
         <>
           <Grid container spacing={2}>
             <Grid item xs={12} sm={4}>
-              <StatCard label={t.transacciones.saleStats.totalSold} value={`${totalKgVentas.toLocaleString('es-CO')} kg`} sub={t.transacciones.saleStats.totalSoldSub} />
+              <StatCard label={t.transacciones.saleStats.totalSold} value={`${totalKgSales.toLocaleString('es-CO')} kg`} sub={t.transacciones.saleStats.totalSoldSub} />
             </Grid>
             <Grid item xs={12} sm={4}>
-              <StatCard label={t.transacciones.saleStats.valueCharged} value={`$${totalValueVentas.toLocaleString('es-CO')}`} sub={t.transacciones.saleStats.valueChargedSub} color="primary.main" />
+              <StatCard label={t.transacciones.saleStats.valueCharged} value={`$${totalValueSales.toLocaleString('es-CO')}`} sub={t.transacciones.saleStats.valueChargedSub} color="primary.main" />
             </Grid>
             <Grid item xs={12} sm={4}>
-              <StatCard label={t.transacciones.saleStats.toInvoice} value={String(pendingVentas)} sub={interpolate(t.transacciones.saleStats.toInvoiceSub, { total: ventas.length })} color="warning.main" />
+              <StatCard label={t.transacciones.saleStats.toInvoice} value={String(pendingSales)} sub={interpolate(t.transacciones.saleStats.toInvoiceSub, { total: sales.length })} color="warning.main" />
             </Grid>
           </Grid>
 
           {can('transactions.create') && (
             <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
               <Button onClick={() => {
-                setVentaForm({ ...EMPTY_VENTA, warehouse_id: warehouses[0]?.id ?? '' })
-                setVentaError('')
-                setShowVentaModal(true)
+                setSaleForm({ ...EMPTY_SALE, material_code: materials[0]?.code ?? '', warehouse_id: warehouses[0]?.id ?? '' })
+                setSaleError('')
+                setShowSaleModal(true)
               }}>{t.transacciones.newSale}</Button>
             </Box>
           )}
 
-          {ventasLoading ? (
+          {salesLoading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}><CircularProgress /></Box>
           ) : (
             <TableContainer>
@@ -290,10 +282,10 @@ export default function Transactions() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {ventas.slice(salePage * 8, salePage * 8 + 8).map((v) => (
+                  {sales.slice(salePage * 8, salePage * 8 + 8).map((v) => (
                     <TableRow key={v.id} hover>
                       <TableCell sx={{ fontSize: '0.85rem', color: 'text.secondary' }}>
-                        {new Date(v.fecha).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' })}
+                        {new Date(v.occurred_at).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' })}
                       </TableCell>
                       <TableCell sx={{ fontWeight: 500 }}>
                         {v.buyer_name ? (
@@ -302,13 +294,13 @@ export default function Transactions() {
                       </TableCell>
                       <TableCell><Badge label={v.material.label} color="default" /></TableCell>
                       <TableCell align="right" sx={{ fontFamily: 'monospace' }}>{Number(v.kg).toLocaleString('es-CO')}</TableCell>
-                      <TableCell align="right" sx={{ color: 'text.secondary' }}>${Number(v.precio_kg).toLocaleString('es-CO')}</TableCell>
+                      <TableCell align="right" sx={{ color: 'text.secondary' }}>${Number(v.price_per_kg).toLocaleString('es-CO')}</TableCell>
                       <TableCell align="right" sx={{ fontWeight: 600 }}>${Number(v.total_value).toLocaleString('es-CO')}</TableCell>
                       <TableCell><Badge label={STATUS_CONFIG[v.status]?.label ?? v.status} color={STATUS_CONFIG[v.status]?.color ?? 'default'} /></TableCell>
                       <TableCell>{renderSaleActions(v)}</TableCell>
                     </TableRow>
                   ))}
-                  {ventas.length === 0 && (
+                  {sales.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={8} align="center" sx={{ py: 4, color: 'text.secondary' }}>
                         No hay ventas registradas aún.
@@ -317,55 +309,55 @@ export default function Transactions() {
                   )}
                 </TableBody>
               </Table>
-              <TablePagination count={ventas.length} page={salePage} rowsPerPage={8} onPageChange={(_, p) => setSalePage(p)} />
+              <TablePagination count={sales.length} page={salePage} rowsPerPage={8} onPageChange={(_, p) => setSalePage(p)} />
             </TableContainer>
           )}
         </>
       )}
 
       {/* ── MODAL: Nueva venta ── */}
-      <Dialog open={showVentaModal} onClose={() => setShowVentaModal(false)} maxWidth="sm">
-        <DialogTitle showClose onClose={() => setShowVentaModal(false)}>{t.transacciones.registerSale.title}</DialogTitle>
+      <Dialog open={showSaleModal} onClose={() => setShowSaleModal(false)} maxWidth="sm">
+        <DialogTitle showClose onClose={() => setShowSaleModal(false)}>{t.transacciones.registerSale.title}</DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, pt: 1 }}>
             <Select
               label={t.transacciones.registerPurchase.materialField}
-              value={ventaForm.material_code}
-              onChange={(e) => setVentaForm((p) => ({ ...p, material_code: e.target.value }))}
-              options={MATERIAL_OPTIONS}
+              value={saleForm.material_code}
+              onChange={(e) => setSaleForm((p) => ({ ...p, material_code: e.target.value }))}
+              options={materialOptions}
             />
             <Select
               label="Bodega"
-              value={ventaForm.warehouse_id}
-              onChange={(e) => setVentaForm((p) => ({ ...p, warehouse_id: e.target.value }))}
+              value={saleForm.warehouse_id}
+              onChange={(e) => setSaleForm((p) => ({ ...p, warehouse_id: e.target.value }))}
               options={warehouseOptions}
             />
             <Input
               label={t.transacciones.registerPurchase.quantityField}
               type="number"
-              value={ventaForm.kg || ''}
-              onChange={(e) => { setVentaForm((p) => ({ ...p, kg: Number(e.target.value) })); setVentaError('') }}
+              value={saleForm.kg || ''}
+              onChange={(e) => { setSaleForm((p) => ({ ...p, kg: Number(e.target.value) })); setSaleError('') }}
             />
             <Input
               label={t.transacciones.registerPurchase.priceField}
               type="number"
-              value={ventaForm.precio_kg || ''}
-              onChange={(e) => setVentaForm((p) => ({ ...p, precio_kg: Number(e.target.value) }))}
+              value={saleForm.price_per_kg || ''}
+              onChange={(e) => setSaleForm((p) => ({ ...p, price_per_kg: Number(e.target.value) }))}
             />
             <Box sx={{ gridColumn: 'span 2' }}>
               <Input
                 label={t.transacciones.registerSale.companyField}
                 placeholder={t.transacciones.registerSale.companyPlaceholder}
-                value={ventaForm.buyer_name ?? ''}
-                onChange={(e) => setVentaForm((p) => ({ ...p, buyer_name: e.target.value }))}
+                value={saleForm.buyer_name ?? ''}
+                onChange={(e) => setSaleForm((p) => ({ ...p, buyer_name: e.target.value }))}
               />
             </Box>
           </Box>
-          {ventaError && <Typography variant="caption" color="error" mt={1} display="block">{ventaError}</Typography>}
+          {saleError && <Typography variant="caption" color="error" mt={1} display="block">{saleError}</Typography>}
         </DialogContent>
         <DialogActions>
-          <Button variant="outlined" onClick={() => setShowVentaModal(false)}>{t.common.cancel}</Button>
-          <Button disabled={createVentaMutation.isPending} onClick={handleVentaSubmit}>{t.transacciones.registerSale.submitLabel}</Button>
+          <Button variant="outlined" onClick={() => setShowSaleModal(false)}>{t.common.cancel}</Button>
+          <Button disabled={createSaleMutation.isPending} onClick={handleSaleSubmit}>{t.transacciones.registerSale.submitLabel}</Button>
         </DialogActions>
       </Dialog>
 

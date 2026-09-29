@@ -10,15 +10,17 @@ import {
   Table, TableHead, TableBody, TableRow, TableCell, TableContainer, TablePagination,
 } from '../../components/ui'
 import { t, interpolate } from '../../lib/i18n'
+import { getMaterialColor, getStatusStyle, type CatalogRef } from '../../lib/catalog'
+import type { WeighingStatus } from '../../services/weighings'
 
 export interface Weighing {
   id: string
-  fecha: string
+  occurred_at: string
   reciclador_nombre: string
-  material: 'papel' | 'plastico' | 'vidrio' | 'metal' | 'carton' | 'electronico' | 'organico'
+  material: CatalogRef
   kg: number
-  precio_kg: number
-  estado: 'pendiente' | 'validado' | 'pagado' | 'rechazado'
+  price_per_kg: number
+  status: WeighingStatus
   rejection_reason?: string | null
 }
 
@@ -31,24 +33,16 @@ interface WeighingsTableProps {
   actionLoadingId?: string | null
 }
 
-const MATERIAL_CONFIG: Record<Weighing['material'], { label: string; color: 'default' | 'info' | 'primary' | 'success' | 'warning' | 'error' }> = {
-  papel:      { label: t.pesajes.materials.papel,      color: 'info' },
-  plastico:   { label: t.pesajes.materials.plastico,   color: 'primary' },
-  vidrio:     { label: t.pesajes.materials.vidrio,     color: 'success' },
-  metal:      { label: t.pesajes.materials.metal,      color: 'default' },
-  carton:     { label: t.pesajes.materials.carton,     color: 'warning' },
-  electronico:{ label: t.pesajes.materials.electronico, color: 'error' },
-  organico:   { label: t.pesajes.materials.organico,   color: 'success' },
+const STATUS_CONFIG: Record<WeighingStatus, { label: string; color: 'warning' | 'success' | 'info' | 'error' | 'default' }> = {
+  pending_validation: { label: t.pesajes.status.pending_validation, color: 'warning' },
+  validated:          { label: t.pesajes.status.validated,          color: 'success' },
+  paid:               { label: t.pesajes.status.paid,               color: 'info' },
+  rejected:           { label: t.pesajes.status.rejected,           color: 'error' },
 }
 
-const ESTADO_CONFIG: Record<Weighing['estado'], { label: string; color: 'warning' | 'success' | 'info' | 'error' }> = {
-  pendiente: { label: t.pesajes.status.pendiente,  color: 'warning' },
-  validado:  { label: t.pesajes.status.validado,   color: 'success' },
-  pagado:    { label: t.pesajes.status.pagado,     color: 'info' },
-  rechazado: { label: t.pesajes.status.rechazado, color: 'error' },
-}
+const statusStyle = (status: string) => getStatusStyle(STATUS_CONFIG, status, 'default' as const)
 
-type StatusFilter = '' | Weighing['estado']
+type StatusFilter = '' | WeighingStatus
 
 const PAGE_SIZE = 8
 
@@ -69,8 +63,8 @@ export default function WeighingsTable({
     const q = search.toLowerCase()
     const matchesSearch =
       p.reciclador_nombre.toLowerCase().includes(q) ||
-      MATERIAL_CONFIG[p.material].label.toLowerCase().includes(q)
-    const matchesStatus = statusFilter === '' || p.estado === statusFilter
+      p.material.label.toLowerCase().includes(q)
+    const matchesStatus = statusFilter === '' || p.status === statusFilter
     return matchesSearch && matchesStatus
   })
 
@@ -103,7 +97,7 @@ export default function WeighingsTable({
           sx={{ width: 160 }}
         >
           <MenuItem value="">Todos los estados</MenuItem>
-          {Object.entries(ESTADO_CONFIG).map(([k, v]) => (
+          {Object.entries(STATUS_CONFIG).map(([k, v]) => (
             <MenuItem key={k} value={k}>{v.label}</MenuItem>
           ))}
         </TextField>
@@ -137,34 +131,34 @@ export default function WeighingsTable({
               {paginated.map((p) => (
                 <TableRow key={p.id} hover>
                   <TableCell sx={{ color: 'text.secondary', fontSize: '0.85rem' }}>
-                    {new Date(p.fecha).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    {new Date(p.occurred_at).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' })}
                   </TableCell>
                   <TableCell sx={{ fontWeight: 500 }}>{p.reciclador_nombre}</TableCell>
                   <TableCell>
-                    <Badge label={MATERIAL_CONFIG[p.material].label} color={MATERIAL_CONFIG[p.material].color} />
+                    <Badge label={p.material.label} color={getMaterialColor(p.material.code)} />
                   </TableCell>
                   <TableCell align="right" sx={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>{Number(p.kg).toLocaleString('es-CO')}</TableCell>
                   <TableCell align="right" sx={{ color: 'text.secondary', fontSize: '0.85rem' }}>
-                    ${Number(p.precio_kg).toLocaleString('es-CO')}
+                    ${Number(p.price_per_kg).toLocaleString('es-CO')}
                   </TableCell>
                   <TableCell align="right" sx={{ fontWeight: 600, fontSize: '0.85rem' }}>
-                    ${(Number(p.kg) * Number(p.precio_kg)).toLocaleString('es-CO')}
+                    ${(Number(p.kg) * Number(p.price_per_kg)).toLocaleString('es-CO')}
                   </TableCell>
                   <TableCell>
-                    {p.estado === 'rechazado' && p.rejection_reason ? (
+                    {p.status === 'rejected' && p.rejection_reason ? (
                       <Tooltip title={p.rejection_reason}>
                         <span>
-                          <Badge label={ESTADO_CONFIG[p.estado].label} color={ESTADO_CONFIG[p.estado].color} />
+                          <Badge label={statusStyle(p.status).label} color={statusStyle(p.status).color} />
                         </span>
                       </Tooltip>
                     ) : (
-                      <Badge label={ESTADO_CONFIG[p.estado].label} color={ESTADO_CONFIG[p.estado].color} />
+                      <Badge label={statusStyle(p.status).label} color={statusStyle(p.status).color} />
                     )}
                   </TableCell>
                   {hasActions && (
                     <TableCell align="right">
                       <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'flex-end' }}>
-                        {p.estado === 'pendiente' && onValidate && (
+                        {p.status === 'pending_validation' && onValidate && (
                           <Button
                             size="small"
                             variant="outlined"
@@ -175,7 +169,7 @@ export default function WeighingsTable({
                             Validar
                           </Button>
                         )}
-                        {p.estado === 'pendiente' && onReject && (
+                        {p.status === 'pending_validation' && onReject && (
                           <Button
                             size="small"
                             variant="outlined"
@@ -186,7 +180,7 @@ export default function WeighingsTable({
                             Rechazar
                           </Button>
                         )}
-                        {p.estado === 'validado' && onMarkPaid && (
+                        {p.status === 'validated' && onMarkPaid && (
                           <Button
                             size="small"
                             variant="outlined"
