@@ -4,6 +4,7 @@ import { FormDrawer, Snackbar, type FormFieldDef } from '../../components/ui'
 import { apiClient } from '../../lib/apiClient'
 import { recyclersService } from '../../services/recyclers'
 import { t } from '../../lib/i18n'
+import { getApiErrorMessage } from '../../lib/apiError'
 
 interface DocumentType {
   code: string
@@ -53,8 +54,7 @@ export default function RegisterRecyclerDrawer({ open, onClose }: Props) {
       onClose()
     },
     onError: (err: unknown) => {
-      const axiosErr = err as { response?: { data?: { detail?: string } } }
-      const message = axiosErr?.response?.data?.detail ?? t.recicladores.register.errorMessage
+      const message = getApiErrorMessage(err, t.recicladores.register.errorMessage)
       setSnackbar({ open: true, message, severity: 'error' })
     },
   })

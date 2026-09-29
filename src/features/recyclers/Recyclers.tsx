@@ -8,6 +8,7 @@ import RegisterRecyclerDrawer from './RegisterRecyclerDrawer'
 import { Snackbar, Dialog, DialogTitle, DialogContent, DialogActions, Button } from '../../components/ui'
 import { recyclersService } from '../../services/recyclers'
 import { t } from '../../lib/i18n'
+import { getApiErrorMessage } from '../../lib/apiError'
 
 export default function Recyclers() {
   const queryClient = useQueryClient()
@@ -53,8 +54,7 @@ export default function Recyclers() {
       setSnackbar({ open: true, message: t.recicladores.validate.successMessage, severity: 'success' })
     },
     onError: (err: unknown) => {
-      const axiosErr = err as { response?: { data?: { detail?: string } } }
-      const message = axiosErr?.response?.data?.detail ?? t.recicladores.validate.errorMessage
+      const message = getApiErrorMessage(err, t.recicladores.validate.errorMessage)
       setSnackbar({ open: true, message, severity: 'error' })
     },
     onSettled: () => setValidatingId(null),
@@ -71,8 +71,7 @@ export default function Recyclers() {
       handleCloseRejectDialog()
     },
     onError: (err: unknown) => {
-      const axiosErr = err as { response?: { data?: { detail?: string } } }
-      const message = axiosErr?.response?.data?.detail ?? t.recicladores.reject.errorMessage
+      const message = getApiErrorMessage(err, t.recicladores.reject.errorMessage)
       setSnackbar({ open: true, message, severity: 'error' })
     },
     onSettled: () => setRejectingId(null),

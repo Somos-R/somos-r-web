@@ -19,6 +19,7 @@ import {
   type CreateVentaPayload,
 } from '../../services/transactions'
 import { inventoryService } from '../../services/inventory'
+import { getApiErrorMessage } from '../../lib/apiError'
 
 type MaterialCode = 'papel' | 'plastico' | 'vidrio' | 'metal' | 'carton' | 'electronico' | 'organico'
 
@@ -101,8 +102,7 @@ export default function Transactions() {
     mutationFn: (payload: CreateVentaPayload) => transactionsService.createVenta(payload),
     onSuccess: () => { invalidate(); setShowVentaModal(false); setVentaForm(EMPTY_VENTA) },
     onError: (err: unknown) => {
-      const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail
-      setVentaError(msg || 'Error al crear la venta. Intente de nuevo.')
+      setVentaError(getApiErrorMessage(err, 'Error al crear la venta. Intente de nuevo.'))
     },
   })
 
