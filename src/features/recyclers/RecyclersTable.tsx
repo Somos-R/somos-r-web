@@ -10,6 +10,7 @@ import {
   Table, TableHead, TableBody, TableRow, TableCell, TableContainer, TablePagination,
 } from '../../components/ui'
 import { t, interpolate } from '../../lib/i18n'
+import { PAGE_SIZE_OPTIONS, type PaginationProps } from '../../lib/pagination'
 
 export interface Recycler {
   id: string
@@ -20,11 +21,17 @@ export interface Recycler {
   created_at: string
 }
 
-type StatusFilter = 'all' | 'pending' | 'verified' | 'rejected'
+export type StatusFilter = 'all' | 'pending' | 'verified' | 'rejected'
 
 interface RecyclersTableProps {
+  /** The rows of the current page, already filtered by status by the server. */
   data: Recycler[]
   isLoading?: boolean
+  /** A new page or filter is loading while the previous rows are still shown. */
+  isFetching?: boolean
+  status: StatusFilter
+  onStatusChange: (status: StatusFilter) => void
+  pagination: PaginationProps
   onRegisterClick?: () => void
   onValidate?: (id: string) => void
   onReject?: (id: string) => void
@@ -38,11 +45,13 @@ const STATUS_CONFIG: Record<Recycler['status'], { label: string; color: 'success
   rejected: { label: t.recicladores.status.rejected, color: 'error' },
 }
 
-const PAGE_SIZE = 8
-
 export default function RecyclersTable({
   data,
   isLoading,
+  isFetching,
+  status,
+  onStatusChange,
+  pagination,
   onRegisterClick,
   onValidate,
   onReject,
@@ -50,31 +59,13 @@ export default function RecyclersTable({
   rejectingId,
 }: RecyclersTableProps) {
   const hasActions = !!(onValidate || onReject)
+  // The API has no text search yet, so this only narrows the rows of the page already loaded.
   const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
-  const [page, setPage] = useState(0)
-  const [rowsPerPage, setRowsPerPage] = useState(PAGE_SIZE)
 
   const filtered = data.filter((r) => {
-    const matchesSearch = (() => {
-      const q = search.toLowerCase()
-      return r.full_name.toLowerCase().includes(q) || r.id_number.includes(q)
-    })()
-    const matchesStatus = statusFilter === 'all' || r.status === statusFilter
-    return matchesSearch && matchesStatus
+    const q = search.toLowerCase()
+    return r.full_name.toLowerCase().includes(q) || r.id_number.includes(q)
   })
-
-  const paginated = filtered.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch(e.target.value)
-    setPage(0)
-  }
-
-  const handleStatusFilterChange = (value: StatusFilter) => {
-    setStatusFilter(value)
-    setPage(0)
-  }
 
   if (isLoading) {
     return (
@@ -84,23 +75,26 @@ export default function RecyclersTable({
     )
   }
 
-  const countLabel = `${filtered.length} ${filtered.length !== 1 ? t.recicladores.countPlural : t.recicladores.countSingular}`
+  const total = pagination.total
+  const countLabel = `${total.toLocaleString('es-CO')} ${total !== 1 ? t.recicladores.countPlural : t.recicladores.countSingular}`
+  const searchIsPartial = total > data.length
 
   return (
-    <TableContainer>
+    <TableContainer sx={{ opacity: isFetching ? 0.6 : 1, transition: 'opacity 120ms' }}>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 2, py: 1.5, borderBottom: '1px solid', borderColor: 'divider', gap: 2, flexWrap: 'wrap' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
           <Input
             placeholder={t.recicladores.searchPlaceholder}
             value={search}
-            onChange={handleSearchChange}
+            onChange={(e) => setSearch(e.target.value)}
+            helperText={searchIsPartial && search ? interpolate(t.recicladores.searchPageOnly, { count: data.length }) : undefined}
             fullWidth={false}
             sx={{ width: 260 }}
           />
           <MuiSelect
             size="small"
-            value={statusFilter}
-            onChange={(e) => handleStatusFilterChange(e.target.value as StatusFilter)}
+            value={status}
+            onChange={(e) => onStatusChange(e.target.value as StatusFilter)}
             sx={{ minWidth: 170, fontSize: '0.875rem' }}
           >
             <MenuItem value="all">{t.recicladores.filterStatus.all}</MenuItem>
@@ -122,8 +116,8 @@ export default function RecyclersTable({
       {filtered.length === 0 ? (
         <Box sx={{ py: 6, textAlign: 'center' }}>
           <Typography variant="body2" color="text.secondary">
-            {search || statusFilter !== 'all'
-              ? interpolate(t.recicladores.emptySearch, { query: search || statusFilter })
+            {search || status !== 'all'
+              ? interpolate(t.recicladores.emptySearch, { query: search || status })
               : t.recicladores.emptyState}
           </Typography>
         </Box>
@@ -141,7 +135,7 @@ export default function RecyclersTable({
               </TableRow>
             </TableHead>
             <TableBody>
-              {paginated.map((r) => (
+              {filtered.map((r) => (
                 <TableRow key={r.id} hover>
                   <TableCell sx={{ fontWeight: 500 }}>{r.full_name}</TableCell>
                   <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>{r.id_number}</TableCell>
@@ -188,11 +182,12 @@ export default function RecyclersTable({
             </TableBody>
           </Table>
           <TablePagination
-            count={filtered.length}
-            page={page}
-            rowsPerPage={rowsPerPage}
-            onPageChange={(_, p) => setPage(p)}
-            onRowsPerPageChange={(e) => { setRowsPerPage(+e.target.value); setPage(0) }}
+            count={pagination.total}
+            page={pagination.page}
+            rowsPerPage={pagination.rowsPerPage}
+            rowsPerPageOptions={PAGE_SIZE_OPTIONS}
+            onPageChange={(_, page) => pagination.onPageChange(page)}
+            onRowsPerPageChange={(e) => pagination.onRowsPerPageChange(+e.target.value)}
           />
         </>
       )}

@@ -80,6 +80,7 @@ function serveApi() {
         },
       }
     }
+    if (url === '/inventory/materials') return { data: [MATERIAL, { code: 'paper', label: 'Papel', unit: 'kg' }] }
     if (url.startsWith('/inventory/') || url.startsWith('/catalogs')) return { data: [] }
     return { data: { total: 0, items: [] } }
   })
@@ -124,7 +125,7 @@ describe('pages against the English API contract', () => {
     expect(screen.getByText('restocking')).toBeInTheDocument()
   })
 
-  it('inventory: the material filter is built from the materials present, not a fixed list', async () => {
+  it('inventory: the material filter comes from the catalog endpoint, not a fixed list', async () => {
     renderAt('/inventario')
     await screen.findByText('Cerámica')
     await userEvent.click(screen.getAllByRole('combobox')[0])
