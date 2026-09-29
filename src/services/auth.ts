@@ -18,6 +18,7 @@ interface BackendUserResponse {
   user_type_code: string
   role_code: string | null
   created_at: string
+  email_verified_at?: string | null
 }
 
 const ROLE_MAP: Record<string, UserRole> = {
@@ -40,6 +41,7 @@ export function mapToAuthUser(data: BackendUserResponse): AuthUser {
     full_name: data.full_name,
     status: 'active' as const,
     created_at: data.created_at,
+    email_verified_at: data.email_verified_at ?? null,
   }
   if (role === 'operador_eca' || role === 'admin_eca') {
     return { ...base, role, eca_id: '', employee_code: '' }
@@ -107,5 +109,32 @@ export const authService = {
       // Expired token or network error: proceed with local cleanup anyway.
     }
     clearSession()
+  },
+
+  // Public token flows: the links in the emails work without a session, and a 401 here has
+  // nothing to do with an expired access token, so never try to refresh.
+  async activate(token: string, password: string): Promise<void> {
+    await apiClient.post('/auth/activate', { token, password }, { skipAuthRefresh: true })
+  },
+
+  async verifyEmail(token: string): Promise<void> {
+    await apiClient.post('/auth/verify-email', { token }, { skipAuthRefresh: true })
+  },
+
+  async forgotPassword(email: string): Promise<void> {
+    await apiClient.post('/auth/forgot-password', { email }, { skipAuthRefresh: true })
+  },
+
+  async resetPassword(token: string, password: string): Promise<void> {
+    await apiClient.post('/auth/reset-password', { token, password }, { skipAuthRefresh: true })
+  },
+
+  /** Every session is revoked on success, including this one: the caller must end it locally. */
+  async changePassword(currentPassword: string, newPassword: string): Promise<void> {
+    await apiClient.post('/auth/change-password', { current_password: currentPassword, new_password: newPassword })
+  },
+
+  async resendVerification(): Promise<void> {
+    await apiClient.post('/auth/resend-verification')
   },
 }

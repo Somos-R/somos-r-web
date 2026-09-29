@@ -6,6 +6,9 @@ import { useAuth } from './hooks/useAuth'
 import { Button } from './components/ui'
 import DashboardLayout from './components/layout/DashboardLayout'
 import LoginPage from './features/auth/LoginPage'
+import ForgotPasswordPage from './features/auth/ForgotPasswordPage'
+import SetPasswordPage from './features/auth/SetPasswordPage'
+import VerifyEmailPage from './features/auth/VerifyEmailPage'
 import Dashboard from './features/dashboard/Dashboard'
 import Recyclers from './features/recyclers/Recyclers'
 import Weighings from './features/weighings/Weighings'
@@ -64,6 +67,12 @@ export default function App() {
     <Router>
       <Routes>
         <Route path="/login" element={isAuthenticated ? <Navigate to="/" /> : <LoginPage />} />
+
+        {/* Public: the emailed links and password recovery work without a session. */}
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/activate" element={<SetPasswordPage mode="activate" />} />
+        <Route path="/reset-password" element={<SetPasswordPage mode="reset" />} />
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
 
         {isAuthenticated ? (
           <Route element={<DashboardLayout />}>

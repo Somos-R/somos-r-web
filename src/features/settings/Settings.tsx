@@ -2,6 +2,7 @@ import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import { Card, CardContent } from '../../components/ui'
 import { t } from '../../lib/i18n'
+import SecuritySection from './SecuritySection'
 
 export default function Settings() {
   return (
@@ -10,6 +11,7 @@ export default function Settings() {
         <Typography variant="h5" fontWeight={600}>{t.configuracion.title}</Typography>
         <Typography variant="body2" color="text.secondary" mt={0.5}>{t.configuracion.subtitle}</Typography>
       </Box>
+      <SecuritySection />
       <Card>
         <CardContent sx={{ py: 6, textAlign: 'center' }}>
           <Typography color="text.disabled">{t.configuracion.placeholder}</Typography>

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import Box from '@mui/material/Box'
+import Link from '@mui/material/Link'
 import Typography from '@mui/material/Typography'
 import Paper from '@mui/material/Paper'
 import IconButton from '@mui/material/IconButton'
@@ -8,6 +9,8 @@ import { Button, Input, Alert } from '../../components/ui'
 import { useAuth } from '../../hooks/useAuth'
 import { t } from '../../lib/i18n'
 import { getAuthErrorMessage } from '../../services/auth'
+import { consumeLoginNotice } from '../../lib/loginNotice'
+import { Link as RouterLink } from 'react-router-dom'
 
 interface LoginFormProps {
   onSuccess?: () => void
@@ -22,6 +25,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
   const { login } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [notice] = useState(consumeLoginNotice)
   const emailRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -87,6 +91,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
           }
         />
 
+        {notice && <Alert severity="success">{notice}</Alert>}
         {error && <Alert severity="error">{error}</Alert>}
 
         <Button
@@ -98,6 +103,9 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
         >
           {t.auth.loginButton}
         </Button>
+        <Link component={RouterLink} to="/forgot-password" variant="body2" textAlign="center">
+          {t.auth.forgotLink}
+        </Link>
       </Box>
     </Paper>
   )
