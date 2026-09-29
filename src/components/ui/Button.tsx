@@ -1,5 +1,5 @@
 import MuiButton, { type ButtonProps as MuiButtonProps } from '@mui/material/Button'
-import CircularProgress from '@mui/material/CircularProgress'
+import { Loader } from './Loader'
 import type { SxProps, Theme } from '@mui/material/styles'
 
 export interface ButtonProps {
@@ -51,7 +51,7 @@ export function Button({
       type={type}
       sx={sx}
     >
-      {loading ? <CircularProgress size={18} color="inherit" /> : children}
+      {loading ? <Loader size={18} color="inherit" /> : children}
     </MuiButton>
   )
 }

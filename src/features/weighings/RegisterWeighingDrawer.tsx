@@ -127,8 +127,8 @@ export default function RegisterWeighingDrawer({ open, onClose }: Props) {
     <>
       <Drawer anchor="right" open={open} onClose={onClose} PaperProps={{ sx: { width: 440 } }}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 3, py: 2 }}>
-          <Typography variant="h6" fontWeight={600}>{t.pesajes.drawer.title}</Typography>
-          <IconButton size="small" onClick={onClose} disabled={mutation.isPending}>
+          <Typography variant="h6" component="h2" fontWeight={600}>{t.pesajes.drawer.title}</Typography>
+          <IconButton size="small" aria-label={t.common.close} onClick={onClose} disabled={mutation.isPending}>
             <X size={18} />
           </IconButton>
         </Box>
@@ -212,7 +212,7 @@ export default function RegisterWeighingDrawer({ open, onClose }: Props) {
           {form.kg && form.price_per_kg && Number(form.kg) > 0 && Number(form.price_per_kg) > 0 && (
             <Box sx={{ p: 1.5, borderRadius: 1, backgroundColor: 'action.hover' }}>
               <Typography variant="caption" color="text.secondary">{t.pesajes.drawer.totalToPay}</Typography>
-              <Typography variant="h6" fontWeight={700} color="success.dark">
+              <Typography variant="h6" component="p" fontWeight={700} color="success.dark">
                 ${(Number(form.kg) * Number(form.price_per_kg)).toLocaleString('es-CO')}
               </Typography>
             </Box>

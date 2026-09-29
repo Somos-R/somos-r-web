@@ -61,7 +61,7 @@ describe('a page that fails to download', () => {
 
   it('keeps the menu working, so the other pages stay reachable', async () => {
     await screen.findByText(t.errorScreen.chunkMessage)
-    await userEvent.click(screen.getByRole('button', { name: t.nav.recicladores }))
+    await userEvent.click(screen.getByRole('link', { name: t.nav.recicladores }))
     expect(await screen.findByRole('heading', { name: t.recicladores.title })).toBeInTheDocument()
     expect(screen.queryByText(t.errorScreen.chunkMessage)).not.toBeInTheDocument()
   })

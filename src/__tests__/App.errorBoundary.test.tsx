@@ -72,7 +72,7 @@ describe('a page that crashes while rendering', () => {
     renderAt('/pesajes')
     await screen.findByRole('alert')
     // The sidebar is outside the boundary and still there.
-    await userEvent.click(screen.getByRole('button', { name: t.nav.inventario }))
+    await userEvent.click(screen.getByRole('link', { name: t.nav.inventario }))
     expect(await screen.findByRole('heading', { name: t.inventario.title })).toBeInTheDocument()
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
     expect(window.location.pathname).toBe('/inventario')

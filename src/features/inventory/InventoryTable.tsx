@@ -1,6 +1,5 @@
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
-import CircularProgress from '@mui/material/CircularProgress'
 import MenuItem from '@mui/material/MenuItem'
 import TextField from '@mui/material/TextField'
 import IconButton from '@mui/material/IconButton'
@@ -9,8 +8,10 @@ import { Pencil } from 'lucide-react'
 import {
   Badge,
   Table, TableHead, TableBody, TableRow, TableCell, TableContainer, TablePagination,
+  Loader,
 } from '../../components/ui'
 import { t } from '../../lib/i18n'
+import { visuallyHidden } from '../../lib/a11y'
 import { getMaterialColor, getStatusStyle, type CatalogRef } from '../../lib/catalog'
 import type { InventoryStatus } from '../../services/inventory'
 import { PAGE_SIZE_OPTIONS, type PaginationProps } from '../../lib/pagination'
@@ -82,7 +83,7 @@ export default function InventoryTable({
   onEdit,
 }: InventoryTableProps) {
   if (isLoading) {
-    return <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}><CircularProgress /></Box>
+    return <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}><Loader /></Box>
   }
 
   const total = pagination.total
@@ -93,7 +94,7 @@ export default function InventoryTable({
     <TableContainer sx={{ opacity: isFetching ? 0.6 : 1, transition: 'opacity 120ms' }}>
       <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1.5, px: 2, py: 1.5, borderBottom: '1px solid', borderColor: 'divider' }}>
         <TextField
-          select size="small" SelectProps={{ displayEmpty: true }} value={materialCode}
+          select size="small" SelectProps={{ displayEmpty: true, inputProps: { 'aria-label': t.common.filterByMaterial } }} value={materialCode}
           onChange={(e) => onMaterialChange(e.target.value)}
           sx={{ width: 180 }}
         >
@@ -103,7 +104,7 @@ export default function InventoryTable({
           ))}
         </TextField>
         <TextField
-          select size="small" SelectProps={{ displayEmpty: true }} value={warehouseId}
+          select size="small" SelectProps={{ displayEmpty: true, inputProps: { 'aria-label': t.common.filterByWarehouse } }} value={warehouseId}
           onChange={(e) => onWarehouseChange(e.target.value)}
           sx={{ width: 180 }}
         >
@@ -113,7 +114,7 @@ export default function InventoryTable({
           ))}
         </TextField>
         <TextField
-          select size="small" SelectProps={{ displayEmpty: true }} value={status}
+          select size="small" SelectProps={{ displayEmpty: true, inputProps: { 'aria-label': t.common.filterByStatus } }} value={status}
           onChange={(e) => onStatusChange(e.target.value as InventoryStatus | '')}
           sx={{ width: 160 }}
         >
@@ -148,7 +149,11 @@ export default function InventoryTable({
                 <TableCell align="right">{t.inventario.table.totalValue}</TableCell>
                 <TableCell>{t.inventario.table.updated}</TableCell>
                 <TableCell>{t.inventario.table.status}</TableCell>
-                {onEdit && <TableCell />}
+                {onEdit && (
+                  <TableCell>
+                    <Box component="span" sx={visuallyHidden}>{t.common.actions}</Box>
+                  </TableCell>
+                )}
               </TableRow>
             </TableHead>
             <TableBody>
@@ -167,7 +172,7 @@ export default function InventoryTable({
                   {onEdit && (
                     <TableCell align="right" sx={{ py: 0.5 }}>
                       <Tooltip title={t.inventario.editTooltip}>
-                        <IconButton size="small" onClick={() => onEdit(item)}>
+                        <IconButton size="small" aria-label={t.inventario.editTooltip} onClick={() => onEdit(item)}>
                           <Pencil size={15} />
                         </IconButton>
                       </Tooltip>

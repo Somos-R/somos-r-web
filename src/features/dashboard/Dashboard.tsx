@@ -79,7 +79,7 @@ export default function Dashboard() {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       <Box>
-        <Typography variant="h5" fontWeight={600}>
+        <Typography variant="h5" component="h1" fontWeight={600}>
           {interpolate(t.dashboard.greeting, { name: user?.full_name ?? t.sidebar.defaultUser })}
         </Typography>
         <Typography variant="body2" color="text.secondary" mt={0.5}>{t.dashboard.subtitle}</Typography>
@@ -94,7 +94,7 @@ export default function Dashboard() {
                   {m.icon}
                   <Badge label={m.trend} color={m.up ? 'success' : 'error'} size="small" />
                 </Box>
-                <Typography variant="h4" fontWeight={700}>{m.value}</Typography>
+                <Typography variant="h4" component="p" fontWeight={700}>{m.value}</Typography>
                 <Typography variant="body2" color="text.secondary" mt={0.5}>{m.label}</Typography>
               </CardContent>
             </Card>

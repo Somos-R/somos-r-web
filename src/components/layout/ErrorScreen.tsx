@@ -34,7 +34,7 @@ export function ErrorScreen({ error, onRetry, fullScreen = false }: Props) {
         minHeight: fullScreen ? '100vh' : undefined,
       }}
     >
-      <Typography variant="h5" fontWeight={600}>{t.errorScreen.title}</Typography>
+      <Typography variant="h5" component="h1" fontWeight={600}>{t.errorScreen.title}</Typography>
       <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 420 }}>
         {chunkError ? t.errorScreen.chunkMessage : t.errorScreen.message}
       </Typography>

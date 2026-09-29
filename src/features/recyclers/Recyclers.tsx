@@ -118,7 +118,7 @@ export default function Recyclers() {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       <Box>
-        <Typography variant="h5" fontWeight={600}>{t.recicladores.title}</Typography>
+        <Typography variant="h5" component="h1" fontWeight={600}>{t.recicladores.title}</Typography>
         <Typography variant="body2" color="text.secondary" mt={0.5}>{t.recicladores.subtitle}</Typography>
       </Box>
 

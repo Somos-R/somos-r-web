@@ -2,7 +2,6 @@ import { useState } from 'react'
 import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
-import CircularProgress from '@mui/material/CircularProgress'
 import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
 import DialogContent from '@mui/material/DialogContent'
@@ -11,7 +10,7 @@ import MuiTextField from '@mui/material/TextField'
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import WeighingsTable, { type Weighing } from './WeighingsTable'
 import RegisterWeighingDrawer from './RegisterWeighingDrawer'
-import { Card, CardContent, Button } from '../../components/ui'
+import { Card, CardContent, Button, Loader } from '../../components/ui'
 import { t } from '../../lib/i18n'
 import { weighingsService, type WeighingAPI, type WeighingStatus, type WeighingStatusTransition } from '../../services/weighings'
 import { inventoryService } from '../../services/inventory'
@@ -38,7 +37,7 @@ function StatCard({ label, value, sub, color = 'text.primary' }: StatCardProps) 
     <Card>
       <CardContent>
         <Typography variant="caption" color="text.secondary" textTransform="uppercase" letterSpacing={0.5}>{label}</Typography>
-        <Typography variant="h5" fontWeight={700} color={color} mt={0.5}>{value}</Typography>
+        <Typography variant="h5" component="p" fontWeight={700} color={color} mt={0.5}>{value}</Typography>
         <Typography variant="caption" color="text.secondary">{sub}</Typography>
       </CardContent>
     </Card>
@@ -132,14 +131,14 @@ export default function Weighings() {
   const pendingCount = stats?.pending_count ?? 0
 
   if (listLoading && items.length === 0) {
-    return <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}><CircularProgress /></Box>
+    return <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}><Loader /></Box>
   }
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
         <Box>
-          <Typography variant="h5" fontWeight={600}>{t.pesajes.title}</Typography>
+          <Typography variant="h5" component="h1" fontWeight={600}>{t.pesajes.title}</Typography>
           <Typography variant="body2" color="text.secondary" mt={0.5}>{t.pesajes.subtitle}</Typography>
         </Box>
         {can('weighings.create') && <Button onClick={() => setDrawerOpen(true)}>{t.pesajes.newWeighing}</Button>}

@@ -1,12 +1,12 @@
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
-import CircularProgress from '@mui/material/CircularProgress'
 import MenuItem from '@mui/material/MenuItem'
 import TextField from '@mui/material/TextField'
 import Tooltip from '@mui/material/Tooltip'
 import {
   Badge, Button,
   Table, TableHead, TableBody, TableRow, TableCell, TableContainer, TablePagination,
+  Loader,
 } from '../../components/ui'
 import { t } from '../../lib/i18n'
 import type { PaginationProps } from '../../lib/pagination'
@@ -70,7 +70,7 @@ export default function WeighingsTable({
   if (isLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
-        <CircularProgress color="primary" />
+        <Loader />
       </Box>
     )
   }
@@ -84,7 +84,7 @@ export default function WeighingsTable({
     <TableContainer sx={{ opacity: isFetching ? 0.6 : 1, transition: 'opacity 120ms' }}>
       <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1.5, px: 2, py: 1.5, borderBottom: '1px solid', borderColor: 'divider' }}>
         <TextField
-          select size="small" SelectProps={{ displayEmpty: true }} value={materialCode}
+          select size="small" SelectProps={{ displayEmpty: true, inputProps: { 'aria-label': t.common.filterByMaterial } }} value={materialCode}
           onChange={(e) => onMaterialChange(e.target.value)}
           sx={{ width: 180 }}
         >
@@ -94,7 +94,7 @@ export default function WeighingsTable({
           ))}
         </TextField>
         <TextField
-          select size="small" SelectProps={{ displayEmpty: true }} value={status}
+          select size="small" SelectProps={{ displayEmpty: true, inputProps: { 'aria-label': t.common.filterByStatus } }} value={status}
           onChange={(e) => onStatusChange(e.target.value as WeighingStatus | '')}
           sx={{ width: 180 }}
         >

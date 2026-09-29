@@ -38,7 +38,7 @@ export interface CardHeaderProps {
 export function CardHeader({ title, subtitle, action, sx }: CardHeaderProps) {
   return (
     <MuiCardHeader
-      title={<Typography variant="h6" fontWeight={600}>{title}</Typography>}
+      title={<Typography variant="h6" component="h2" fontWeight={600}>{title}</Typography>}
       subheader={subtitle ? <Typography variant="body2" color="text.secondary">{subtitle}</Typography> : undefined}
       action={action}
       sx={sx}

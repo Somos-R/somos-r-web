@@ -97,7 +97,7 @@ export function FormDrawer({
   return (
     <Drawer anchor="right" open={open} onClose={handleClose} PaperProps={{ sx: { width } }}>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 3, py: 2 }}>
-        <Typography variant="h6" fontWeight={600}>{title}</Typography>
+        <Typography variant="h6" component="h2" fontWeight={600}>{title}</Typography>
         <IconButton onClick={handleClose} size="small" disabled={isSubmitting} aria-label={t.ui.formDrawer.close}>
           <X size={18} />
         </IconButton>
