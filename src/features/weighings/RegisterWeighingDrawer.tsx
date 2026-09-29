@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Drawer from '@mui/material/Drawer'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
@@ -61,21 +61,12 @@ export default function RegisterWeighingDrawer({ open, onClose }: Props) {
     enabled: open,
   })
 
-  // Auto-suggest precio_kg from inventory when material + warehouse are selected
-  useEffect(() => {
-    if (!form.material_code || !form.warehouse_id || !inventoryItems) return
-    const match = inventoryItems.items.find(
-      (i) => i.material_code === form.material_code && i.warehouse_id === form.warehouse_id
-    )
-    if (match) {
-      setForm((p) => ({ ...p, precio_kg: String(Number(match.precio_kg)) }))
-    }
-  }, [form.material_code, form.warehouse_id, inventoryItems])
-
-  // Reset form when drawer opens
-  useEffect(() => {
+  // Reset the form each time the drawer opens (adjusting state during render, not in an effect)
+  const [wasOpen, setWasOpen] = useState(open)
+  if (open !== wasOpen) {
+    setWasOpen(open)
     if (open) { setForm(EMPTY); setErrors({}) }
-  }, [open])
+  }
 
   const mutation = useMutation({
     mutationFn: (f: FormState) =>
@@ -113,7 +104,17 @@ export default function RegisterWeighingDrawer({ open, onClose }: Props) {
   }
 
   const set = (key: keyof FormState, value: string) => {
-    setForm((p) => ({ ...p, [key]: value }))
+    setForm((p) => {
+      const next = { ...p, [key]: value }
+      // Auto-suggest precio_kg from inventory once material + warehouse are selected
+      if ((key === 'material_code' || key === 'warehouse_id') && next.material_code && next.warehouse_id) {
+        const match = inventoryItems?.items.find(
+          (i) => i.material_code === next.material_code && i.warehouse_id === next.warehouse_id
+        )
+        if (match) next.precio_kg = String(Number(match.precio_kg))
+      }
+      return next
+    })
     setErrors((p) => ({ ...p, [key]: '' }))
   }
 
