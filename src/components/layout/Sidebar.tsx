@@ -19,7 +19,7 @@ import {
   Settings,
   LogOut,
 } from 'lucide-react'
-import { useAuthStore } from '../../hooks/useAuth'
+import { useAuth } from '../../hooks/useAuth'
 import { useRoles } from '../../hooks/useRoles'
 import { t } from '../../lib/i18n'
 
@@ -47,7 +47,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ onLogout }: SidebarProps) {
-  const { user } = useAuthStore()
+  const { user } = useAuth()
   const roles = useRoles()
   const location = useLocation()
   const navigate = useNavigate()

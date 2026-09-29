@@ -1,7 +1,7 @@
 # Somos R — Portal Web
 
 Portal de gestión para ECAs y Asociaciones de reciclaje.
-Stack: React 19 · TypeScript · Material UI · Vite · Zustand · React Query
+Stack: React 19 · TypeScript · Material UI · Vite · React Query
 
 ---
 
@@ -32,7 +32,6 @@ Este repositorio contiene **únicamente el frontend del Portal ECA/Asociación**
 | Emotion | 11.x | CSS-in-JS (requerido por MUI) |
 | Vite | 8.x | Bundler y dev server |
 | React Router | 7.x | Navegación |
-| Zustand | 5.x | Estado global |
 | React Query | 5.x | Caché de peticiones HTTP |
 | Axios | 1.x | Cliente HTTP |
 | lucide-react | latest | Íconos |
@@ -58,7 +57,6 @@ src/
 │   ├── reportes/    # Métricas y exportación
 │   └── configuracion/ # Perfil y ajustes de la ECA
 ├── hooks/           # useAuth, useRoles — lógica reutilizable
-├── stores/          # Estado global con Zustand
 ├── lib/             # apiClient (Axios)
 ├── types/           # Tipos TypeScript compartidos (auth.types.ts)
 ├── styles/          # Tema MUI de Somos R

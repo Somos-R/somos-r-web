@@ -9,13 +9,13 @@ import Skeleton from '@mui/material/Skeleton'
 import { Users, Scale, ClipboardList, Package } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, Badge, Button } from '../../components/ui'
-import { useAuthStore } from '../../hooks/useAuth'
+import { useAuth } from '../../hooks/useAuth'
 import { t, interpolate } from '../../lib/i18n'
 import { weighingsService } from '../../services/weighings'
 import { recyclersService } from '../../services/recyclers'
 
 export default function Dashboard() {
-  const { user } = useAuthStore()
+  const { user } = useAuth()
 
   const { data: weighingStats } = useQuery({
     queryKey: ['weighings', 'stats'],

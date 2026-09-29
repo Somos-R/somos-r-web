@@ -45,6 +45,19 @@
       "operador_eca": "Operador ECA",
       "admin_asociacion": "Admin Asociación",
       "superadmin": "Superadmin"
+    },
+    "errors": {
+      "invalidCredentials": "Email o contraseña incorrectos",
+      "forbidden": "No tienes permiso para iniciar sesión con esta cuenta",
+      "tooManyAttempts": "Demasiados intentos. Espera unos minutos antes de volver a intentarlo",
+      "network": "No pudimos conectar con el servidor. Revisa tu conexión e inténtalo de nuevo",
+      "generic": "No pudimos iniciar sesión. Inténtalo de nuevo"
+    },
+    "session": {
+      "loading": "Cargando tu sesión…",
+      "loadError": "No pudimos cargar tu perfil.",
+      "retry": "Reintentar",
+      "logout": "Cerrar sesión"
     }
   },
   "logout": {

@@ -5,8 +5,9 @@ import Paper from '@mui/material/Paper'
 import IconButton from '@mui/material/IconButton'
 import { Eye, EyeOff } from 'lucide-react'
 import { Button, Input, Alert } from '../../components/ui'
-import { useAuthStore } from '../../hooks/useAuth'
+import { useAuth } from '../../hooks/useAuth'
 import { t } from '../../lib/i18n'
+import { getAuthErrorMessage } from '../../services/auth'
 
 interface LoginFormProps {
   onSuccess?: () => void
@@ -18,7 +19,9 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
   const [showPassword, setShowPassword] = useState(false)
   const [emailError, setEmailError] = useState('')
   const [passwordError, setPasswordError] = useState('')
-  const { login, isLoading, error } = useAuthStore()
+  const { login } = useAuth()
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
   const emailRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -39,11 +42,15 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!validate()) return
+    setIsLoading(true)
+    setError('')
     try {
       await login(email, password)
       onSuccess?.()
-    } catch {
-      // error handled by the store
+    } catch (err) {
+      setError(getAuthErrorMessage(err))
+    } finally {
+      setIsLoading(false)
     }
   }
 
