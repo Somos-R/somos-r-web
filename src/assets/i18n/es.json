@@ -37,8 +37,7 @@
     "validation": {
       "emailRequired": "El email es requerido",
       "emailInvalid": "Ingresa un email válido",
-      "passwordRequired": "La contraseña es requerida",
-      "passwordMinLength": "Mínimo 6 caracteres"
+      "passwordRequired": "La contraseña es requerida"
     },
     "devRoles": {
       "admin_eca": "Admin ECA",
@@ -47,7 +46,7 @@
       "superadmin": "Superadmin"
     },
     "errors": {
-      "invalidCredentials": "Email o contraseña incorrectos",
+      "invalidCredentials": "Credenciales inválidas. Si fallaste varias veces, tu cuenta puede estar bloqueada unos minutos",
       "forbidden": "No tienes permiso para iniciar sesión con esta cuenta",
       "tooManyAttempts": "Demasiados intentos. Espera unos minutos antes de volver a intentarlo",
       "network": "No pudimos conectar con el servidor. Revisa tu conexión e inténtalo de nuevo",

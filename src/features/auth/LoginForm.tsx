@@ -34,7 +34,6 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
     else if (!/\S+@\S+\.\S+/.test(email)) { setEmailError(t.auth.validation.emailInvalid); valid = false }
     else setEmailError('')
     if (!password) { setPasswordError(t.auth.validation.passwordRequired); valid = false }
-    else if (password.length < 6) { setPasswordError(t.auth.validation.passwordMinLength); valid = false }
     else setPasswordError('')
     return valid
   }

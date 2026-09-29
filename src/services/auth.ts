@@ -99,9 +99,10 @@ export const authService = {
 
   async logout(): Promise<void> {
     try {
-      // Revokes the token family server-side. skipAuthRefresh: if the token already expired,
-      // there is nothing left to revoke, so don't burn a refresh just to log out.
-      await apiClient.post('/auth/logout', undefined, { skipAuthRefresh: true })
+      // Revokes the access token and this device's refresh session server-side. Deliberately
+      // NOT skipAuthRefresh: if the access token already expired, refresh first so the
+      // 30-day refresh token is revoked too instead of staying valid after "logout".
+      await apiClient.post('/auth/logout')
     } catch {
       // Expired token or network error: proceed with local cleanup anyway.
     }

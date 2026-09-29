@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import type { InternalAxiosRequestConfig } from 'axios'
 import { apiClient } from '../../lib/apiClient'
+import { refreshClient } from '../../lib/tokenRefresh'
 import { getAccessToken, getRefreshToken, setTokens } from '../../lib/session'
 import { authService, getAuthErrorMessage, mapToAuthUser } from '../auth'
 import { t } from '../../lib/i18n'
@@ -46,6 +47,21 @@ describe('authService', () => {
     await authService.logout()
     expect(getAccessToken()).toBeNull()
     expect(getRefreshToken()).toBeNull()
+  })
+
+  it('logout refreshes an expired access token first so the refresh session is revoked too', async () => {
+    setTokens({ access_token: 'expired', refresh_token: 'r1' })
+    refreshClient.defaults.adapter = mockAdapter(() => ({
+      data: { access_token: 'fresh', refresh_token: 'r2' },
+    }))
+    const logoutAuth: string[] = []
+    apiClient.defaults.adapter = mockAdapter((c) => {
+      logoutAuth.push(String(c.headers.Authorization))
+      return String(c.headers.Authorization) === 'Bearer fresh' ? { data: {} } : { status: 401 }
+    })
+    await authService.logout()
+    expect(logoutAuth).toEqual(['Bearer expired', 'Bearer fresh'])
+    expect(getAccessToken()).toBeNull()
   })
 })
 
