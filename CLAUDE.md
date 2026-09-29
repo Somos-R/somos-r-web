@@ -50,7 +50,7 @@ npx vitest run src/components/ui/__tests__/FormDrawer.test.tsx
 
 `apiClient` automatically injects `Authorization: Bearer <token>` from `localStorage` and redirects to `/login` on 401.
 
-`queryClient` is exported from `src/main.tsx` and used by `useAuthStore.logout()` to clear the cache.
+`queryClient` lives in `src/lib/queryClient.ts` (default `staleTime` 30 s, no retries on 4xx) and is used by `useAuthStore.logout()` to clear the cache.
 
 The backend base URL is `VITE_API_URL` env var (default `http://localhost:8000`). Auth is still mocked in `useAuthStore.login()` — replace with a real `POST /auth/login` call when the backend is ready.
 

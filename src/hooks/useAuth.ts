@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { queryClient } from '../main'
+import { queryClient } from '../lib/queryClient'
 import { apiClient } from '../lib/apiClient'
 import type { AuthUser, UserRole } from '../types/auth.types'
 
