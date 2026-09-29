@@ -71,6 +71,8 @@ Two `ErrorBoundary` layers (`components/layout/`): one around each page inside `
 
 Failures are reported once, globally: `queryClient` has a `QueryCache` and a `MutationCache` whose `onError` raises an app-wide notification (`lib/notifier.ts`, rendered by `<NotificationHost />`). A 5xx gets a friendly text, a 4xx shows the server's own `detail` (e.g. "the recycler is no longer verified"), 401 is left to the session layer, and a 403 also reloads the profile because the role may have changed. So **a new mutation needs no `onError`**: it just works.
 
+The text comes from the backend's stable error `code` first (`t.apiErrors`, in `es.json`), then its `detail`, then the caller's fallback (`getApiErrorMessage`). When the backend adds a code, add it to `es.json` and to the list in `src/lib/__tests__/apiErrorCodes.test.ts`, which fails until every documented code has a translation. Validation (422) and rate limiting (429) keep their own handling because their message depends on data (which field, how long to wait).
+
 Opt out only when the screen renders the error itself, with `meta`:
 - `meta: { silent: true }` — the caller shows its own message (inline error, dialog, snackbar) or, for a query, renders the failure (like the profile).
 - `meta: { refreshOnError: [['weighings']] }` — query keys to reload when the action fails, because the data on screen is probably stale (someone else validated it, stock ran out). Works together with `silent`.

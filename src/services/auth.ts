@@ -1,6 +1,7 @@
 import { apiClient, type RequestOptions } from '../lib/apiClient'
 import { clearSession, getSessionUserId, setTokens, type SessionTokens } from '../lib/session'
 import { t } from '../lib/i18n'
+import { getErrorCode, translateErrorCode } from '../lib/apiError'
 import { ROLE_USER_TYPE, isStaffRole } from '../lib/permissions'
 import type { AuthUser } from '../types/auth.types'
 
@@ -44,6 +45,9 @@ export function mapToAuthUser(data: BackendUserResponse): AuthUser {
 export function getAuthErrorMessage(error: unknown): string {
   const response = (error as { response?: { status?: number; data?: { detail?: unknown } } })?.response
   if (!response) return t.auth.errors.network
+  // A stable code beats the status: `account_disabled` arrives as 401 or 403, and each code has its own wording.
+  const translated = response.status === 401 || response.status === 403 ? translateErrorCode(getErrorCode(error)) : undefined
+  if (translated) return translated
   switch (response.status) {
     case 401:
       return t.auth.errors.invalidCredentials

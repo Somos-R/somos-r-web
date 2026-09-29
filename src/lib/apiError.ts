@@ -3,7 +3,7 @@ import { t, interpolate } from './i18n'
 interface ApiErrorShape {
   response?: {
     status?: number
-    data?: { detail?: unknown }
+    data?: { detail?: unknown; code?: unknown }
     headers?: Record<string, unknown>
   }
 }
@@ -38,8 +38,28 @@ export function isCancelError(error: unknown): boolean {
   return (error as { code?: string })?.code === 'ERR_CANCELED' || (error as { name?: string })?.name === 'CanceledError'
 }
 
+// Errors whose `detail` carries specifics the fixed translation would lose (the stock that IS
+// available), so the server's text wins when present. The translation is the fallback.
+const PREFER_DETAIL = new Set(['insufficient_stock'])
+
+/** Spanish text for one of the backend's stable error codes, or undefined if this build doesn't know it. */
+export function translateErrorCode(code: unknown): string | undefined {
+  const messages = t.apiErrors as Record<string, string>
+  // hasOwn: a code like "constructor" must not resolve to something on Object.prototype.
+  return typeof code === 'string' && Object.prototype.hasOwnProperty.call(messages, code) ? messages[code] : undefined
+}
+
+/** The backend's stable error `code` (e.g. `weighing_not_found`), if the response has one. */
+export function getErrorCode(error: unknown): string | undefined {
+  const code = (error as ApiErrorShape)?.response?.data?.code
+  return typeof code === 'string' ? code : undefined
+}
+
 /**
  * Turns a failed API call into text that is safe to render.
+ *
+ * Order: the stable `code` (translated here, so the text doesn't depend on the backend's wording),
+ * then the backend's `detail` as a fallback, then the caller's own fallback.
  *
  * The backend's `detail` is a string for most errors but an array of objects for 422
  * validation errors; passing it straight into JSX crashes React, so every `onError` goes
@@ -50,14 +70,20 @@ export function getApiErrorMessage(error: unknown, fallback: string): string {
   if (!response) return isTimeoutError(error) ? t.errors.timeout : t.errors.network
 
   const detail = response.data?.detail
-  switch (response.status) {
-    case 429: {
-      const seconds = retryAfterSeconds(response.headers)
-      return seconds ? interpolate(t.errors.tooManyRequestsWait, { seconds }) : t.errors.tooManyRequests
-    }
-    case 422:
-      return Array.isArray(detail) ? validationMessage(detail) : t.errors.validation
-    default:
-      return typeof detail === 'string' && detail.trim() !== '' ? detail : fallback
+  const hasDetail = typeof detail === 'string' && detail.trim() !== ''
+
+  // These two carry information a fixed sentence can't: how long to wait, which field failed.
+  if (response.status === 429) {
+    const seconds = retryAfterSeconds(response.headers)
+    return seconds ? interpolate(t.errors.tooManyRequestsWait, { seconds }) : t.errors.tooManyRequests
   }
+  if (response.status === 422 && getErrorCode(error) !== 'invalid_role') {
+    return Array.isArray(detail) ? validationMessage(detail) : t.errors.validation
+  }
+
+  const code = getErrorCode(error)
+  const translated = translateErrorCode(code)
+  if (translated && !(hasDetail && code && PREFER_DETAIL.has(code))) return translated
+
+  return hasDetail ? detail : fallback
 }
