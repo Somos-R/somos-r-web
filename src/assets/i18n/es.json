@@ -57,7 +57,8 @@
       "loadError": "No pudimos cargar tu perfil.",
       "retry": "Reintentar",
       "logout": "Cerrar sesión"
-    }
+    },
+    "forgotLink": "¿Olvidaste tu contraseña?"
   },
   "logout": {
     "confirmTitle": "¿Cerrar sesión?",
@@ -320,5 +321,69 @@
     "tooManyRequests": "Demasiadas solicitudes. Espera un momento antes de volver a intentarlo",
     "tooManyRequestsWait": "Demasiadas solicitudes. Vuelve a intentarlo en {{seconds}} segundos",
     "validation": "Revisa los datos ingresados"
+  },
+  "account": {
+    "backToLogin": "Volver a iniciar sesión",
+    "goToLogin": "Iniciar sesión",
+    "password": {
+      "newLabel": "Nueva contraseña",
+      "confirmLabel": "Confirmar contraseña",
+      "hint": "Mínimo 10 caracteres y no solo números.",
+      "validation": {
+        "tooShort": "Debe tener al menos 10 caracteres",
+        "tooLong": "Es demasiado larga",
+        "onlyDigits": "No puede ser solo números",
+        "repetitive": "Es demasiado repetitiva",
+        "mismatch": "Las contraseñas no coinciden"
+      }
+    },
+    "forgot": {
+      "title": "¿Olvidaste tu contraseña?",
+      "subtitle": "Ingresa tu correo y te enviaremos un enlace para restablecerla.",
+      "submit": "Enviar enlace",
+      "sent": "Si el correo está registrado, te enviamos un enlace para restablecer la contraseña. Revisa tu bandeja de entrada."
+    },
+    "activate": {
+      "title": "Crea tu contraseña",
+      "subtitle": "Tu cuenta fue aprobada. Crea una contraseña para ingresar a Somos R.",
+      "submit": "Activar cuenta",
+      "success": "Cuenta activada. Ya puedes iniciar sesión."
+    },
+    "reset": {
+      "title": "Restablecer contraseña",
+      "subtitle": "Elige una nueva contraseña para tu cuenta.",
+      "submit": "Guardar contraseña",
+      "success": "Contraseña actualizada. Ya puedes iniciar sesión."
+    },
+    "invalidLink": {
+      "title": "El enlace ya no es válido",
+      "message": "Los enlaces se pueden usar una sola vez y vencen pasado un tiempo.",
+      "requestNewReset": "Solicitar un enlace nuevo",
+      "requestNewActivate": "Pide a tu asociación que te envíe un nuevo enlace de activación.",
+      "requestNewVerify": "Inicia sesión y solicita un nuevo correo de confirmación desde Configuración."
+    },
+    "verify": {
+      "verifying": "Confirmando tu correo…",
+      "successTitle": "Correo confirmado",
+      "successMessage": "Gracias, tu correo quedó verificado."
+    },
+    "security": {
+      "title": "Seguridad",
+      "changePassword": {
+        "button": "Cambiar contraseña",
+        "drawerTitle": "Cambiar contraseña",
+        "currentLabel": "Contraseña actual",
+        "newLabel": "Nueva contraseña",
+        "submit": "Cambiar contraseña",
+        "description": "Al cambiarla, se cerrará tu sesión en todos los dispositivos.",
+        "notice": "Tu contraseña se actualizó. Inicia sesión de nuevo con la nueva."
+      },
+      "emailVerification": {
+        "unverified": "Tu correo aún no está confirmado.",
+        "verified": "Tu correo está confirmado.",
+        "resend": "Reenviar confirmación",
+        "sent": "Si tu correo no estaba confirmado, te enviamos un nuevo enlace."
+      }
+    }
   }
 }

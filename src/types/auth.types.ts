@@ -11,6 +11,8 @@ export interface BaseUser {
   role: UserRole
   status: UserStatus
   created_at: string
+  /** ISO date once the email was confirmed; null/undefined while pending. */
+  email_verified_at?: string | null
 }
 
 export interface Citizen extends BaseUser {
