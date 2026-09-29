@@ -32,6 +32,22 @@ jobs:
       - run: pnpm exec tsc -b
       - run: pnpm exec vitest run
 
+  # ─── Bundle budget: fail if the first download or a page chunk grows past package.json's limits ─
+  bundle-size:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+      - run: corepack enable
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm check:bundle
+
   # ─── Supply chain: fail on high/critical advisories in shipped dependencies ─
   audit:
     runs-on: ubuntu-latest
