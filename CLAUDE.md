@@ -55,6 +55,10 @@ npx vitest run src/components/ui/__tests__/FormDrawer.test.tsx
 
 The backend base URL is `VITE_API_URL` env var (default `http://localhost:8000`). Login, logout and profile calls live in `src/services/auth.ts`.
 
+### Render errors
+
+Two `ErrorBoundary` layers (`components/layout/`): one around each page inside `DashboardLayout` (keeps the sidebar working; navigating clears it via `resetKeys`) and one around the whole app in `main.tsx` (full-screen, with a reload button). A crash shows `ErrorScreen`, never a blank page, and never the technical message outside development. Boundaries only catch errors thrown while rendering; failures in event handlers and requests go through React Query's global handling (see below). Unexpected errors are reported through `lib/reportError.ts`, the one place to connect error monitoring.
+
 ### Timeouts and cancellation
 
 `apiClient` has a 15 s timeout (`REQUEST_TIMEOUT_MS`), so a hung server ends in an error instead of a spinner that never stops; the message says to check whether an action went through before repeating it. Read calls in `src/services/` take a last `options?: RequestOptions` argument, and every `queryFn` forwards React Query's signal (`queryFn: ({ signal }) => service.list({}, { signal })`), so leaving a screen cancels its in-flight requests. A cancelled request is never shown as an error or retried. Reads are retried by React Query (twice for network/5xx, once for a timeout, never for 4xx); writes are never retried.

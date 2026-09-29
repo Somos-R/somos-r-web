@@ -387,5 +387,11 @@
     "title": "No tienes acceso a esta página",
     "message": "Tu rol no incluye este módulo. Si crees que es un error, contacta a un administrador.",
     "back": "Ir al inicio"
+  },
+  "errorScreen": {
+    "title": "Algo salió mal",
+    "message": "Ocurrió un error inesperado al mostrar esta pantalla. Puedes intentarlo de nuevo; si sigue pasando, avisa al equipo de soporte.",
+    "retry": "Reintentar",
+    "reload": "Recargar la página"
   }
 }
