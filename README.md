@@ -27,6 +27,7 @@ pnpm dev                     # http://localhost:5173
 | `pnpm lint` | ESLint |
 | `pnpm test` | Vitest en modo watch (`pnpm exec vitest run` para una sola pasada) |
 | `pnpm test:coverage` | Cobertura |
+| `pnpm check:bundle` | Comprueba el tamaño del bundle contra el presupuesto (tras `pnpm build`) |
 
 ## Documentación para desarrollar
 

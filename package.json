@@ -12,7 +12,8 @@
     "preview": "vite preview",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "check:bundle": "node scripts/check-bundle-size.mjs"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -51,5 +52,9 @@
     "onlyBuiltDependencies": [
       "esbuild"
     ]
+  },
+  "bundleBudget": {
+    "initialGzipKB": 215,
+    "lazyChunkGzipKB": 60
   }
 }
