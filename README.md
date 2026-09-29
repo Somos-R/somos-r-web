@@ -67,7 +67,6 @@ src/
 docs/
 └── components/      # Documentación de cada componente UI
 
-legacy-web/          # Código anterior en shadcn/ui (solo referencia, no usar)
 somos-r-mobile/      # App móvil React Native (no modificar)
 ```
 
