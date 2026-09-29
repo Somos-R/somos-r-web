@@ -25,20 +25,17 @@ describe('authService', () => {
     expect(getRefreshToken()).toBe('r1')
   })
 
-  it('me fetches the profile of the token subject and maps the role', async () => {
+  it('me reads the profile and capabilities from /auth/me and maps the role', async () => {
     setTokens({ access_token: ACCESS, refresh_token: 'r1' })
     const urls: string[] = []
     apiClient.defaults.adapter = mockAdapter((c) => {
       urls.push(String(c.url))
-      return { data: backendUser() }
+      return { data: backendUser({ capabilities: ['weighings.view'] }) }
     })
     const user = await authService.me()
-    expect(urls).toEqual(['/users/user-123'])
+    expect(urls).toEqual(['/auth/me'])
     expect(user.role).toBe('eca_admin')
-  })
-
-  it('me rejects without a session', async () => {
-    await expect(authService.me()).rejects.toThrow()
+    expect(user.capabilities).toEqual(['weighings.view'])
   })
 
   it('logout clears the session even if the server call fails', async () => {

@@ -8,6 +8,7 @@ import { queryClient } from '../lib/queryClient'
 import { clearSession, setTokens } from '../lib/session'
 import { t } from '../lib/i18n'
 import { fakeJwt, mockAdapter } from '../test/helpers'
+import { capabilitiesForRole } from '../test/capabilities'
 
 // Pages rendered with the English API contract. Includes a material and statuses this build
 // has never heard of: the backend catalog is dynamic, so a new code must not crash a table.
@@ -54,11 +55,11 @@ function serveApi() {
   setTokens({ access_token: fakeJwt({ sub: 'me' }), refresh_token: 'r' })
   apiClient.defaults.adapter = mockAdapter((c) => {
     const url = String(c.url)
-    if (url === '/users/me' || /^\/users\/[^/]+$/.test(url)) {
+    if (url === '/auth/me') {
       return {
         data: {
           id: 'me', email: 'me@x.co', full_name: 'Admin ECA', phone: null, id_type: 'CC', id_number: '9',
-          user_type_code: 'eca', role_code: 'eca_admin', is_active: true,
+          user_type_code: 'eca', role_code: 'eca_admin', capabilities: capabilitiesForRole('eca_admin'), is_active: true,
           email_verified_at: '2026-01-01T00:00:00Z', created_at: '2026-01-01T00:00:00Z',
         },
       }

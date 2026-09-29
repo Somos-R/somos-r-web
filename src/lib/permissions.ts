@@ -1,7 +1,5 @@
-// Who may do what, mirrored from the backend (docs/matriz-permisos.md, app/core/permissions.py).
-//
-// This only decides what the UI shows. The backend enforces every rule and answers 403 on its
-// own, so a stale or wrong entry here can hide a button but never grant access.
+// What the UI may show. The list of capabilities comes from the server (`/auth/me`); the backend
+// enforces every rule and answers 403 on its own, so this can hide a button but never grant access.
 
 export type StaffRole =
   | 'association_admin'
@@ -21,10 +19,12 @@ export const ROLE_USER_TYPE: Record<StaffRole, 'association' | 'eca'> = {
   eca_warehouse: 'eca',
 }
 
-export type Permission =
-  | 'dashboard.view'
+/**
+ * What the server tells us the user may do (`GET /auth/me` → `capabilities`). Evaluated with the same
+ * rule that protects the endpoints, so this file no longer keeps its own role table.
+ */
+export type ServerPermission =
   | 'recyclers.view'
-  | 'recyclers.register'
   | 'recyclers.verify'
   | 'weighings.view'
   | 'weighings.create'
@@ -36,47 +36,34 @@ export type Permission =
   | 'transactions.create'
   | 'transactions.manage'
   | 'transactions.pay'
-  | 'reports.view'
-  | 'settings.view'
 
-const ALL_STAFF = Object.keys(ROLE_USER_TYPE) as StaffRole[]
-const WEIGHINGS_READ: StaffRole[] = ['eca_admin', 'eca_operator', 'eca_warehouse', 'association_admin', 'association_operator']
-const PAYMENTS: StaffRole[] = ['eca_admin', 'association_admin']
+/** Screen-level permissions that are not a server capability: they are derived from one, or need none. */
+export type UiPermission = 'dashboard.view' | 'recyclers.register' | 'reports.view' | 'settings.view'
 
-// Roles allowed for each permission. Keep in sync with backend app/core/permissions.py.
-const PERMISSION_ROLES: Record<Permission, StaffRole[]> = {
-  // The dashboard is built from weighing stats, so it needs the same access as weighings.
-  'dashboard.view': WEIGHINGS_READ,
-  'recyclers.view': ALL_STAFF,
-  // Registration is a public endpoint; the portal offers it to any staff member.
-  'recyclers.register': ALL_STAFF,
-  'recyclers.verify': ['association_admin', 'association_operator'],
-  'weighings.view': WEIGHINGS_READ,
-  'weighings.create': ['eca_admin', 'eca_operator'],
-  'weighings.review': ['eca_admin', 'eca_operator', 'association_admin', 'association_operator'],
-  'weighings.pay': PAYMENTS,
-  'inventory.view': WEIGHINGS_READ,
-  'inventory.edit': ['eca_admin', 'eca_warehouse'],
-  'transactions.view': ['eca_admin', 'eca_operator', 'eca_warehouse', 'association_admin'],
-  'transactions.create': ['eca_admin', 'eca_warehouse'],
-  'transactions.manage': ['eca_admin', 'eca_warehouse'],
-  'transactions.pay': PAYMENTS,
-  'reports.view': WEIGHINGS_READ,
-  'settings.view': [], // any signed-in user, see `can`
-}
+export type Permission = ServerPermission | UiPermission
 
 export function isStaffRole(value: unknown): value is StaffRole {
   return typeof value === 'string' && value in ROLE_USER_TYPE
 }
 
 interface Subject {
-  user_type: string
   role: StaffRole | null
+  capabilities: readonly string[]
 }
 
-/** Signed-in users can always reach settings (change password); everything else needs a role. */
+// The dashboard and reports are built from weighing data, so they need the same access as weighings.
+const UI_RULES: Record<UiPermission, (subject: Subject) => boolean> = {
+  'dashboard.view': (s) => s.capabilities.includes('weighings.view'),
+  'reports.view': (s) => s.capabilities.includes('weighings.view'),
+  // Registration is a public endpoint; the portal offers it to any staff member.
+  'recyclers.register': (s) => s.role !== null,
+  // Signed-in users can always reach settings (change password).
+  'settings.view': () => true,
+}
+
+/** Only hides or shows UI: the backend enforces every rule and answers 403 on its own. */
 export function can(subject: Subject | null | undefined, permission: Permission): boolean {
   if (!subject) return false
-  if (permission === 'settings.view') return true
-  return subject.role !== null && PERMISSION_ROLES[permission].includes(subject.role)
+  if (permission in UI_RULES) return UI_RULES[permission as UiPermission](subject)
+  return subject.capabilities.includes(permission)
 }

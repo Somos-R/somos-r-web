@@ -62,19 +62,6 @@ export function subscribe(listener: Listener): () => void {
   }
 }
 
-/** Subject (`sub`) of the current access token, i.e. the logged-in user's id. */
-export function getSessionUserId(): string | null {
-  const token = getAccessToken()
-  if (!token) return null
-  try {
-    const payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
-    const sub = JSON.parse(atob(payload)).sub
-    return typeof sub === 'string' ? sub : null
-  } catch {
-    return null
-  }
-}
-
 // Another tab logged in, refreshed or logged out: tell this tab's subscribers.
 if (typeof window !== 'undefined') {
   window.addEventListener('storage', (e) => {

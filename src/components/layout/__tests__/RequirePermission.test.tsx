@@ -6,9 +6,11 @@ import { RequirePermission } from '../RequirePermission'
 import { getHomePath } from '../../../routes'
 import { can } from '../../../lib/permissions'
 import { t } from '../../../lib/i18n'
+import { capabilitiesForRole } from '../../../test/capabilities'
 import type { StaffRole } from '../../../lib/permissions'
 
-let mockUser: { user_type: string; role: StaffRole | null } | null = null
+let mockUser: { role: StaffRole | null; capabilities: string[] } | null = null
+const asUser = (role: StaffRole | null) => ({ role, capabilities: capabilitiesForRole(role) })
 vi.mock('../../../hooks/useAuth', () => ({ useAuth: () => ({ user: mockUser }) }))
 
 const Where = () => <div data-testid="where">{useLocation().pathname}</div>
@@ -39,33 +41,33 @@ describe('RequirePermission', () => {
   })
 
   it('renders the page when the role has the permission', () => {
-    mockUser = { user_type: 'eca', role: 'eca_operator' }
+    mockUser = asUser('eca_operator')
     renderGuard('/pesajes', 'weighings.view')
     expect(screen.getByText('secret page')).toBeInTheDocument()
   })
 
   it('shows the 403 screen instead of the page when the role lacks it', () => {
-    mockUser = { user_type: 'association', role: 'route_manager' }
+    mockUser = asUser('route_manager')
     renderGuard('/pesajes', 'weighings.view')
     expect(screen.queryByText('secret page')).not.toBeInTheDocument()
     expect(screen.getByText(t.forbidden.title)).toBeInTheDocument()
   })
 
   it('the 403 screen sends the user to their first allowed page', async () => {
-    mockUser = { user_type: 'association', role: 'route_manager' }
+    mockUser = asUser('route_manager')
     renderGuard('/pesajes', 'weighings.view')
     await userEvent.click(screen.getByRole('button', { name: t.forbidden.back }))
     expect(screen.getByText('recyclers page')).toBeInTheDocument()
   })
 
   it('redirects instead of showing 403 when asked (the "/" route)', () => {
-    mockUser = { user_type: 'association', role: 'route_manager' }
+    mockUser = asUser('route_manager')
     renderGuard('/', 'dashboard.view', true)
     expect(screen.getByTestId('where')).toHaveTextContent('/recicladores')
   })
 
   it('a user without a role only reaches settings', () => {
-    mockUser = { user_type: 'recycler', role: null }
+    mockUser = asUser(null)
     renderGuard('/', 'dashboard.view', true)
     expect(screen.getByText('settings page')).toBeInTheDocument()
   })
@@ -77,12 +79,12 @@ describe('RequirePermission', () => {
 })
 
 describe('getHomePath', () => {
-  const home = (role: StaffRole | null, user_type: string) => getHomePath((p) => can({ user_type, role }, p))
+  const home = (role: StaffRole | null) => getHomePath((p) => can(asUser(role), p))
 
   it('sends each kind of user to the first page they can open', () => {
-    expect(home('eca_admin', 'eca')).toBe('/')
-    expect(home('association_operator', 'association')).toBe('/')
-    expect(home('route_manager', 'association')).toBe('/recicladores')
-    expect(home(null, 'recycler')).toBe('/configuracion')
+    expect(home('eca_admin')).toBe('/')
+    expect(home('association_operator')).toBe('/')
+    expect(home('route_manager')).toBe('/recicladores')
+    expect(home(null)).toBe('/configuracion')
   })
 })

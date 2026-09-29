@@ -5,6 +5,7 @@ import { apiClient } from '../lib/apiClient'
 import { queryClient } from '../lib/queryClient'
 import { setTokens } from '../lib/session'
 import { fakeJwt, mockAdapter } from './helpers'
+import { capabilitiesForRole } from './capabilities'
 
 // A small fake API with one row of each kind (pending / validated / rejected...), shared by the
 // accessibility and keyboard tests so every control shows up on screen.
@@ -52,8 +53,8 @@ export function serveApi(role: 'eca_admin' | 'association_admin' = 'eca_admin') 
   apiClient.defaults.adapter = mockAdapter((c) => {
     const url = String(c.url)
     const params = (c.params ?? {}) as Record<string, string>
-    if (/^\/users\/[^/]+$/.test(url)) {
-      return { data: { id: 'me', email: 'me@x.co', full_name: 'Persona Prueba', phone: null, id_type: 'CC', id_number: '9', user_type_code: userType, role_code: role, is_active: true, email_verified_at: null, created_at: '2026-01-01T00:00:00Z' } }
+    if (url === '/auth/me') {
+      return { data: { id: 'me', email: 'me@x.co', full_name: 'Persona Prueba', phone: null, id_type: 'CC', id_number: '9', user_type_code: userType, role_code: role, capabilities: capabilitiesForRole(role), is_active: true, email_verified_at: null, created_at: '2026-01-01T00:00:00Z' } }
     }
     if (url === '/weighings') return { data: { total: WEIGHINGS.length, items: WEIGHINGS } }
     if (url === '/weighings/stats') return { data: { total_weighings_month: 3, total_kg_month: 30, pending_count: 1, by_material: [] } }
