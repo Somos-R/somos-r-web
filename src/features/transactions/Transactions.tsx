@@ -20,6 +20,7 @@ import {
 } from '../../services/transactions'
 import { inventoryService } from '../../services/inventory'
 import { getApiErrorMessage } from '../../lib/apiError'
+import { useRoles } from '../../hooks/useRoles'
 
 type MaterialCode = 'papel' | 'plastico' | 'vidrio' | 'metal' | 'carton' | 'electronico' | 'organico'
 
@@ -58,6 +59,7 @@ function StatCard({ label, value, sub, color = 'text.primary' }: StatCardProps) 
 const EMPTY_VENTA: CreateVentaPayload = { material_code: 'papel', warehouse_id: '', kg: 0, precio_kg: 0 }
 
 export default function Transactions() {
+  const { can } = useRoles()
   const queryClient = useQueryClient()
   const [tab, setTab] = useState(0)
   const [showVentaModal, setShowVentaModal] = useState(false)
@@ -143,7 +145,7 @@ export default function Transactions() {
   const pendingVentas = ventas.filter((v) => v.status === 'pendiente').length
 
   const renderPurchaseActions = (tx: TransactionAPI) => {
-    if (tx.status === 'pendiente') {
+    if (tx.status === 'pendiente' && can('transactions.pay')) {
       return (
         <Button size="small" variant="outlined" disabled={actionLoadingId === tx.id} onClick={() => handleUpdateStatus(tx.id, 'pagado')}>
           Marcar pagada
@@ -154,7 +156,7 @@ export default function Transactions() {
   }
 
   const renderSaleActions = (tx: TransactionAPI) => {
-    if (tx.status === 'pendiente') {
+    if (tx.status === 'pendiente' && can('transactions.manage')) {
       return (
         <Box sx={{ display: 'flex', gap: 1 }}>
           <Button size="small" variant="outlined" disabled={actionLoadingId === tx.id} onClick={() => handleUpdateStatus(tx.id, 'entregado')}>
@@ -260,13 +262,15 @@ export default function Transactions() {
             </Grid>
           </Grid>
 
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <Button onClick={() => {
-              setVentaForm({ ...EMPTY_VENTA, warehouse_id: warehouses[0]?.id ?? '' })
-              setVentaError('')
-              setShowVentaModal(true)
-            }}>{t.transacciones.newSale}</Button>
-          </Box>
+          {can('transactions.create') && (
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <Button onClick={() => {
+                setVentaForm({ ...EMPTY_VENTA, warehouse_id: warehouses[0]?.id ?? '' })
+                setVentaError('')
+                setShowVentaModal(true)
+              }}>{t.transacciones.newSale}</Button>
+            </Box>
+          )}
 
           {ventasLoading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}><CircularProgress /></Box>

@@ -8,10 +8,12 @@ import RegisterRecyclerDrawer from './RegisterRecyclerDrawer'
 import { Snackbar, Dialog, DialogTitle, DialogContent, DialogActions, Button } from '../../components/ui'
 import { recyclersService } from '../../services/recyclers'
 import { t } from '../../lib/i18n'
+import { useRoles } from '../../hooks/useRoles'
 import { getApiErrorMessage } from '../../lib/apiError'
 
 export default function Recyclers() {
   const queryClient = useQueryClient()
+  const { can } = useRoles()
   const [drawerOpen, setDrawerOpen] = useState(false)
 
   // Validate state
@@ -110,9 +112,9 @@ export default function Recyclers() {
       <RecyclersTable
         data={recyclers}
         isLoading={isLoading}
-        onRegisterClick={() => setDrawerOpen(true)}
-        onValidate={(id) => validateMutation.mutate(id)}
-        onReject={handleOpenRejectDialog}
+        onRegisterClick={can('recyclers.register') ? () => setDrawerOpen(true) : undefined}
+        onValidate={can('recyclers.verify') ? (id) => validateMutation.mutate(id) : undefined}
+        onReject={can('recyclers.verify') ? handleOpenRejectDialog : undefined}
         validatingId={validatingId}
         rejectingId={rejectingId}
       />

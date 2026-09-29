@@ -8,39 +8,16 @@ import Typography from '@mui/material/Typography'
 import Chip from '@mui/material/Chip'
 import IconButton from '@mui/material/IconButton'
 import { useLocation, useNavigate } from 'react-router-dom'
-import {
-  Leaf,
-  LayoutDashboard,
-  Users,
-  Scale,
-  Package,
-  ArrowLeftRight,
-  BarChart2,
-  Settings,
-  LogOut,
-} from 'lucide-react'
+import { Leaf, LogOut } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { useRoles } from '../../hooks/useRoles'
 import { t } from '../../lib/i18n'
+import { APP_ROUTES } from '../../routes'
 
 const DRAWER_WIDTH = 240
 
-const NAV_ITEMS = [
-  { to: '/', label: t.nav.dashboard, icon: <LayoutDashboard size={20} />, roleKey: 'canSeeDashboard' as const },
-  { to: '/recicladores', label: t.nav.recicladores, icon: <Users size={20} />, roleKey: 'canSeeRecyclers' as const },
-  { to: '/pesajes', label: t.nav.pesajes, icon: <Scale size={20} />, roleKey: 'canSeeWeighings' as const },
-  { to: '/inventario', label: t.nav.inventario, icon: <Package size={20} />, roleKey: 'canSeeInventory' as const },
-  { to: '/transacciones', label: t.nav.transacciones, icon: <ArrowLeftRight size={20} />, roleKey: 'canSeeTransactions' as const },
-  { to: '/reportes', label: t.nav.reportes, icon: <BarChart2 size={20} />, roleKey: 'canSeeReports' as const },
-  { to: '/configuracion', label: t.nav.configuracion, icon: <Settings size={20} />, roleKey: 'canSeeSettings' as const },
-]
-
-const ROLE_LABELS: Record<string, string> = {
-  operador_eca: t.sidebar.roles.operador_eca,
-  admin_eca: t.sidebar.roles.admin_eca,
-  admin_asociacion: t.sidebar.roles.admin_asociacion,
-  superadmin: t.sidebar.roles.superadmin,
-}
+const ROLE_LABELS: Record<string, string> = t.sidebar.roles
+const USER_TYPE_LABELS: Record<string, string> = t.sidebar.userTypes
 
 interface SidebarProps {
   onLogout: () => void
@@ -48,7 +25,7 @@ interface SidebarProps {
 
 export function Sidebar({ onLogout }: SidebarProps) {
   const { user } = useAuth()
-  const roles = useRoles()
+  const { can } = useRoles()
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -73,16 +50,16 @@ export function Sidebar({ onLogout }: SidebarProps) {
       </Box>
 
       <List sx={{ flex: 1, px: 1, py: 1 }}>
-        {NAV_ITEMS.map((item) => {
-          if (!roles[item.roleKey]) return null
-          const isActive = item.to === '/'
+        {APP_ROUTES.map((item) => {
+          if (!can(item.permission)) return null
+          const isActive = item.path === '/'
             ? location.pathname === '/'
-            : location.pathname.startsWith(item.to)
+            : location.pathname.startsWith(item.path)
 
           return (
             <ListItemButton
-              key={item.to}
-              onClick={() => navigate(item.to)}
+              key={item.path}
+              onClick={() => navigate(item.path)}
               sx={{
                 borderRadius: 1,
                 mb: 0.25,
@@ -107,7 +84,7 @@ export function Sidebar({ onLogout }: SidebarProps) {
             {user?.full_name ?? t.sidebar.defaultUser}
           </Typography>
           <Chip
-            label={ROLE_LABELS[user?.role ?? ''] ?? user?.role ?? ''}
+            label={(user?.role ? ROLE_LABELS[user.role] : USER_TYPE_LABELS[user?.user_type ?? '']) ?? ''}
             size="small"
             sx={{ mt: 0.25, height: 18, fontSize: '0.65rem', backgroundColor: 'rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.7)' }}
           />

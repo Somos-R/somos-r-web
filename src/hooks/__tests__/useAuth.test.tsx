@@ -12,7 +12,7 @@ const ACCESS = fakeJwt({ sub: 'user-123' })
 const TOKENS = { access_token: ACCESS, refresh_token: 'r1', token_type: 'bearer', expires_in: 900 }
 const profile = {
   id: 'user-123', email: 'a@b.co', full_name: 'Ana', phone: null, id_type: 'CC', id_number: '1',
-  user_type_code: 'eca_staff', role_code: 'eca_admin', created_at: '2024-01-01T00:00:00Z',
+  user_type_code: 'eca', role_code: 'eca_admin', created_at: '2024-01-01T00:00:00Z',
 }
 
 const wrapper = ({ children }: { children: ReactNode }) => (
@@ -42,7 +42,7 @@ describe('useAuth', () => {
     })
     await waitFor(() => expect(result.current.user).not.toBeNull())
     expect(result.current.isAuthenticated).toBe(true)
-    expect(result.current.user?.role).toBe('admin_eca')
+    expect(result.current.user?.role).toBe('eca_admin')
   })
 
   it('loads the profile on startup when a session already exists', async () => {
@@ -57,7 +57,7 @@ describe('useAuth', () => {
     setTokens({ access_token: ACCESS, refresh_token: 'r1' })
     const { result } = renderHook(() => useAuth(), { wrapper })
     await waitFor(() => expect(result.current.user).not.toBeNull())
-    expect(result.current.user?.role).toBe('admin_eca')
+    expect(result.current.user?.role).toBe('eca_admin')
   })
 
   it('does not leave a session behind when the profile cannot be loaded after login', async () => {

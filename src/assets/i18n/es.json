@@ -20,10 +20,20 @@
     "defaultUser": "Usuario",
     "logout": "Cerrar sesión",
     "roles": {
-      "admin_eca": "Admin ECA",
-      "operador_eca": "Operador ECA",
-      "admin_asociacion": "Admin Asociación",
-      "superadmin": "Superadmin"
+      "association_admin": "Asociación · Administrativo",
+      "association_operator": "Asociación · Operativo",
+      "route_manager": "Asociación · Encargado de rutas",
+      "eca_admin": "ECA · Administrativo",
+      "eca_operator": "ECA · Operador de báscula",
+      "eca_warehouse": "ECA · Encargado de bodega"
+    },
+    "userTypes": {
+      "recycler": "Reciclador",
+      "citizen": "Ciudadano",
+      "building": "Conjunto",
+      "b2b_client": "Empresa",
+      "eca": "ECA",
+      "association": "Asociación"
     }
   },
   "auth": {
@@ -385,5 +395,10 @@
         "sent": "Si tu correo no estaba confirmado, te enviamos un nuevo enlace."
       }
     }
+  },
+  "forbidden": {
+    "title": "No tienes acceso a esta página",
+    "message": "Tu rol no incluye este módulo. Si crees que es un error, contacta a un administrador.",
+    "back": "Ir al inicio"
   }
 }

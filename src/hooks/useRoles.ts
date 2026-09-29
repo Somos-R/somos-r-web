@@ -1,20 +1,15 @@
 import { useAuth } from './useAuth'
+import { can, type Permission } from '../lib/permissions'
 
+/**
+ * Permission checks for the UI. Ask for a capability (`can('weighings.review')`), never for a
+ * role name, so the role-to-permission mapping lives in one place (lib/permissions).
+ */
 export function useRoles() {
   const { user } = useAuth()
-  const role = user?.role
 
   return {
-    canSeeDashboard: role === 'operador_eca' || role === 'admin_eca' || role === 'superadmin',
-    canSeeWeighings: role === 'operador_eca' || role === 'admin_eca' || role === 'superadmin',
-    canSeeReports: role === 'operador_eca' || role === 'admin_eca' || role === 'superadmin',
-    canSeeRecyclers: role === 'admin_eca' || role === 'operador_eca' || role === 'admin_asociacion' || role === 'superadmin',
-    canSeeSettings: role !== undefined,
-    canSeeInventory: role === 'operador_eca' || role === 'admin_eca' || role === 'superadmin',
-    canSeeTransactions: role === 'operador_eca' || role === 'admin_eca' || role === 'superadmin',
-    isOperadorEca: role === 'operador_eca',
-    isAdminEca: role === 'admin_eca',
-    isAdminAsociacion: role === 'admin_asociacion',
-    isSuperadmin: role === 'superadmin',
+    role: user?.role ?? null,
+    can: (permission: Permission) => can(user, permission),
   }
 }

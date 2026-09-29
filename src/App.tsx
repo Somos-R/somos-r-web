@@ -9,14 +9,9 @@ import LoginPage from './features/auth/LoginPage'
 import ForgotPasswordPage from './features/auth/ForgotPasswordPage'
 import SetPasswordPage from './features/auth/SetPasswordPage'
 import VerifyEmailPage from './features/auth/VerifyEmailPage'
-import Dashboard from './features/dashboard/Dashboard'
-import Recyclers from './features/recyclers/Recyclers'
-import Weighings from './features/weighings/Weighings'
-import Inventory from './features/inventory/Inventory'
-import Transactions from './features/transactions/Transactions'
-import Reports from './features/reports/Reports'
-import Settings from './features/settings/Settings'
 import { t } from './lib/i18n'
+import { RequirePermission } from './components/layout/RequirePermission'
+import { APP_ROUTES } from './routes'
 
 function NotFound() {
   return (
@@ -76,13 +71,17 @@ export default function App() {
 
         {isAuthenticated ? (
           <Route element={<DashboardLayout />}>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/recicladores" element={<Recyclers />} />
-            <Route path="/pesajes" element={<Weighings />} />
-            <Route path="/inventario" element={<Inventory />} />
-            <Route path="/transacciones" element={<Transactions />} />
-            <Route path="/reportes" element={<Reports />} />
-            <Route path="/configuracion" element={<Settings />} />
+            {APP_ROUTES.map((route) => (
+              <Route
+                key={route.path}
+                path={route.path}
+                element={
+                  <RequirePermission permission={route.permission} redirectIfDenied={route.path === '/'}>
+                    {route.element}
+                  </RequirePermission>
+                }
+              />
+            ))}
           </Route>
         ) : (
           <Route path="*" element={<Navigate to="/login" />} />

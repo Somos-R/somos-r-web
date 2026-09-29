@@ -9,6 +9,7 @@ import InventoryTable, { type InventoryItem } from './InventoryTable'
 import { Card, CardContent, Dialog, DialogTitle, DialogContent, DialogActions, Button, Snackbar } from '../../components/ui'
 import { t, interpolate } from '../../lib/i18n'
 import { inventoryService, type InventoryItemAPI } from '../../services/inventory'
+import { useRoles } from '../../hooks/useRoles'
 
 function toViewModel(item: InventoryItemAPI): InventoryItem {
   return {
@@ -37,6 +38,7 @@ function StatCard({ label, value, sub, color = 'text.primary' }: StatCardProps) 
 }
 
 export default function Inventory() {
+  const { can } = useRoles()
   const queryClient = useQueryClient()
 
   const [editTarget, setEditTarget] = useState<InventoryItem | null>(null)
@@ -123,7 +125,7 @@ export default function Inventory() {
         </Grid>
       </Grid>
 
-      <InventoryTable data={items} isLoading={listLoading} onEdit={handleOpenEdit} />
+      <InventoryTable data={items} isLoading={listLoading} onEdit={can('inventory.edit') ? handleOpenEdit : undefined} />
 
       {/* Modal editar ítem */}
       <Dialog open={!!editTarget} onClose={() => setEditTarget(null)} maxWidth="xs" fullWidth>

@@ -37,7 +37,7 @@ npx vitest run src/components/ui/__tests__/FormDrawer.test.tsx
 
 ### Routing and auth gate
 
-`App.tsx` reads `isAuthenticated` from `useAuth()` (a session exists) and shows a loader until the user profile arrives, because roles come from the server. Authenticated routes render inside `DashboardLayout` (Sidebar + Header + `<Outlet />`). Unauthenticated requests redirect to `/login`. There is no route guard component — the gate is the conditional `{isAuthenticated ? ... : ...}` in `App.tsx`.
+`App.tsx` reads `isAuthenticated` from `useAuth()` (a session exists) and shows a loader until the user profile arrives, because roles come from the server. Authenticated routes render inside `DashboardLayout` (Sidebar + Header + `<Outlet />`). Unauthenticated requests redirect to `/login`. Routes come from `APP_ROUTES` in `src/routes.tsx` (one list feeds both the router and the sidebar); each one is wrapped in `<RequirePermission>`, which shows a 403 screen (or redirects `/` to the user's first allowed page). Public routes (`/login`, `/forgot-password`, `/activate`, `/reset-password`, `/verify-email`) sit outside the session gate.
 
 ### State layers
 
@@ -45,7 +45,7 @@ npx vitest run src/components/ui/__tests__/FormDrawer.test.tsx
 |---|---|
 | Session (access + refresh tokens) | `src/lib/session.ts` — plain module with `subscribe`, no state library |
 | Auth (user profile) | React Query, key `['me']`, read through `useAuth()` in `src/hooks/useAuth.ts` |
-| Role-based checks | `useRoles()` hook — never read `user.role` directly in components |
+| Permission checks | `useRoles().can('weighings.review')` — ask for a capability, never compare `user.role`. The role→permission table lives in `src/lib/permissions.ts` and mirrors the backend's `docs/matriz-permisos.md`; update both together. It only decides what the UI shows: the backend enforces every rule and answers 403 |
 | Server data | TanStack React Query — `useQuery` / `useMutation` |
 | API calls | Axios — `apiClient` in `src/lib/apiClient.ts` |
 
@@ -156,4 +156,4 @@ When adding new screens or UI text:
 - **All identifiers, variable names, comments, and file/folder names must be in English.** This includes feature folders (`recyclers/`, `inventory/`), component files (`RecyclersTable.tsx`), service files (`recyclers.ts`), and exported types (`Recycler`, `InventoryItem`). User-visible strings (labels, messages, placeholders) are the only exception — those go in `es.json`.
 - Any new or modified `src/components/ui/` component requires a unit test.
 - Use `FormDrawer` for all forms — do not build one-off inline form UIs in feature components.
-- Role checks belong in `useRoles()` — extend the hook when adding new permission needs.
+- Permission checks go through `useRoles().can(...)`. To gate something new, add a `Permission` in `src/lib/permissions.ts` (with its roles) and a row to the matrix test in `src/lib/__tests__/permissions.test.ts`. Hide actions by not passing their handler / not rendering the button, as the pages already do.
