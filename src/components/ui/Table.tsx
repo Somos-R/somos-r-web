@@ -93,7 +93,7 @@ export function TablePagination({
       rowsPerPageOptions={rowsPerPageOptions}
       labelRowsPerPage={labelRowsPerPage}
       labelDisplayedRows={({ from, to, count: total }) =>
-        interpolate(t.ui.table.displayedRows, { from, to, total: total !== -1 ? total : `más de ${to}` })
+        interpolate(t.ui.table.displayedRows, { from, to, total: total !== -1 ? total : interpolate(t.ui.table.moreThan, { to }) })
       }
     />
   )

@@ -112,7 +112,7 @@ export default function Weighings() {
 
   const handleConfirmReject = () => {
     if (!rejectReason.trim()) {
-      setRejectReasonError('El motivo de rechazo es requerido')
+      setRejectReasonError(t.pesajes.rejectDialog.reasonRequired)
       return
     }
     if (!rejectTargetId) return
@@ -142,30 +142,30 @@ export default function Weighings() {
           <Typography variant="h5" fontWeight={600}>{t.pesajes.title}</Typography>
           <Typography variant="body2" color="text.secondary" mt={0.5}>{t.pesajes.subtitle}</Typography>
         </Box>
-        {can('weighings.create') && <Button onClick={() => setDrawerOpen(true)}>Nuevo pesaje</Button>}
+        {can('weighings.create') && <Button onClick={() => setDrawerOpen(true)}>{t.pesajes.newWeighing}</Button>}
       </Box>
 
       <Grid container spacing={2}>
         <Grid item xs={6} sm={4}>
           <StatCard
-            label="Pesajes este mes"
+            label={t.pesajes.stats.monthly}
             value={String(totalWeighingsMonth)}
-            sub="pesajes registrados"
+            sub={t.pesajes.stats.monthlySub}
           />
         </Grid>
         <Grid item xs={6} sm={4}>
           <StatCard
-            label="Kg recogidos este mes"
+            label={t.pesajes.stats.monthlyKg}
             value={`${totalKgMonth} kg`}
-            sub="total del período"
+            sub={t.pesajes.stats.monthlyKgSub}
             color="success.dark"
           />
         </Grid>
         <Grid item xs={6} sm={4}>
           <StatCard
-            label="Pendientes de validar"
+            label={t.pesajes.stats.pendingValidation}
             value={String(pendingCount)}
-            sub="requieren acción"
+            sub={t.pesajes.stats.pendingValidationSub}
             color={pendingCount > 0 ? 'warning.main' : 'text.disabled'}
           />
         </Grid>
@@ -190,15 +190,15 @@ export default function Weighings() {
       <RegisterWeighingDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
 
       <Dialog open={rejectDialogOpen} onClose={() => setRejectDialogOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Rechazar pesaje</DialogTitle>
+        <DialogTitle>{t.pesajes.rejectDialog.title}</DialogTitle>
         <DialogContent>
           <MuiTextField
             autoFocus
             fullWidth
             multiline
             rows={3}
-            label="Motivo de rechazo"
-            placeholder="Describe el motivo por el cual se rechaza este pesaje..."
+            label={t.pesajes.rejectDialog.reasonLabel}
+            placeholder={t.pesajes.rejectDialog.reasonPlaceholder}
             value={rejectReason}
             onChange={(e) => { setRejectReason(e.target.value); setRejectReasonError('') }}
             error={!!rejectReasonError}
@@ -207,8 +207,8 @@ export default function Weighings() {
           />
         </DialogContent>
         <DialogActions>
-          <Button variant="text" onClick={() => setRejectDialogOpen(false)}>Cancelar</Button>
-          <Button color="error" onClick={handleConfirmReject}>Confirmar rechazo</Button>
+          <Button variant="text" onClick={() => setRejectDialogOpen(false)}>{t.common.cancel}</Button>
+          <Button color="error" onClick={handleConfirmReject}>{t.pesajes.rejectDialog.confirm}</Button>
         </DialogActions>
       </Dialog>
     </Box>

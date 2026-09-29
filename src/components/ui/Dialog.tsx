@@ -5,6 +5,7 @@ import MuiDialogActions from '@mui/material/DialogActions'
 import IconButton from '@mui/material/IconButton'
 import { X } from 'lucide-react'
 import type { SxProps, Theme } from '@mui/material/styles'
+import { t } from '../../lib/i18n'
 
 export interface DialogProps {
   open: boolean
@@ -45,7 +46,7 @@ export function DialogTitle({ children, showClose, onClose }: DialogTitleProps) 
           onClick={onClose}
           size="small"
           sx={{ position: 'absolute', right: 12, top: 12 }}
-          aria-label="Cerrar"
+          aria-label={t.common.close}
         >
           <X size={18} />
         </IconButton>

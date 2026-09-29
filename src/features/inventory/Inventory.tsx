@@ -97,10 +97,10 @@ export default function Inventory() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['inventory'] })
       setEditTarget(null)
-      setSnackbar({ open: true, message: 'Ítem actualizado correctamente', severity: 'success' })
+      setSnackbar({ open: true, message: t.inventario.updated, severity: 'success' })
     },
     onError: () => {
-      setEditError('Error al actualizar. Intente de nuevo.')
+      setEditError(t.inventario.updateError)
     },
   })
 
@@ -115,7 +115,7 @@ export default function Inventory() {
     const min = Number(editMinKg)
     const price = Number(editPricePerKg)
     if (!min || min <= 0 || !price || price <= 0) {
-      setEditError('Los valores deben ser mayores a cero.')
+      setEditError(t.inventario.positiveValues)
       return
     }
     if (!editTarget) return
@@ -176,7 +176,7 @@ export default function Inventory() {
       {/* Modal editar ítem */}
       <Dialog open={!!editTarget} onClose={() => setEditTarget(null)} maxWidth="xs" fullWidth>
         <DialogTitle showClose onClose={() => setEditTarget(null)}>
-          Editar ítem de inventario
+          {t.inventario.editItem}
         </DialogTitle>
         <DialogContent>
           {editTarget && (
@@ -187,21 +187,21 @@ export default function Inventory() {
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <MuiTextField
                   fullWidth size="small"
-                  label="Stock mínimo (kg)"
+                  label={t.inventario.minStockLabel}
                   type="number"
                   value={editMinKg}
                   onChange={(e) => { setEditMinKg(e.target.value); setEditError('') }}
                   inputProps={{ min: 1, step: 1 }}
-                  helperText="Umbral para alerta de bajo stock"
+                  helperText={t.inventario.minStockHelp}
                 />
                 <MuiTextField
                   fullWidth size="small"
-                  label="Precio por kg ($)"
+                  label={t.inventario.priceLabel}
                   type="number"
                   value={editPricePerKg}
                   onChange={(e) => { setEditPricePerKg(e.target.value); setEditError('') }}
                   inputProps={{ min: 1, step: 10 }}
-                  helperText="Precio de referencia para compras y ventas"
+                  helperText={t.inventario.priceHelp}
                 />
                 {editError && (
                   <Typography variant="caption" color="error">{editError}</Typography>
@@ -211,9 +211,9 @@ export default function Inventory() {
           )}
         </DialogContent>
         <DialogActions>
-          <Button variant="outlined" onClick={() => setEditTarget(null)}>Cancelar</Button>
+          <Button variant="outlined" onClick={() => setEditTarget(null)}>{t.common.cancel}</Button>
           <Button disabled={editMutation.isPending} onClick={handleEditSubmit}>
-            {editMutation.isPending ? 'Guardando…' : 'Guardar cambios'}
+            {editMutation.isPending ? t.common.saving : t.common.saveChanges}
           </Button>
         </DialogActions>
       </Dialog>

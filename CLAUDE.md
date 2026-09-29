@@ -182,6 +182,8 @@ import { t, interpolate } from '../../lib/i18n'
 
 `interpolate(template, vars)` replaces `{{key}}` placeholders. Use it whenever a string contains a variable.
 
+**A test enforces this** (`src/__tests__/noHardcodedText.test.ts`): it scans the source and fails, listing file and line, if it finds Spanish written directly in JSX text, text-like props (`label`, `title`, `placeholder`, `helperText`…), `message:` properties, `setXxxError('...')` calls, strings rendered from a ternary in JSX (`{busy ? 'Guardando' : 'Guardar'}`), or any string with accents or Spanish function words. Move the text to `es.json` and read it through `t`. Repeated words like "Cancelar", "Acciones", "Bodega" live in `t.common`.
+
 When adding new screens or UI text:
 1. Add the string to the correct section in `es.json` (or create a new section for a new feature).
 2. Reference it via `t.<section>.<key>` — never inline the string in the component.

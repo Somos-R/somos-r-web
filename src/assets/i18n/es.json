@@ -5,7 +5,12 @@
     "close": "Cerrar",
     "register": "Registrar",
     "validate": "Validar",
-    "loading": "Cargando…"
+    "loading": "Cargando…",
+    "back": "Volver",
+    "actions": "Acciones",
+    "warehouse": "Bodega",
+    "saving": "Guardando…",
+    "saveChanges": "Guardar cambios"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -92,7 +97,15 @@
       "collectedKg": "Kg recolectados"
     },
     "recentWeighings": "Pesajes recientes",
-    "viewAll": "Ver todos →"
+    "viewAll": "Ver todos →",
+    "noWeighings": "No hay pesajes registrados aún",
+    "trends": {
+      "pendingRecyclers": "{{count}} pendientes",
+      "noPending": "Sin pendientes",
+      "thisMonth": "este mes",
+      "toValidate": "por validar",
+      "kgThisMonth": "kg este mes"
+    }
   },
   "recicladores": {
     "title": "Recicladores",
@@ -189,7 +202,53 @@
     },
     "filterAllStatuses": "Todos los estados",
     "filterAllMaterials": "Todos los materiales",
-    "emptyFiltered": "No hay pesajes con los filtros seleccionados"
+    "emptyFiltered": "No hay pesajes con los filtros seleccionados",
+    "newWeighing": "Nuevo pesaje",
+    "stats": {
+      "monthly": "Pesajes este mes",
+      "monthlySub": "pesajes registrados",
+      "monthlyKg": "Kg recogidos este mes",
+      "monthlyKgSub": "total del período",
+      "pendingValidation": "Pendientes de validar",
+      "pendingValidationSub": "requieren acción"
+    },
+    "actions": {
+      "reject": "Rechazar",
+      "markPaid": "Marcar pagado"
+    },
+    "rejectDialog": {
+      "title": "Rechazar pesaje",
+      "reasonLabel": "Motivo de rechazo",
+      "reasonPlaceholder": "Describe el motivo por el cual se rechaza este pesaje...",
+      "reasonRequired": "El motivo de rechazo es requerido",
+      "confirm": "Confirmar rechazo"
+    },
+    "drawer": {
+      "title": "Registrar pesaje",
+      "recycler": "Reciclador",
+      "material": "Material",
+      "warehouse": "Bodega",
+      "kg": "Kilogramos",
+      "pricePerKg": "Precio por kg",
+      "selectRecycler": "Seleccionar reciclador…",
+      "selectMaterial": "Seleccionar material…",
+      "selectWarehouse": "Seleccionar bodega…",
+      "onlyVerified": "Solo recicladores verificados",
+      "noVerifiedRecyclers": "No hay recicladores verificados",
+      "priceAutoFilled": "Auto-completado desde inventario",
+      "priceHint": "Se completa al seleccionar material y bodega",
+      "totalToPay": "Total a pagar al reciclador",
+      "submit": "Registrar pesaje",
+      "success": "Pesaje registrado correctamente",
+      "error": "Error al registrar el pesaje",
+      "validation": {
+        "recycler": "Seleccione un reciclador",
+        "material": "Seleccione un material",
+        "warehouse": "Seleccione una bodega",
+        "kg": "Ingrese los kg (mayor a 0)",
+        "pricePerKg": "Ingrese el precio (mayor a 0)"
+      }
+    }
   },
   "inventario": {
     "title": "Inventario de Reciclaje",
@@ -225,7 +284,16 @@
       "low_stock": "Bajo stock",
       "out_of_stock": "Agotado"
     },
-    "filterAllWarehouses": "Todas las bodegas"
+    "filterAllWarehouses": "Todas las bodegas",
+    "editItem": "Editar ítem de inventario",
+    "editTooltip": "Editar mínimo y precio",
+    "minStockLabel": "Stock mínimo (kg)",
+    "minStockHelp": "Umbral para alerta de bajo stock",
+    "priceLabel": "Precio por kg ($)",
+    "priceHelp": "Precio de referencia para compras y ventas",
+    "updated": "Ítem actualizado correctamente",
+    "updateError": "Error al actualizar. Intente de nuevo.",
+    "positiveValues": "Los valores deben ser mayores a cero."
   },
   "transacciones": {
     "title": "Transacciones",
@@ -287,7 +355,21 @@
       "paid": "Pagado",
       "cancelled": "Cancelado",
       "delivered": "Entregado"
-    }
+    },
+    "actions": {
+      "markPaid": "Marcar pagada",
+      "deliver": "Entregar",
+      "cancel": "Cancelar"
+    },
+    "noPurchases": "No hay compras registradas. Se crean automáticamente al validar pesajes.",
+    "noSales": "No hay ventas registradas aún.",
+    "cancelSale": {
+      "title": "Cancelar venta",
+      "message": "Se cancelará esta venta y se restaurará el stock descontado del inventario.",
+      "confirm": "Confirmar cancelación"
+    },
+    "createSaleError": "Error al crear la venta. Intente de nuevo.",
+    "buyerNit": "NIT: {{nit}}"
   },
   "reportes": {
     "title": "Reportes",
@@ -302,7 +384,8 @@
   "ui": {
     "table": {
       "rowsPerPage": "Filas por página:",
-      "displayedRows": "{{from}}–{{to}} de {{total}}"
+      "displayedRows": "{{from}}–{{to}} de {{total}}",
+      "moreThan": "más de {{to}}"
     },
     "formDrawer": {
       "cancel": "Cancelar",

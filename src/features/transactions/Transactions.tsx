@@ -116,7 +116,7 @@ export default function Transactions() {
     mutationFn: (payload: CreateSalePayload) => transactionsService.createSale(payload),
     onSuccess: () => { invalidate(); setShowSaleModal(false); setSaleForm(EMPTY_SALE) },
     onError: (err: unknown) => {
-      setSaleError(getApiErrorMessage(err, 'Error al crear la venta. Intente de nuevo.'))
+      setSaleError(getApiErrorMessage(err, t.transacciones.createSaleError))
     },
   })
 
@@ -165,7 +165,7 @@ export default function Transactions() {
     if (tx.status === 'pending' && can('transactions.pay')) {
       return (
         <Button size="small" variant="outlined" disabled={actionLoadingId === tx.id} onClick={() => handleUpdateStatus(tx.id, 'paid')}>
-          Marcar pagada
+          {t.transacciones.actions.markPaid}
         </Button>
       )
     }
@@ -177,10 +177,10 @@ export default function Transactions() {
       return (
         <Box sx={{ display: 'flex', gap: 1 }}>
           <Button size="small" variant="outlined" disabled={actionLoadingId === tx.id} onClick={() => handleUpdateStatus(tx.id, 'delivered')}>
-            Entregar
+            {t.transacciones.actions.deliver}
           </Button>
           <Button size="small" variant="destructive" disabled={actionLoadingId === tx.id} onClick={() => setCancelTargetId(tx.id)}>
-            Cancelar
+            {t.transacciones.actions.cancel}
           </Button>
         </Box>
       )
@@ -229,7 +229,7 @@ export default function Transactions() {
                     <TableCell align="right">{t.transacciones.table.pricePerKg}</TableCell>
                     <TableCell align="right">{t.transacciones.table.total}</TableCell>
                     <TableCell>{t.transacciones.table.status}</TableCell>
-                    <TableCell>Acciones</TableCell>
+                    <TableCell>{t.common.actions}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -252,7 +252,7 @@ export default function Transactions() {
                   {purchases.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={8} align="center" sx={{ py: 4, color: 'text.secondary' }}>
-                        No hay compras registradas. Se crean automáticamente al validar pesajes.
+                        {t.transacciones.noPurchases}
                       </TableCell>
                     </TableRow>
                   )}
@@ -310,7 +310,7 @@ export default function Transactions() {
                     <TableCell align="right">{t.transacciones.table.pricePerKg}</TableCell>
                     <TableCell align="right">{t.transacciones.table.total}</TableCell>
                     <TableCell>{t.transacciones.table.status}</TableCell>
-                    <TableCell>Acciones</TableCell>
+                    <TableCell>{t.common.actions}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -321,7 +321,7 @@ export default function Transactions() {
                       </TableCell>
                       <TableCell sx={{ fontWeight: 500 }}>
                         {v.buyer_name ? (
-                          <Tooltip title={`NIT: ${v.buyer_nit ?? '—'}`}><span>{v.buyer_name}</span></Tooltip>
+                          <Tooltip title={interpolate(t.transacciones.buyerNit, { nit: v.buyer_nit ?? '—' })}><span>{v.buyer_name}</span></Tooltip>
                         ) : '—'}
                       </TableCell>
                       <TableCell><Badge label={v.material.label} color="default" /></TableCell>
@@ -335,7 +335,7 @@ export default function Transactions() {
                   {sales.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={8} align="center" sx={{ py: 4, color: 'text.secondary' }}>
-                        No hay ventas registradas aún.
+                        {t.transacciones.noSales}
                       </TableCell>
                     </TableRow>
                   )}
@@ -366,7 +366,7 @@ export default function Transactions() {
               options={materialOptions}
             />
             <Select
-              label="Bodega"
+              label={t.common.warehouse}
               value={saleForm.warehouse_id}
               onChange={(e) => setSaleForm((p) => ({ ...p, warehouse_id: e.target.value }))}
               options={warehouseOptions}
@@ -402,15 +402,15 @@ export default function Transactions() {
 
       {/* ── CONFIRM: Cancelar venta ── */}
       <Dialog open={!!cancelTargetId} onClose={() => setCancelTargetId(null)} maxWidth="xs">
-        <DialogTitle>Cancelar venta</DialogTitle>
+        <DialogTitle>{t.transacciones.cancelSale.title}</DialogTitle>
         <DialogContent>
           <Typography variant="body2">
-            Se cancelará esta venta y se restaurará el stock descontado del inventario.
+            {t.transacciones.cancelSale.message}
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button variant="outlined" onClick={() => setCancelTargetId(null)}>Volver</Button>
-          <Button variant="destructive" disabled={updateStatusMutation.isPending} onClick={handleConfirmCancel}>Confirmar cancelación</Button>
+          <Button variant="outlined" onClick={() => setCancelTargetId(null)}>{t.common.back}</Button>
+          <Button variant="destructive" disabled={updateStatusMutation.isPending} onClick={handleConfirmCancel}>{t.transacciones.cancelSale.confirm}</Button>
         </DialogActions>
       </Dialog>
     </Box>

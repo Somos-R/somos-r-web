@@ -166,7 +166,7 @@ export default function InventoryTable({
                   <TableCell><Badge label={statusStyle(item.status).label} color={statusStyle(item.status).color} /></TableCell>
                   {onEdit && (
                     <TableCell align="right" sx={{ py: 0.5 }}>
-                      <Tooltip title="Editar mínimo y precio">
+                      <Tooltip title={t.inventario.editTooltip}>
                         <IconButton size="small" onClick={() => onEdit(item)}>
                           <Pencil size={15} />
                         </IconButton>
