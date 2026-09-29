@@ -4,8 +4,8 @@ import { describe, it, expect, vi } from 'vitest'
 import { Select } from '../Select'
 
 const OPTIONS = [
-  { value: 'papel', label: 'Papel' },
-  { value: 'plastico', label: 'Plástico' },
+  { value: 'paper', label: 'Papel' },
+  { value: 'plastic', label: 'Plástico' },
   { value: 'metal', label: 'Metal' },
 ]
 

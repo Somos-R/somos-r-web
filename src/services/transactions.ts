@@ -1,7 +1,7 @@
 import { apiClient } from '../lib/apiClient'
 
-export type TransactionType = 'compra' | 'venta'
-export type TransactionStatus = 'pendiente' | 'pagado' | 'cancelado' | 'entregado'
+export type TransactionType = 'purchase' | 'sale'
+export type TransactionStatus = 'pending' | 'paid' | 'cancelled' | 'delivered'
 
 export interface TransactionMaterial {
   code: string
@@ -28,7 +28,7 @@ export interface TransactionAPI {
   material_code: string
   warehouse_id: string
   kg: number
-  precio_kg: number
+  price_per_kg: number
   total_value: number
   recycler_id: string | null
   recycler: TransactionRecycler | null
@@ -36,7 +36,7 @@ export interface TransactionAPI {
   buyer_name: string | null
   buyer_nit: string | null
   buyer_email: string | null
-  fecha: string
+  occurred_at: string
   created_at: string
   material: TransactionMaterial
   warehouse: TransactionWarehouse
@@ -48,20 +48,20 @@ export interface TransactionListResponse {
 }
 
 export interface TransactionStats {
-  total_compras_month: number
-  total_ventas_month: number
-  total_kg_compras: number
-  total_kg_ventas: number
-  total_value_compras: number
-  total_value_ventas: number
+  total_purchases_month: number
+  total_sales_month: number
+  total_kg_purchases: number
+  total_kg_sales: number
+  total_value_purchases: number
+  total_value_sales: number
   pending_count: number
 }
 
-export interface CreateVentaPayload {
+export interface CreateSalePayload {
   material_code: string
   warehouse_id: string
   kg: number
-  precio_kg: number
+  price_per_kg: number
   buyer_name?: string
   buyer_nit?: string
   buyer_email?: string
@@ -83,7 +83,7 @@ export const transactionsService = {
   getById: (id: string): Promise<TransactionAPI> =>
     apiClient.get(`/transactions/${id}`).then((r) => r.data),
 
-  createVenta: (payload: CreateVentaPayload): Promise<TransactionAPI> =>
+  createSale: (payload: CreateSalePayload): Promise<TransactionAPI> =>
     apiClient.post('/transactions', payload).then((r) => r.data),
 
   updateStatus: (id: string, status: TransactionStatus): Promise<TransactionAPI> =>

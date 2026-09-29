@@ -1,5 +1,7 @@
 import { apiClient } from '../lib/apiClient'
 
+export type InventoryStatus = 'available' | 'low_stock' | 'out_of_stock'
+
 export interface MaterialInfo {
   code: string
   label: string
@@ -18,9 +20,9 @@ export interface InventoryItemAPI {
   warehouse_id: string
   stock_kg: number
   stock_min_kg: number
-  precio_kg: number
-  fecha_actualizacion: string
-  estado: 'disponible' | 'bajo_stock' | 'agotado'
+  price_per_kg: number
+  updated_at: string
+  status: InventoryStatus
   total_value: number
   material: MaterialInfo
   warehouse: WarehouseInfo
@@ -41,7 +43,7 @@ export interface InventoryStats {
 
 export interface UpdateInventoryPayload {
   stock_min_kg?: number
-  precio_kg?: number
+  price_per_kg?: number
 }
 
 export const inventoryService = {

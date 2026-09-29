@@ -13,18 +13,18 @@ import WeighingsTable, { type Weighing } from './WeighingsTable'
 import RegisterWeighingDrawer from './RegisterWeighingDrawer'
 import { Card, CardContent, Button } from '../../components/ui'
 import { t } from '../../lib/i18n'
-import { weighingsService, type WeighingAPI } from '../../services/weighings'
+import { weighingsService, type WeighingAPI, type WeighingStatusTransition } from '../../services/weighings'
 import { useRoles } from '../../hooks/useRoles'
 
 function toViewModel(w: WeighingAPI): Weighing {
   return {
     id: w.id,
-    fecha: w.fecha,
+    occurred_at: w.occurred_at,
     reciclador_nombre: w.recycler.full_name,
-    material: w.material_code as Weighing['material'],
+    material: { code: w.material_code, label: w.material.label },
     kg: Number(w.kg),
-    precio_kg: Number(w.precio_kg),
-    estado: w.estado,
+    price_per_kg: Number(w.price_per_kg),
+    status: w.status,
     rejection_reason: w.rejection_reason,
   }
 }
@@ -64,7 +64,7 @@ export default function Weighings() {
   })
 
   const statusMutation = useMutation({
-    mutationFn: ({ id, status, reason }: { id: string; status: 'validado' | 'rechazado' | 'pagado'; reason?: string }) =>
+    mutationFn: ({ id, status, reason }: { id: string; status: WeighingStatusTransition; reason?: string }) =>
       weighingsService.updateStatus(id, { status, rejection_reason: reason }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['weighings'] })
@@ -76,7 +76,7 @@ export default function Weighings() {
 
   const handleValidate = (id: string) => {
     setActionLoadingId(id)
-    statusMutation.mutate({ id, status: 'validado' })
+    statusMutation.mutate({ id, status: 'validated' })
   }
 
   const handleOpenReject = (id: string) => {
@@ -94,12 +94,12 @@ export default function Weighings() {
     if (!rejectTargetId) return
     setRejectDialogOpen(false)
     setActionLoadingId(rejectTargetId)
-    statusMutation.mutate({ id: rejectTargetId, status: 'rechazado', reason: rejectReason.trim() })
+    statusMutation.mutate({ id: rejectTargetId, status: 'rejected', reason: rejectReason.trim() })
   }
 
   const handleMarkPaid = (id: string) => {
     setActionLoadingId(id)
-    statusMutation.mutate({ id, status: 'pagado' })
+    statusMutation.mutate({ id, status: 'paid' })
   }
 
   const items = (listData?.items ?? []).map(toViewModel)

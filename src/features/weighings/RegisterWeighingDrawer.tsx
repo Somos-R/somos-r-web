@@ -25,10 +25,10 @@ interface FormState {
   material_code: string
   warehouse_id: string
   kg: string
-  precio_kg: string
+  price_per_kg: string
 }
 
-const EMPTY: FormState = { recycler_id: '', material_code: '', warehouse_id: '', kg: '', precio_kg: '' }
+const EMPTY: FormState = { recycler_id: '', material_code: '', warehouse_id: '', kg: '', price_per_kg: '' }
 
 export default function RegisterWeighingDrawer({ open, onClose }: Props) {
   const queryClient = useQueryClient()
@@ -76,7 +76,7 @@ export default function RegisterWeighingDrawer({ open, onClose }: Props) {
         material_code: f.material_code,
         warehouse_id: f.warehouse_id,
         kg: Number(f.kg),
-        precio_kg: Number(f.precio_kg),
+        price_per_kg: Number(f.price_per_kg),
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['weighings'] })
@@ -94,7 +94,7 @@ export default function RegisterWeighingDrawer({ open, onClose }: Props) {
     if (!form.material_code) e.material_code = 'Seleccione un material'
     if (!form.warehouse_id) e.warehouse_id  = 'Seleccione una bodega'
     if (!form.kg || Number(form.kg) <= 0) e.kg = 'Ingrese los kg (mayor a 0)'
-    if (!form.precio_kg || Number(form.precio_kg) <= 0) e.precio_kg = 'Ingrese el precio (mayor a 0)'
+    if (!form.price_per_kg || Number(form.price_per_kg) <= 0) e.price_per_kg = 'Ingrese el precio (mayor a 0)'
     setErrors(e)
     return Object.keys(e).length === 0
   }
@@ -106,12 +106,12 @@ export default function RegisterWeighingDrawer({ open, onClose }: Props) {
   const set = (key: keyof FormState, value: string) => {
     setForm((p) => {
       const next = { ...p, [key]: value }
-      // Auto-suggest precio_kg from inventory once material + warehouse are selected
+      // Auto-suggest price_per_kg from inventory once material + warehouse are selected
       if ((key === 'material_code' || key === 'warehouse_id') && next.material_code && next.warehouse_id) {
         const match = inventoryItems?.items.find(
           (i) => i.material_code === next.material_code && i.warehouse_id === next.warehouse_id
         )
-        if (match) next.precio_kg = String(Number(match.precio_kg))
+        if (match) next.price_per_kg = String(Number(match.price_per_kg))
       }
       return next
     })
@@ -197,20 +197,20 @@ export default function RegisterWeighingDrawer({ open, onClose }: Props) {
           <MuiTextField
             fullWidth size="small" label="Precio por kg *"
             type="number"
-            value={form.precio_kg}
-            onChange={(e) => set('precio_kg', e.target.value)}
-            error={!!errors.precio_kg}
-            helperText={errors.precio_kg ?? (form.material_code && form.warehouse_id ? 'Auto-completado desde inventario' : 'Se completa al seleccionar material y bodega')}
+            value={form.price_per_kg}
+            onChange={(e) => set('price_per_kg', e.target.value)}
+            error={!!errors.price_per_kg}
+            helperText={errors.price_per_kg ?? (form.material_code && form.warehouse_id ? 'Auto-completado desde inventario' : 'Se completa al seleccionar material y bodega')}
             inputProps={{ min: 1, step: 10 }}
             InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }}
           />
 
           {/* Resumen */}
-          {form.kg && form.precio_kg && Number(form.kg) > 0 && Number(form.precio_kg) > 0 && (
+          {form.kg && form.price_per_kg && Number(form.kg) > 0 && Number(form.price_per_kg) > 0 && (
             <Box sx={{ p: 1.5, borderRadius: 1, backgroundColor: 'action.hover' }}>
               <Typography variant="caption" color="text.secondary">Total a pagar al reciclador</Typography>
               <Typography variant="h6" fontWeight={700} color="success.dark">
-                ${(Number(form.kg) * Number(form.precio_kg)).toLocaleString('es-CO')}
+                ${(Number(form.kg) * Number(form.price_per_kg)).toLocaleString('es-CO')}
               </Typography>
             </Box>
           )}

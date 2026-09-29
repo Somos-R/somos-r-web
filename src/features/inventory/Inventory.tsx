@@ -14,13 +14,13 @@ import { useRoles } from '../../hooks/useRoles'
 function toViewModel(item: InventoryItemAPI): InventoryItem {
   return {
     id: item.id,
-    material: item.material_code as InventoryItem['material'],
+    material: { code: item.material_code, label: item.material.label },
     bodega: item.warehouse.name,
     stock_kg: Number(item.stock_kg),
     stock_min_kg: Number(item.stock_min_kg),
-    precio_kg: Number(item.precio_kg),
-    fecha_actualizacion: item.fecha_actualizacion,
-    estado: item.estado,
+    price_per_kg: Number(item.price_per_kg),
+    updated_at: item.updated_at,
+    status: item.status,
   }
 }
 
@@ -43,7 +43,7 @@ export default function Inventory() {
 
   const [editTarget, setEditTarget] = useState<InventoryItem | null>(null)
   const [editMinKg, setEditMinKg] = useState('')
-  const [editPrecioKg, setEditPrecioKg] = useState('')
+  const [editPricePerKg, setEditPricePerKg] = useState('')
   const [editError, setEditError] = useState('')
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
     open: false, message: '', severity: 'success',
@@ -60,8 +60,8 @@ export default function Inventory() {
   })
 
   const editMutation = useMutation({
-    mutationFn: ({ id, stock_min_kg, precio_kg }: { id: string; stock_min_kg: number; precio_kg: number }) =>
-      inventoryService.update(id, { stock_min_kg, precio_kg }),
+    mutationFn: ({ id, stock_min_kg, price_per_kg }: { id: string; stock_min_kg: number; price_per_kg: number }) =>
+      inventoryService.update(id, { stock_min_kg, price_per_kg }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['inventory'] })
       setEditTarget(null)
@@ -75,19 +75,19 @@ export default function Inventory() {
   const handleOpenEdit = (item: InventoryItem) => {
     setEditTarget(item)
     setEditMinKg(String(item.stock_min_kg))
-    setEditPrecioKg(String(item.precio_kg))
+    setEditPricePerKg(String(item.price_per_kg))
     setEditError('')
   }
 
   const handleEditSubmit = () => {
     const min = Number(editMinKg)
-    const precio = Number(editPrecioKg)
-    if (!min || min <= 0 || !precio || precio <= 0) {
+    const price = Number(editPricePerKg)
+    if (!min || min <= 0 || !price || price <= 0) {
       setEditError('Los valores deben ser mayores a cero.')
       return
     }
     if (!editTarget) return
-    editMutation.mutate({ id: editTarget.id, stock_min_kg: min, precio_kg: precio })
+    editMutation.mutate({ id: editTarget.id, stock_min_kg: min, price_per_kg: price })
   }
 
   const items = (listData?.items ?? []).map(toViewModel)
@@ -136,7 +136,7 @@ export default function Inventory() {
           {editTarget && (
             <Box sx={{ pt: 1 }}>
               <Typography variant="body2" color="text.secondary" mb={2}>
-                <strong>{t.inventario.materials[editTarget.material as keyof typeof t.inventario.materials]}</strong> — {editTarget.bodega}
+                <strong>{editTarget.material.label}</strong> — {editTarget.bodega}
               </Typography>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <MuiTextField
@@ -152,8 +152,8 @@ export default function Inventory() {
                   fullWidth size="small"
                   label="Precio por kg ($)"
                   type="number"
-                  value={editPrecioKg}
-                  onChange={(e) => { setEditPrecioKg(e.target.value); setEditError('') }}
+                  value={editPricePerKg}
+                  onChange={(e) => { setEditPricePerKg(e.target.value); setEditError('') }}
                   inputProps={{ min: 1, step: 10 }}
                   helperText="Precio de referencia para compras y ventas"
                 />
