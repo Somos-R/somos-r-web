@@ -30,7 +30,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
       - run: pnpm exec tsc -b
-      - run: pnpm exec vitest run
+      - run: pnpm exec vitest run --coverage
 
   # ─── Bundle budget: fail if the first download or a page chunk grows past package.json's limits ─
   bundle-size:
