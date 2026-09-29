@@ -46,6 +46,8 @@ export interface RecyclersListParams {
   limit?: number
   offset?: number
   verification_status?: 'pending' | 'verified' | 'rejected'
+  /** Contains-search on name, document and email (server side: no case or accents, 2 characters minimum). */
+  q?: string
 }
 
 export const recyclersService = {

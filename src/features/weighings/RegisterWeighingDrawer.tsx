@@ -9,7 +9,10 @@ import MuiTextField from '@mui/material/TextField'
 import InputAdornment from '@mui/material/InputAdornment'
 import { X } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Button, Snackbar } from '../../components/ui'
+import { Button, Snackbar, type SelectOption } from '../../components/ui'
+// Not in the ui barrel on purpose: MUI's Autocomplete is heavy and would join the first download.
+import { Autocomplete } from '../../components/ui/Autocomplete'
+import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 import { recyclersQueries } from '../../queries/recyclers'
 import { catalogQueries } from '../../queries/catalogs'
 import { inventoryQueries } from '../../queries/inventory'
@@ -41,7 +44,14 @@ export default function RegisterWeighingDrawer({ open, onClose }: Props) {
     open: false, message: '', severity: 'success',
   })
 
-  const { data: recyclersData } = useQuery({ ...recyclersQueries.verified(), enabled: open })
+  // The recycler picker searches on the server as the user types (there can be far more than fit in a list).
+  const [selectedRecycler, setSelectedRecycler] = useState<SelectOption | null>(null)
+  const [recyclerSearch, setRecyclerSearch] = useState('')
+  const debouncedRecyclerSearch = useDebouncedValue(recyclerSearch)
+  const { data: recyclersData, isFetching: recyclersLoading } = useQuery({
+    ...recyclersQueries.verified(debouncedRecyclerSearch),
+    enabled: open,
+  })
   const { data: materials = [] } = useQuery({ ...catalogQueries.materials(), enabled: open })
   const { data: warehouses = [] } = useQuery({ ...catalogQueries.warehouses(), enabled: open })
 
@@ -64,7 +74,7 @@ export default function RegisterWeighingDrawer({ open, onClose }: Props) {
   const [wasOpen, setWasOpen] = useState(open)
   if (open !== wasOpen) {
     setWasOpen(open)
-    if (open) { setForm(EMPTY); setErrors({}); setSuggestionAppliedFor('') }
+    if (open) { setForm(EMPTY); setErrors({}); setSuggestionAppliedFor(''); setSelectedRecycler(null); setRecyclerSearch('') }
   }
 
   const mutation = useMutation({
@@ -107,7 +117,10 @@ export default function RegisterWeighingDrawer({ open, onClose }: Props) {
     setErrors((p) => ({ ...p, [key]: '' }))
   }
 
-  const recyclers = recyclersData?.items ?? []
+  const recyclerOptions: SelectOption[] = (recyclersData?.items ?? []).map((r) => ({
+    value: r.id,
+    label: `${r.full_name} — ${r.id_number}`,
+  }))
 
   return (
     <>
@@ -124,23 +137,20 @@ export default function RegisterWeighingDrawer({ open, onClose }: Props) {
         <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2.5, overflowY: 'auto', flex: 1 }}>
 
           {/* Reciclador */}
-          <MuiTextField
-            select fullWidth size="small" label={`${t.pesajes.drawer.recycler} *`}
-            value={form.recycler_id}
-            onChange={(e) => set('recycler_id', e.target.value)}
+          <Autocomplete
+            label={t.pesajes.drawer.recycler}
+            required
+            options={recyclerOptions}
+            value={selectedRecycler}
+            onChange={(option) => { setSelectedRecycler(option); set('recycler_id', option?.value ?? '') }}
+            onInputChange={setRecyclerSearch}
+            loading={recyclersLoading}
             error={!!errors.recycler_id}
             helperText={errors.recycler_id ?? t.pesajes.drawer.onlyVerified}
-          >
-            <MenuItem value="" disabled>{t.pesajes.drawer.selectRecycler}</MenuItem>
-            {recyclers.map((r) => (
-              <MenuItem key={r.id} value={r.id}>
-                {r.full_name} — {r.id_number}
-              </MenuItem>
-            ))}
-            {recyclers.length === 0 && (
-              <MenuItem disabled>{t.pesajes.drawer.noVerifiedRecyclers}</MenuItem>
-            )}
-          </MuiTextField>
+            placeholder={t.pesajes.drawer.selectRecycler}
+            noOptionsText={t.pesajes.drawer.noVerifiedRecyclers}
+            loadingText={t.pesajes.drawer.searchingRecyclers}
+          />
 
           {/* Material */}
           <MuiTextField

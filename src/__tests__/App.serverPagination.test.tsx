@@ -125,7 +125,8 @@ function serveApi() {
       return { data: { total_purchases_month: 60, total_sales_month: 40, total_kg_purchases: 4800, total_kg_sales: 3200, total_value_purchases: 111000, total_value_sales: 222000, pending_count: 50 } }
     }
     if (url === '/users') {
-      return { data: paged(data.recyclers, params, (r) => !params.verification_status || r.verification_status === params.verification_status) }
+      return { data: paged(data.recyclers, params, (r) => (!params.verification_status || r.verification_status === params.verification_status) &&
+        (!params.q || r.full_name.toLowerCase().includes(String(params.q).toLowerCase()))) }
     }
     if (url.startsWith('/catalogs')) return { data: [] }
     return { data: { total: 0, items: [] } }
@@ -282,11 +283,40 @@ describe('lists are paginated and filtered by the server', () => {
       expect(await screen.findByText(/^100 recicladores$/)).toBeInTheDocument()
     })
 
-    it('warns that the search only covers the loaded page, since the API has no text search yet', async () => {
+    it('searches on the server, once per pause in typing, and starts again from the first page', async () => {
       renderAt('/recicladores')
       await screen.findByText('Persona 0')
-      await userEvent.type(screen.getByPlaceholderText(t.recicladores.searchPlaceholder), 'Persona 3')
-      expect(await screen.findByText(/solo recorre los 25 de esta página/)).toBeInTheDocument()
+      await nextPage()
+      await waitFor(() => expect(lastTo('/users')?.params).toMatchObject({ offset: 25 }))
+      const before = requestsTo('/users').length
+
+      await userEvent.type(screen.getByPlaceholderText(t.recicladores.searchPlaceholder), 'Persona 31')
+      await waitFor(() => expect(lastTo('/users')?.params).toMatchObject({ q: 'Persona 31', offset: 0 }))
+      // Ten keystrokes, but the debounce sent at most a couple of requests (the page reset is one).
+      expect(requestsTo('/users').length - before).toBeLessThanOrEqual(3)
+      expect(await screen.findByText('Persona 31')).toBeInTheDocument()
+      expect(screen.queryByText('Persona 0')).not.toBeInTheDocument()
+    })
+
+    it('does not send a search shorter than the server accepts', async () => {
+      renderAt('/recicladores')
+      await screen.findByText('Persona 0')
+      await userEvent.type(screen.getByPlaceholderText(t.recicladores.searchPlaceholder), 'P')
+      await new Promise((resolve) => setTimeout(resolve, 450))
+      expect(requestsTo('/users').every((r) => r.params.q === undefined)).toBe(true)
+    })
+  })
+
+  describe('weighing form recycler picker', () => {
+    it('looks recyclers up on the server as the user types instead of listing them all', async () => {
+      renderAt('/pesajes')
+      await screen.findAllByText(/Persona|kg/, {}, { timeout: 3000 }).catch(() => undefined)
+      await userEvent.click(await screen.findByRole('button', { name: t.pesajes.newWeighing }))
+      const picker = await screen.findByRole('combobox', { name: new RegExp(t.pesajes.drawer.recycler) })
+      await userEvent.type(picker, 'Persona 42')
+      await waitFor(() =>
+        expect(lastTo('/users')?.params).toMatchObject({ verification_status: 'verified', q: 'Persona 42', limit: 20 }),
+      )
     })
   })
 

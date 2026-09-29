@@ -11,6 +11,7 @@ import { AFFECTED, invalidateAffected } from '../../queries/invalidation'
 import { recyclersService } from '../../services/recyclers'
 import { t } from '../../lib/i18n'
 import { useRoles } from '../../hooks/useRoles'
+import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 import { toPaginationProps, usePagination } from '../../lib/pagination'
 import { getApiErrorMessage } from '../../lib/apiError'
 
@@ -36,11 +37,14 @@ export default function Recyclers() {
   })
 
   const [status, setStatus] = useState<StatusFilter>('all')
+  const [search, setSearch] = useState('')
+  // The box updates on every key; the request waits for a pause in typing.
+  const debouncedSearch = useDebouncedValue(search.trim())
   const pagination = usePagination()
 
-  // The server filters by status and paginates; the previous page stays while the next loads.
+  // The server filters by status and text and paginates; the previous page stays while the next loads.
   const { data: response, isLoading, isFetching } = useQuery(
-    recyclersQueries.list({ status, page: pagination.page, rowsPerPage: pagination.rowsPerPage }),
+    recyclersQueries.list({ status, search: debouncedSearch, page: pagination.page, rowsPerPage: pagination.rowsPerPage }),
   )
   pagination.clamp(response?.total)
 
@@ -124,6 +128,8 @@ export default function Recyclers() {
         isFetching={isFetching}
         status={status}
         onStatusChange={(next) => { setStatus(next); pagination.resetPage() }}
+        search={search}
+        onSearchChange={(text) => { setSearch(text); pagination.resetPage() }}
         pagination={toPaginationProps(pagination, response?.total ?? 0)}
         onRegisterClick={can('recyclers.register') ? () => setDrawerOpen(true) : undefined}
         onValidate={can('recyclers.verify') ? (id) => validateMutation.mutate(id) : undefined}

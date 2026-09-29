@@ -10,7 +10,7 @@ function seeded() {
     queryKeys.weighings.recent,
     queryKeys.inventory.stats,
     queryKeys.transactions.stats,
-    queryKeys.recyclers.verified,
+    queryKeys.recyclers.verified('ana'),
     queryKeys.catalogs.materials,
   ]
   keys.forEach((k) => client.setQueryData(k, 1))
@@ -27,7 +27,7 @@ describe('invalidateAffected', () => {
     expect(invalidated(client, queryKeys.weighings.recent)).toBe(true)
     expect(invalidated(client, queryKeys.inventory.stats)).toBe(true)
     expect(invalidated(client, queryKeys.transactions.stats)).toBe(true)
-    expect(invalidated(client, queryKeys.recyclers.verified)).toBe(false)
+    expect(invalidated(client, queryKeys.recyclers.verified('ana'))).toBe(false)
     expect(invalidated(client, queryKeys.catalogs.materials)).toBe(false)
   })
 

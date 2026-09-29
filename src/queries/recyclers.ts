@@ -2,6 +2,14 @@ import { keepPreviousData, queryOptions } from '@tanstack/react-query'
 import { recyclersService } from '../services/recyclers'
 import { queryKeys, type RecyclersListKey } from './keys'
 
+/** The server ignores shorter searches, so they are not sent. */
+export const MIN_SEARCH_LENGTH = 2
+
+const searchParam = (text: string) => {
+  const q = text.trim()
+  return q.length >= MIN_SEARCH_LENGTH ? q : undefined
+}
+
 export const recyclersQueries = {
   /** `status: 'all'` (or empty) means no status filter. */
   list: (filters: RecyclersListKey) =>
@@ -10,7 +18,7 @@ export const recyclersQueries = {
       queryFn: ({ signal }) => {
         const status = filters.status === 'all' || filters.status === '' ? undefined : (filters.status as 'pending' | 'verified' | 'rejected')
         return recyclersService.list(
-          { verification_status: status, limit: filters.rowsPerPage, offset: filters.page * filters.rowsPerPage },
+          { verification_status: status, q: searchParam(filters.search), limit: filters.rowsPerPage, offset: filters.page * filters.rowsPerPage },
           { signal },
         )
       },
@@ -24,10 +32,12 @@ export const recyclersQueries = {
       queryFn: ({ signal }) => recyclersService.list({ verification_status: status, limit: 1 }, { signal }),
     }),
 
-  /** Verified recyclers, for the weighing form's picker. */
-  verified: () =>
+  /** Verified recyclers matching what was typed in the weighing form's picker (the first few: typing narrows it). */
+  verified: (search: string) =>
     queryOptions({
-      queryKey: queryKeys.recyclers.verified,
-      queryFn: ({ signal }) => recyclersService.list({ verification_status: 'verified' }, { signal }),
+      queryKey: queryKeys.recyclers.verified(search.trim()),
+      queryFn: ({ signal }) =>
+        recyclersService.list({ verification_status: 'verified', q: searchParam(search), limit: 20 }, { signal }),
+      placeholderData: keepPreviousData,
     }),
 }
