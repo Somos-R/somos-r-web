@@ -56,17 +56,28 @@ export default function RegisterWeighingDrawer({ open, onClose }: Props) {
     enabled: open,
   })
 
-  const { data: inventoryItems } = useQuery({
-    queryKey: ['inventory'],
-    queryFn: ({ signal }) => inventoryService.list({}, { signal }),
-    enabled: open,
+  // The reference price of the chosen material + warehouse: one filtered row from the server,
+  // instead of loading the whole inventory just to look one up.
+  const pairKey = form.material_code && form.warehouse_id ? `${form.material_code}|${form.warehouse_id}` : ''
+  const { data: priceLookup } = useQuery({
+    queryKey: ['inventory', 'price-suggestion', form.material_code, form.warehouse_id],
+    queryFn: ({ signal }) =>
+      inventoryService.list({ material_code: form.material_code, warehouse_id: form.warehouse_id, limit: 1 }, { signal }),
+    enabled: open && pairKey !== '',
   })
+  const suggestedPrice = priceLookup?.items[0]?.price_per_kg
+  const [suggestionAppliedFor, setSuggestionAppliedFor] = useState('')
+  if (suggestedPrice !== undefined && pairKey !== '' && suggestionAppliedFor !== pairKey) {
+    // Adjusting state during render: fill the price once per material + warehouse choice.
+    setSuggestionAppliedFor(pairKey)
+    setForm((p) => ({ ...p, price_per_kg: String(Number(suggestedPrice)) }))
+  }
 
   // Reset the form each time the drawer opens (adjusting state during render, not in an effect)
   const [wasOpen, setWasOpen] = useState(open)
   if (open !== wasOpen) {
     setWasOpen(open)
-    if (open) { setForm(EMPTY); setErrors({}) }
+    if (open) { setForm(EMPTY); setErrors({}); setSuggestionAppliedFor('') }
   }
 
   const mutation = useMutation({
@@ -105,17 +116,7 @@ export default function RegisterWeighingDrawer({ open, onClose }: Props) {
   }
 
   const set = (key: keyof FormState, value: string) => {
-    setForm((p) => {
-      const next = { ...p, [key]: value }
-      // Auto-suggest price_per_kg from inventory once material + warehouse are selected
-      if ((key === 'material_code' || key === 'warehouse_id') && next.material_code && next.warehouse_id) {
-        const match = inventoryItems?.items.find(
-          (i) => i.material_code === next.material_code && i.warehouse_id === next.warehouse_id
-        )
-        if (match) next.price_per_kg = String(Number(match.price_per_kg))
-      }
-      return next
-    })
+    setForm((p) => ({ ...p, [key]: value }))
     setErrors((p) => ({ ...p, [key]: '' }))
   }
 

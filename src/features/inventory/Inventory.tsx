@@ -4,11 +4,12 @@ import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 import CircularProgress from '@mui/material/CircularProgress'
 import MuiTextField from '@mui/material/TextField'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import InventoryTable, { type InventoryItem } from './InventoryTable'
 import { Card, CardContent, Dialog, DialogTitle, DialogContent, DialogActions, Button, Snackbar } from '../../components/ui'
 import { t, interpolate } from '../../lib/i18n'
-import { inventoryService, type InventoryItemAPI } from '../../services/inventory'
+import { inventoryService, type InventoryItemAPI, type InventoryStatus } from '../../services/inventory'
+import { toPaginationProps, usePagination } from '../../lib/pagination'
 import { useRoles } from '../../hooks/useRoles'
 
 function toViewModel(item: InventoryItemAPI): InventoryItem {
@@ -49,9 +50,39 @@ export default function Inventory() {
     open: false, message: '', severity: 'success',
   })
 
-  const { data: listData, isLoading: listLoading } = useQuery({
-    queryKey: ['inventory'],
-    queryFn: ({ signal }) => inventoryService.list({}, { signal }),
+  const [status, setStatus] = useState<InventoryStatus | ''>('')
+  const [materialCode, setMaterialCode] = useState('')
+  const [warehouseId, setWarehouseId] = useState('')
+  const pagination = usePagination()
+
+  // The server filters and paginates; the previous page stays on screen while the next loads.
+  const { data: listData, isLoading: listLoading, isFetching: listFetching } = useQuery({
+    queryKey: ['inventory', 'list', { status, materialCode, warehouseId, page: pagination.page, rowsPerPage: pagination.rowsPerPage }],
+    queryFn: ({ signal }) =>
+      inventoryService.list(
+        {
+          status: status || undefined,
+          material_code: materialCode || undefined,
+          warehouse_id: warehouseId || undefined,
+          limit: pagination.limit,
+          offset: pagination.offset,
+        },
+        { signal },
+      ),
+    placeholderData: keepPreviousData,
+  })
+  pagination.clamp(listData?.total)
+
+  // Filter options come from the catalogs, not from whatever happens to be on the current page.
+  const { data: materials = [] } = useQuery({
+    queryKey: ['inventory', 'materials'],
+    queryFn: ({ signal }) => inventoryService.materials({ signal }),
+    staleTime: 10 * 60_000,
+  })
+  const { data: warehouses = [] } = useQuery({
+    queryKey: ['inventory', 'warehouses'],
+    queryFn: ({ signal }) => inventoryService.warehouses({ signal }),
+    staleTime: 10 * 60_000,
   })
 
   const { data: stats, isLoading: statsLoading } = useQuery({
@@ -126,7 +157,21 @@ export default function Inventory() {
         </Grid>
       </Grid>
 
-      <InventoryTable data={items} isLoading={listLoading} onEdit={can('inventory.edit') ? handleOpenEdit : undefined} />
+      <InventoryTable
+        data={items}
+        isLoading={listLoading}
+        isFetching={listFetching}
+        status={status}
+        onStatusChange={(next) => { setStatus(next); pagination.resetPage() }}
+        materialCode={materialCode}
+        onMaterialChange={(code) => { setMaterialCode(code); pagination.resetPage() }}
+        materialOptions={materials}
+        warehouseId={warehouseId}
+        onWarehouseChange={(id) => { setWarehouseId(id); pagination.resetPage() }}
+        warehouseOptions={warehouses}
+        pagination={toPaginationProps(pagination, listData?.total ?? 0)}
+        onEdit={can('inventory.edit') ? handleOpenEdit : undefined}
+      />
 
       {/* Modal editar ítem */}
       <Dialog open={!!editTarget} onClose={() => setEditTarget(null)} maxWidth="xs" fullWidth>

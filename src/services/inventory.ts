@@ -41,14 +41,22 @@ export interface InventoryStats {
   out_of_stock_count: number
 }
 
+export interface InventoryListParams {
+  material_code?: string
+  warehouse_id?: string
+  status?: InventoryStatus
+  limit?: number
+  offset?: number
+}
+
 export interface UpdateInventoryPayload {
   stock_min_kg?: number
   price_per_kg?: number
 }
 
 export const inventoryService = {
-  list: (params: { limit?: number; offset?: number } = {}, options?: RequestOptions): Promise<InventoryListResponse> =>
-    apiClient.get('/inventory', { params: { limit: 100, ...params }, signal: options?.signal }).then((r) => r.data),
+  list: (params: InventoryListParams = {}, options?: RequestOptions): Promise<InventoryListResponse> =>
+    apiClient.get('/inventory', { params: { limit: 50, ...params }, signal: options?.signal }).then((r) => r.data),
 
   stats: (options?: RequestOptions): Promise<InventoryStats> =>
     apiClient.get('/inventory/stats', { signal: options?.signal }).then((r) => r.data),

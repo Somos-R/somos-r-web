@@ -55,9 +55,20 @@ npx vitest run src/components/ui/__tests__/FormDrawer.test.tsx
 
 The backend base URL is the `VITE_API_URL` env var (default `http://localhost:8000` in development only). A production build **refuses to build** without a real `https` URL, or with one pointing at localhost (`config/buildEnv.ts`, wired in `vite.config.ts`): the value is compiled into the bundle, so a wrong one would ship to every user. To try a production build locally on purpose: `ALLOW_LOCAL_API_URL=1 pnpm build`. The Dockerfile has no default; CI passes a placeholder on pull requests (nothing is published) and requires the `VITE_API_URL` repository variable on pushes to `main`. Login, logout and profile calls live in `src/services/auth.ts`.
 
+### Lists: the server paginates and filters
+
+Never load "all" rows and filter in the browser: the API returns one page (`limit`/`offset`, at most 100) plus the `total` for the current filters. The pattern (see Weighings, Inventory, Transactions, Recyclers):
+- The screen owns `usePagination()` and the filter state, sends `limit`/`offset` and the filters to the service, and calls `pagination.clamp(total)` during render (so a page that stops existing falls back to the last one).
+- Changing a filter calls `pagination.resetPage()`.
+- The query uses `placeholderData: keepPreviousData` (the old page stays, dimmed, while the next one loads) and puts the filters and page in its key under `['<resource>', 'list', {...}]`, so `invalidateQueries({ queryKey: ['<resource>'] })` still reloads it.
+- The table is controlled: it receives the page's rows and a `PaginationProps` (`toPaginationProps(pagination, total)`); the count shown is the server `total`, never `data.length`.
+- Counts and totals (dashboard, "pending" cards) come from the server: `list({ ..., limit: 1 }).total` or the stats endpoints, never from filtering a page.
+- Filter options come from the catalogs (`inventoryService.materials()/warehouses()`), not from the rows on screen.
+- The API has no text search yet, so search boxes only narrow the loaded page and say so (Recyclers). When it does, send it as a param, debounced.
+
 ### Code splitting
 
-Pages are loaded lazily (`src/lazyPages.ts`, wired in `src/routes.tsx`), so the first download only carries the shell; each page is fetched when first opened and shows a loader meanwhile. **A new page must be added to `lazyPages.ts` with `lazy(() => import(...))`, never imported directly** (a test fails otherwise). React and the router are grouped in their own chunk in `vite.config.ts` so a release doesn't re-download them; MUI is left to split with the pages that use it, since grouping it forced parts only some pages use into the first load. If a page file can't be downloaded (new deploy, dropped connection), `ErrorScreen` asks for a reload: retrying the same import cannot succeed because React caches the failure.
+Pages are loaded lazily (`src/lazyPages.ts`, wired in `src/routes.tsx`), so the first download only carries the shell; each page is fetched when first opened and shows a loader meanwhile. **A new page must be added to `lazyPages.ts` with `lazy(() => import(...))`, never imported directly** (a test fails otherwise). React and the router are grouped in their own chunk in `vite.config.ts` so a release doesn't re-download them; MUI is left to split with the pages that use it, since grouping it forced parts only some pages use into the first load. CI enforces a size budget (`bundleBudget` in `package.json`, gzipped: 215 KB for the first download, 60 KB per page chunk; run `pnpm build && pnpm check:bundle` locally). If it fails, find what moved into the first load; raise the number only as a deliberate decision, never to make CI pass. If a page file can't be downloaded (new deploy, dropped connection), `ErrorScreen` asks for a reload: retrying the same import cannot succeed because React caches the failure.
 
 ### Render errors
 

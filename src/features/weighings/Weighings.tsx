@@ -8,12 +8,14 @@ import DialogTitle from '@mui/material/DialogTitle'
 import DialogContent from '@mui/material/DialogContent'
 import DialogActions from '@mui/material/DialogActions'
 import MuiTextField from '@mui/material/TextField'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import WeighingsTable, { type Weighing } from './WeighingsTable'
 import RegisterWeighingDrawer from './RegisterWeighingDrawer'
 import { Card, CardContent, Button } from '../../components/ui'
 import { t } from '../../lib/i18n'
-import { weighingsService, type WeighingAPI, type WeighingStatusTransition } from '../../services/weighings'
+import { weighingsService, type WeighingAPI, type WeighingStatus, type WeighingStatusTransition } from '../../services/weighings'
+import { inventoryService } from '../../services/inventory'
+import { toPaginationProps, usePagination } from '../../lib/pagination'
 import { useRoles } from '../../hooks/useRoles'
 
 function toViewModel(w: WeighingAPI): Weighing {
@@ -53,9 +55,26 @@ export default function Weighings() {
   const [rejectReasonError, setRejectReasonError] = useState('')
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null)
 
-  const { data: listData, isLoading: listLoading } = useQuery({
-    queryKey: ['weighings'],
-    queryFn: ({ signal }) => weighingsService.list({ limit: 50 }, { signal }),
+  const [status, setStatus] = useState<WeighingStatus | ''>('')
+  const [materialCode, setMaterialCode] = useState('')
+  const pagination = usePagination()
+
+  // The server filters and paginates; the previous page stays on screen while the next loads.
+  const { data: listData, isLoading: listLoading, isFetching: listFetching } = useQuery({
+    queryKey: ['weighings', 'list', { status, materialCode, page: pagination.page, rowsPerPage: pagination.rowsPerPage }],
+    queryFn: ({ signal }) =>
+      weighingsService.list(
+        { status: status || undefined, material_code: materialCode || undefined, limit: pagination.limit, offset: pagination.offset },
+        { signal },
+      ),
+    placeholderData: keepPreviousData,
+  })
+  pagination.clamp(listData?.total)
+
+  const { data: materials = [] } = useQuery({
+    queryKey: ['inventory', 'materials'],
+    queryFn: ({ signal }) => inventoryService.materials({ signal }),
+    staleTime: 10 * 60_000, // the catalog barely changes
   })
 
   const { data: stats } = useQuery({
@@ -155,6 +174,13 @@ export default function Weighings() {
       <WeighingsTable
         data={items}
         isLoading={listLoading}
+        isFetching={listFetching}
+        status={status}
+        onStatusChange={(next) => { setStatus(next); pagination.resetPage() }}
+        materialCode={materialCode}
+        onMaterialChange={(code) => { setMaterialCode(code); pagination.resetPage() }}
+        materialOptions={materials}
+        pagination={toPaginationProps(pagination, listData?.total ?? 0)}
         onValidate={can('weighings.review') ? handleValidate : undefined}
         onReject={can('weighings.review') ? handleOpenReject : undefined}
         onMarkPaid={can('weighings.pay') ? handleMarkPaid : undefined}
