@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { API_URL } from './env'
+import { ME_QUERY_KEY, queryClient } from './queryClient'
 import { clearSession, getAccessToken, getRefreshToken, setTokens, type SessionTokens } from './session'
 
 // Bare client: it must not go through apiClient's interceptors, or a failing refresh would recurse.
@@ -29,6 +30,9 @@ async function performRefresh(staleAccessToken: string | null): Promise<string> 
   try {
     const { data } = await refreshClient.post<SessionTokens>('/auth/refresh', { refresh_token: refreshToken })
     setTokens(data)
+    // The role inside a token can be stale until the next refresh, and an admin may have changed
+    // it meanwhile: reload the profile, which is what guards and menus actually read.
+    void queryClient.invalidateQueries({ queryKey: ME_QUERY_KEY })
     return data.access_token
   } catch (error) {
     const status = (error as { response?: { status?: number } }).response?.status
