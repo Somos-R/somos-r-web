@@ -266,6 +266,7 @@
         "searchError": "No pudimos buscar. Inténtalo de nuevo.",
         "change": "Cambiar",
         "association": "Asociación",
+        "registryStatus": "Padrón",
         "noAssociation": "Sin asociación",
         "inactive": "Esta cuenta está desactivada: no se puede registrar el pesaje.",
         "notFound": "No está registrado en Somos R.",

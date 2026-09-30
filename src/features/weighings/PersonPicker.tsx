@@ -27,6 +27,8 @@ const FALLBACK_DOCUMENT_TYPES = [
   { code: 'PA', label: t.recicladores.register.documentTypes.PA },
 ]
 
+const REGISTRY_COLOR = { verified: 'success', pending: 'warning', rejected: 'error' } as const
+
 const AFFILIATION_COLOR = { linked: 'success', unlinked_association: 'warning', independent: 'default' } as const
 
 /**
@@ -114,8 +116,14 @@ export function PersonPicker({ value, onChange, error }: Props) {
               {t.pesajes.drawer.person.association}: {value.recycler.association?.legal_name ?? t.pesajes.drawer.person.noAssociation}
               {value.recycler.association?.city ? ` · ${value.recycler.association.city}` : ''}
             </Typography>
-            <Box>
+            <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
               <Badge label={t.pesajes.affiliation[value.recycler.affiliation]} color={AFFILIATION_COLOR[value.recycler.affiliation]} />
+              {value.recycler.verification_status && (
+                <Badge
+                  label={`${t.pesajes.drawer.person.registryStatus}: ${t.recicladores.status[value.recycler.verification_status]}`}
+                  color={REGISTRY_COLOR[value.recycler.verification_status]}
+                />
+              )}
             </Box>
             <Typography variant="caption" color="text.secondary">{t.pesajes.drawer.person.affiliationNote[value.recycler.affiliation]}</Typography>
           </>
