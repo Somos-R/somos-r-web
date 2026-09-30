@@ -5,6 +5,7 @@ import { mockAdapter } from '../../test/helpers'
 import { catalogQueries } from '../catalogs'
 import { weighingsQueries } from '../weighings'
 import { recyclersQueries } from '../recyclers'
+import { linksQueries } from '../links'
 import { STALE_TIME } from '../config'
 
 const original = apiClient.defaults.adapter
@@ -52,3 +53,24 @@ describe('query options', () => {
     expect(calls.every((c) => c.params.limit === 1)).toBe(true)
   })
 })
+
+describe('links queries', () => {
+  it('turn the page and the state filter into limit/offset and status, and leave "every state" out', async () => {
+    const calls = record()
+    const client = new QueryClient()
+    await client.fetchQuery(linksQueries.list({ status: 'requested', page: 1, rowsPerPage: 10 }))
+    await client.fetchQuery(linksQueries.list({ status: '', page: 0, rowsPerPage: 10 }))
+    expect(calls[0].params).toEqual({ status: 'requested', limit: 10, offset: 10 })
+    expect(calls[1].params.status).toBeUndefined()
+  })
+
+  it('search the directory by name, but not with text the server would ignore', async () => {
+    const calls = record()
+    const client = new QueryClient()
+    await client.fetchQuery(linksQueries.directory({ search: ' uno ', page: 0, rowsPerPage: 10 }))
+    await client.fetchQuery(linksQueries.directory({ search: 'u', page: 0, rowsPerPage: 10 }))
+    expect(calls[0].params).toMatchObject({ q: 'uno', limit: 10, offset: 0 })
+    expect(calls[1].params.q).toBeUndefined()
+  })
+})
+
