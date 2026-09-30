@@ -10,7 +10,8 @@ describe('queryKeys', () => {
     queryKeys.catalogs.materials,
     queryKeys.catalogs.warehouses,
     queryKeys.catalogs.documentTypes,
-    queryKeys.weighings.list({ status: '', materialCode: '', ...page }),
+    queryKeys.weighings.list({ status: '', materialCode: '', affiliation: '', search: '', ...page }),
+    queryKeys.weighings.list({ status: '', materialCode: '', affiliation: 'independent', search: '', ...page }),
     queryKeys.weighings.stats,
     queryKeys.weighings.recent,
     queryKeys.inventory.list({ status: '', materialCode: '', warehouseId: '', ...page }),
@@ -32,8 +33,6 @@ describe('queryKeys', () => {
     queryKeys.links.directory({ search: 'uno', page: 0, rowsPerPage: 10 }),
     queryKeys.recyclers.count('verified'),
     queryKeys.recyclers.count('pending'),
-    queryKeys.recyclers.verified(''),
-    queryKeys.recyclers.verified('ana'),
   ]
 
   it('never repeats a key for different data', () => {
@@ -64,9 +63,9 @@ describe('queryKeys', () => {
   })
 
   it('separates lists by every input they depend on', () => {
-    const a = queryKeys.weighings.list({ status: 'pending', materialCode: '', ...page })
-    const b = queryKeys.weighings.list({ status: 'paid', materialCode: '', ...page })
-    const c = queryKeys.weighings.list({ status: 'pending', materialCode: '', page: 1, rowsPerPage: 10 })
+    const a = queryKeys.weighings.list({ status: 'pending', materialCode: '', affiliation: '', search: '', ...page })
+    const b = queryKeys.weighings.list({ status: 'paid', materialCode: '', affiliation: '', search: '', ...page })
+    const c = queryKeys.weighings.list({ status: 'pending', materialCode: '', affiliation: '', search: '', page: 1, rowsPerPage: 10 })
     expect(new Set([a, b, c].map((k) => JSON.stringify(k))).size).toBe(3)
   })
 })

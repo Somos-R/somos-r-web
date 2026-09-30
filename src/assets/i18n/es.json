@@ -14,7 +14,8 @@
     "filterByStatus": "Filtrar por estado",
     "filterByMaterial": "Filtrar por material",
     "filterByWarehouse": "Filtrar por bodega",
-    "skipToContent": "Saltar al contenido"
+    "skipToContent": "Saltar al contenido",
+    "filterByAffiliation": "Filtrar por afiliación"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -199,7 +200,9 @@
       "kg": "Kg",
       "pricePerKg": "Precio/kg",
       "total": "Total",
-      "status": "Estado"
+      "status": "Estado",
+      "affiliation": "Afiliación",
+      "unregistered": "No registrado"
     },
     "status": {
       "pending_validation": "Pendiente",
@@ -232,17 +235,12 @@
     },
     "drawer": {
       "title": "Registrar pesaje",
-      "recycler": "Reciclador",
       "material": "Material",
       "warehouse": "Bodega",
       "kg": "Kilogramos",
       "pricePerKg": "Precio por kg",
-      "selectRecycler": "Seleccionar reciclador…",
       "selectMaterial": "Seleccionar material…",
       "selectWarehouse": "Seleccionar bodega…",
-      "onlyVerified": "Solo recicladores verificados",
-      "noVerifiedRecyclers": "No hay recicladores verificados con ese nombre o documento",
-      "searchingRecyclers": "Buscando…",
       "priceAutoFilled": "Auto-completado desde inventario",
       "priceHint": "Se completa al seleccionar material y bodega",
       "totalToPay": "Total a pagar al reciclador",
@@ -254,9 +252,42 @@
         "material": "Seleccione un material",
         "warehouse": "Seleccione una bodega",
         "kg": "Ingrese los kg (mayor a 0)",
-        "pricePerKg": "Ingrese el precio (mayor a 0)"
+        "pricePerKg": "Ingrese el precio (mayor a 0)",
+        "person": "Identifica a quien entrega el material",
+        "sellerName": "Ingresa el nombre completo"
+      },
+      "who": "Quién entrega",
+      "person": {
+        "documentType": "Tipo de documento",
+        "documentNumber": "Número de documento",
+        "documentLength": "El documento debe tener entre 3 y 20 caracteres",
+        "searchButton": "Buscar",
+        "searching": "Buscando…",
+        "searchError": "No pudimos buscar. Inténtalo de nuevo.",
+        "change": "Cambiar",
+        "association": "Asociación",
+        "noAssociation": "Sin asociación",
+        "inactive": "Esta cuenta está desactivada: no se puede registrar el pesaje.",
+        "notFound": "No está registrado en Somos R.",
+        "notFoundHint": "Puedes registrar el pesaje con sus datos: se recibe el material de quien lo traiga.",
+        "registerAsSeller": "Registrar con sus datos",
+        "sellerTitle": "Persona no registrada",
+        "sellerName": "Nombre completo",
+        "affiliationNote": {
+          "linked": "Su asociación está vinculada a tu ECA: el pesaje llegará a ella.",
+          "unlinked_association": "Su asociación no está vinculada a tu ECA: el pesaje quedará solo en tu ECA.",
+          "independent": "No pertenece a ninguna asociación: el pesaje quedará solo en tu ECA."
+        },
+        "sellerNote": "El pesaje quedará solo en tu ECA."
       }
-    }
+    },
+    "affiliation": {
+      "linked": "Vinculado",
+      "unlinked_association": "Otra asociación",
+      "independent": "Independiente"
+    },
+    "filterAllAffiliations": "Todas las afiliaciones",
+    "searchPlaceholder": "Buscar por nombre o documento..."
   },
   "inventario": {
     "title": "Inventario de Reciclaje",
@@ -564,7 +595,6 @@
     "inventory_not_found": "No hay inventario para ese material y bodega.",
     "invalid_transition": "Esta acción ya no es posible porque el estado cambió. Actualizamos la pantalla.",
     "insufficient_stock": "No hay stock suficiente para esta operación.",
-    "recycler_not_verified": "El reciclador no está verificado o su cuenta está desactivada.",
     "not_a_recycler": "El usuario seleccionado no es un reciclador.",
     "rejection_reason_required": "Indica el motivo del rechazo.",
     "invalid_link": "El enlace ya no es válido.",
@@ -582,7 +612,8 @@
     "link_already_requested": "Ya hay una solicitud pendiente con esa asociación.",
     "link_already_active": "Ya están vinculadas.",
     "link_not_pending": "Esa solicitud ya fue respondida. Actualizamos la pantalla.",
-    "link_not_removable": "Ese vínculo ya no se puede retirar. Actualizamos la pantalla."
+    "link_not_removable": "Ese vínculo ya no se puede retirar. Actualizamos la pantalla.",
+    "recycler_inactive": "La cuenta del reciclador está desactivada."
   },
   "vinculaciones": {
     "title": "Vinculaciones",

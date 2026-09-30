@@ -20,10 +20,14 @@ export interface WeighingRecycler {
   id_number: string
 }
 
+/** How the person who delivered relates to the ECA. Only `linked` weighings reach an association. */
+export type AffiliationStatus = 'linked' | 'unlinked_association' | 'independent'
+
 export interface WeighingAPI {
   id: string
-  recycler_id: string
-  recycler: WeighingRecycler
+  /** Null when the material came from someone who is not registered (see `seller_*`). */
+  recycler_id: string | null
+  recycler: WeighingRecycler | null
   material_code: string
   material: WeighingMaterial
   warehouse_id: string
@@ -37,6 +41,11 @@ export interface WeighingAPI {
   occurred_at: string
   created_at: string
   total_value: number
+  affiliation_status: AffiliationStatus
+  /** An unregistered seller, identified by name and document. */
+  seller_name: string | null
+  seller_id_type: string | null
+  seller_id_number: string | null
 }
 
 export interface WeighingListResponse {
@@ -51,13 +60,23 @@ export interface WeighingStats {
   by_material: Array<{ material: string; kg: number }>
 }
 
-export interface CreateWeighingPayload {
-  recycler_id: string
+/** The minimum to identify a person who sells material and is not registered in Somos R. */
+export interface SellerInput {
+  full_name: string
+  id_type: string
+  id_number: string
+}
+
+export type CreateWeighingPayload = {
   material_code: string
   warehouse_id: string
   kg: number
   price_per_kg: number
-}
+} & (
+  // Exactly one: a registered recycler (any association, or none) or an unregistered seller.
+  | { recycler_id: string; seller?: never }
+  | { seller: SellerInput; recycler_id?: never }
+)
 
 export type WeighingStatusTransition = 'validated' | 'rejected' | 'paid'
 
@@ -69,6 +88,9 @@ export interface UpdateWeighingStatusPayload {
 export const weighingsService = {
   list: (params: {
     recycler_id?: string
+    affiliation?: AffiliationStatus
+    /** Contains-search on the name and document of who delivered, registered or not (2+ characters). */
+    q?: string
     material_code?: string
     warehouse_id?: string
     status?: WeighingStatus

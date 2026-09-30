@@ -11,6 +11,10 @@
 export interface WeighingsListKey {
   status: string
   materialCode: string
+  /** '' means every kind. */
+  affiliation: string
+  /** Text typed in the search box, trimmed (name or document of who delivered); empty = no search. */
+  search: string
   page: number
   rowsPerPage: number
 }
@@ -110,7 +114,5 @@ export const queryKeys = {
     all: ['recyclers'] as const,
     list: (filters: RecyclersListKey) => ['recyclers', 'list', filters] as const,
     count: (status: 'verified' | 'pending') => ['recyclers', 'count', status] as const,
-    /** Verified recyclers matching what the user typed in the picker. */
-    verified: (search: string) => ['recyclers', 'verified', search] as const,
   },
 }

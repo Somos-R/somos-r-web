@@ -16,7 +16,7 @@ const BACKEND_CODES = [
   'role_assignment_admin_only', 'role_assignment_other_organization', 'role_change_admin_only', 'cannot_change_own_role',
   'weighing_not_found', 'transaction_not_found', 'user_not_found', 'recycler_not_found', 'material_not_found',
   'warehouse_not_found', 'inventory_item_not_found', 'inventory_not_found', 'not_found',
-  'invalid_transition', 'insufficient_stock', 'recycler_not_verified', 'not_a_recycler', 'rejection_reason_required',
+  'invalid_transition', 'insufficient_stock', 'recycler_inactive', 'not_a_recycler', 'rejection_reason_required',
   'invalid_link', 'wrong_current_password',
   'account_already_exists', 'tax_id_already_registered',
   'invalid_role', 'method_not_allowed', 'internal_error',

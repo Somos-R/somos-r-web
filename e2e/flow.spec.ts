@@ -29,12 +29,13 @@ test('the Association verifies a recycler; the ECA weighs for them and validates
   await signIn(page, ECA_ADMIN)
   await expect(page.getByRole('heading', { level: 1, name: /Bienvenido, Ana Administradora/ })).toBeVisible()
 
-  // 3. Register a weighing: the recycler is found by typing, the price comes from inventory.
+  // 3. Register a weighing: the recycler is found by document, the price comes from inventory.
   await page.getByRole('link', { name: 'Pesajes' }).click()
   await page.getByRole('button', { name: 'Nuevo pesaje' }).click()
   const drawer = page.getByRole('presentation').filter({ hasText: 'Registrar pesaje' })
-  await drawer.getByRole('combobox', { name: /Reciclador/ }).fill('Rita')
-  await page.getByRole('option', { name: /Rita Reciclaje/ }).click()
+  await drawer.getByLabel('Número de documento').fill('1001')
+  await drawer.getByRole('button', { name: 'Buscar' }).click()
+  await expect(drawer.getByRole('region', { name: 'Quién entrega' })).toContainText('Rita Reciclaje')
   await drawer.getByLabel(/Material/).click()
   await page.getByRole('option', { name: 'Plástico' }).click()
   await drawer.getByLabel(/Bodega/).click()
@@ -51,6 +52,35 @@ test('the Association verifies a recycler; the ECA weighs for them and validates
 
   expect(api.weighings).toHaveLength(1)
   expect(api.weighings[0].status).toBe('validated')
+})
+
+test('an ECA weighs material from someone who is not registered, as an unregistered seller', async ({ page }) => {
+  const api = await installFakeApi(page)
+  await signIn(page, ECA_ADMIN)
+  await page.getByRole('link', { name: 'Pesajes' }).click()
+  await page.getByRole('button', { name: 'Nuevo pesaje' }).click()
+  const drawer = page.getByRole('presentation').filter({ hasText: 'Registrar pesaje' })
+
+  // Nobody has that document: the operator registers the weighing with the person's own data.
+  await drawer.getByLabel('Número de documento').fill('9999')
+  await drawer.getByRole('button', { name: 'Buscar' }).click()
+  await expect(drawer.getByText('No está registrado en Somos R.')).toBeVisible()
+  await drawer.getByLabel('Nombre completo').fill('Sandra Sin Registro')
+  await drawer.getByRole('button', { name: 'Registrar con sus datos' }).click()
+  await expect(drawer.getByRole('region', { name: 'Quién entrega' })).toContainText('Persona no registrada')
+
+  await drawer.getByLabel(/Material/).click()
+  await page.getByRole('option', { name: 'Plástico' }).click()
+  await drawer.getByLabel(/Bodega/).click()
+  await page.getByRole('option', { name: 'Bodega Norte' }).click()
+  await drawer.getByLabel(/Kilogramos/).fill('5')
+  await drawer.getByRole('button', { name: 'Registrar pesaje' }).click()
+
+  const row = page.getByRole('row', { name: /Sandra Sin Registro/ })
+  await expect(row).toContainText('No registrado')
+  await expect(row).toContainText('Independiente')
+  expect(api.weighings[0].seller_name).toBe('Sandra Sin Registro')
+  expect(api.weighings[0].recycler_id).toBeNull()
 })
 
 test('an ECA admin is not offered the verification of recyclers', async ({ page }) => {

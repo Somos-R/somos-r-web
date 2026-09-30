@@ -12,18 +12,30 @@ import WeighingsTable, { type Weighing } from './WeighingsTable'
 import RegisterWeighingDrawer from './RegisterWeighingDrawer'
 import { Card, CardContent, Button, Loader } from '../../components/ui'
 import { t } from '../../lib/i18n'
-import { weighingsService, type WeighingAPI, type WeighingStatus, type WeighingStatusTransition } from '../../services/weighings'
+import { weighingsService, type AffiliationStatus, type WeighingAPI, type WeighingStatus, type WeighingStatusTransition } from '../../services/weighings'
 import { weighingsQueries } from '../../queries/weighings'
 import { catalogQueries } from '../../queries/catalogs'
 import { AFFECTED, invalidateAffected } from '../../queries/invalidation'
 import { toPaginationProps, usePagination } from '../../lib/pagination'
 import { useRoles } from '../../hooks/useRoles'
+import { useDebouncedValue } from '../../hooks/useDebouncedValue'
+
+// A registered recycler, or an unregistered seller identified by name and document.
+function whoDelivered(w: WeighingAPI): Weighing['person'] {
+  if (w.recycler) return { name: w.recycler.full_name, document: w.recycler.id_number, registered: true }
+  return {
+    name: w.seller_name ?? t.pesajes.table.unregistered,
+    document: w.seller_id_number ? `${w.seller_id_type ?? ''} ${w.seller_id_number}`.trim() : null,
+    registered: false,
+  }
+}
 
 function toViewModel(w: WeighingAPI): Weighing {
   return {
     id: w.id,
     occurred_at: w.occurred_at,
-    reciclador_nombre: w.recycler.full_name,
+    person: whoDelivered(w),
+    affiliation: w.affiliation_status,
     material: { code: w.material_code, label: w.material.label },
     kg: Number(w.kg),
     price_per_kg: Number(w.price_per_kg),
@@ -58,11 +70,15 @@ export default function Weighings() {
 
   const [status, setStatus] = useState<WeighingStatus | ''>('')
   const [materialCode, setMaterialCode] = useState('')
+  const [affiliation, setAffiliation] = useState<AffiliationStatus | ''>('')
+  const [search, setSearch] = useState('')
+  // The box updates on every key; the request waits for a pause in typing.
+  const debouncedSearch = useDebouncedValue(search.trim())
   const pagination = usePagination()
 
   // The server filters and paginates; the previous page stays on screen while the next loads.
   const { data: listData, isLoading: listLoading, isFetching: listFetching } = useQuery(
-    weighingsQueries.list({ status, materialCode, page: pagination.page, rowsPerPage: pagination.rowsPerPage }),
+    weighingsQueries.list({ status, materialCode, affiliation, search: debouncedSearch, page: pagination.page, rowsPerPage: pagination.rowsPerPage }),
   )
   pagination.clamp(listData?.total)
 
@@ -163,6 +179,10 @@ export default function Weighings() {
         materialCode={materialCode}
         onMaterialChange={(code) => { setMaterialCode(code); pagination.resetPage() }}
         materialOptions={materials}
+        search={search}
+        onSearchChange={(text) => { setSearch(text); pagination.resetPage() }}
+        affiliation={affiliation}
+        onAffiliationChange={(next) => { setAffiliation(next); pagination.resetPage() }}
         pagination={toPaginationProps(pagination, listData?.total ?? 0)}
         onValidate={can('weighings.review') ? handleValidate : undefined}
         onReject={can('weighings.review') ? handleOpenReject : undefined}

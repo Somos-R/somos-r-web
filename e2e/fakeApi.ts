@@ -28,8 +28,13 @@ interface Recycler {
 
 interface Weighing {
   id: string
-  recycler_id: string
-  recycler: { id: string; full_name: string; id_number: string }
+  /** Null when the material came from someone who is not registered (see `seller_*`). */
+  recycler_id: string | null
+  recycler: { id: string; full_name: string; id_number: string } | null
+  affiliation_status: 'linked' | 'unlinked_association' | 'independent'
+  seller_name: string | null
+  seller_id_type: string | null
+  seller_id_number: string | null
   material_code: string
   material: typeof MATERIAL
   warehouse_id: string
@@ -152,17 +157,34 @@ export async function installFakeApi(page: Page): Promise<FakeApi> {
       return respond(recycler)
     }
 
+    if (path === '/recyclers/lookup' && method === 'GET') {
+      const found = state.recyclers.find((r) => r.id_number === query.get('document'))
+      if (!found) return respond({ detail: 'x', code: 'recycler_not_found' }, 404)
+      return respond({
+        id: found.id, full_name: found.full_name, id_type: found.id_type, id_number: found.id_number, is_active: true,
+        verification_status: found.verification_status,
+        association: { id: 'a1', legal_name: 'Asociación Uno', city: 'Bogotá' }, affiliation: 'linked',
+      })
+    }
+
     if (path === '/weighings' && method === 'GET') {
       const status = query.get('status')
       const rows = state.weighings.filter((w) => !status || w.status === status)
       return respond({ total: rows.length, items: rows })
     }
     if (path === '/weighings' && method === 'POST') {
-      const body = request.postDataJSON() as { recycler_id: string; kg: number; price_per_kg: number }
-      const recycler = state.recyclers.find((r) => r.id === body.recycler_id)!
+      // Exactly one of `recycler_id` (registered) or `seller` (not registered), like the real API.
+      const body = request.postDataJSON() as {
+        recycler_id?: string; seller?: { full_name: string; id_type: string; id_number: string }; kg: number; price_per_kg: number
+      }
+      if ((body.recycler_id === undefined) === (body.seller === undefined)) return respond({ detail: 'x', code: 'validation_error' }, 422)
+      const recycler = body.recycler_id ? state.recyclers.find((r) => r.id === body.recycler_id)! : null
       const weighing: Weighing = {
-        id: `w${state.weighings.length + 1}`, recycler_id: recycler.id,
-        recycler: { id: recycler.id, full_name: recycler.full_name, id_number: recycler.id_number },
+        id: `w${state.weighings.length + 1}`, recycler_id: recycler?.id ?? null,
+        recycler: recycler ? { id: recycler.id, full_name: recycler.full_name, id_number: recycler.id_number } : null,
+        affiliation_status: recycler ? 'linked' : 'independent',
+        seller_name: body.seller?.full_name ?? null, seller_id_type: body.seller?.id_type ?? null,
+        seller_id_number: body.seller?.id_number ?? null,
         material_code: MATERIAL.code, material: MATERIAL, warehouse_id: WAREHOUSE.id, warehouse: WAREHOUSE,
         kg: body.kg, price_per_kg: body.price_per_kg, status: 'pending_validation', rejection_reason: null,
         validated_by: null, validated_at: null, occurred_at: NOW, created_at: NOW, total_value: body.kg * body.price_per_kg,

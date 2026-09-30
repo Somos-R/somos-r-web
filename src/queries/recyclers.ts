@@ -31,13 +31,4 @@ export const recyclersQueries = {
       queryKey: queryKeys.recyclers.count(status),
       queryFn: ({ signal }) => recyclersService.list({ verification_status: status, limit: 1 }, { signal }),
     }),
-
-  /** Verified recyclers matching what was typed in the weighing form's picker (the first few: typing narrows it). */
-  verified: (search: string) =>
-    queryOptions({
-      queryKey: queryKeys.recyclers.verified(search.trim()),
-      queryFn: ({ signal }) =>
-        recyclersService.list({ verification_status: 'verified', q: searchParam(search), limit: 20 }, { signal }),
-      placeholderData: keepPreviousData,
-    }),
 }
