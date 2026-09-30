@@ -21,6 +21,13 @@ export const catalogQueries = {
       staleTime: STALE_TIME.catalog,
     }),
 
+  roles: () =>
+    queryOptions({
+      queryKey: queryKeys.catalogs.roles,
+      queryFn: ({ signal }) => catalogsService.roles({ signal }),
+      staleTime: STALE_TIME.catalog,
+    }),
+
   documentTypes: () =>
     queryOptions({
       queryKey: queryKeys.catalogs.documentTypes,

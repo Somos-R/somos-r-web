@@ -47,6 +47,17 @@ const RECYCLERS = ['pending', 'verified', 'rejected'].map((status, i) => ({
   created_at: '2026-01-01T00:00:00Z', updated_at: '2026-01-01T00:00:00Z',
 }))
 
+const STAFF = [
+  { id: 's1', full_name: 'Carla Operadora', email: 'carla@x.co', id_type: 'CC', id_number: '1010', phone: null, role_code: 'eca_operator', is_active: true, pending_activation: false, created_at: '2026-01-01T00:00:00Z' },
+  { id: 's2', full_name: 'Pedro Pendiente', email: 'pedro@x.co', id_type: 'CC', id_number: '2020', phone: null, role_code: 'eca_warehouse', is_active: true, pending_activation: true, created_at: '2026-01-01T00:00:00Z' },
+]
+
+const ROLES = [
+  { code: 'eca_admin', label: 'ECA · Administrativo', user_type_code: 'eca' },
+  { code: 'eca_operator', label: 'ECA · Operador de báscula', user_type_code: 'eca' },
+  { code: 'association_admin', label: 'Asociación · Administrativo', user_type_code: 'association' },
+]
+
 export function serveApi(role: 'eca_admin' | 'association_admin' = 'eca_admin') {
   setTokens({ access_token: fakeJwt({ sub: 'me' }), refresh_token: 'r' })
   const userType = role === 'eca_admin' ? 'eca' : 'association'
@@ -67,8 +78,10 @@ export function serveApi(role: 'eca_admin' | 'association_admin' = 'eca_admin') 
       return { data: { total: 2, items: [transaction(type, `${type}1`, 'pending'), transaction(type, `${type}2`, 'paid')] } }
     }
     if (url === '/transactions/stats') return { data: { total_purchases_month: 2, total_sales_month: 2, total_kg_purchases: 16, total_kg_sales: 16, total_value_purchases: 4000, total_value_sales: 4000, pending_count: 2 } }
+    if (url === '/users' && params.user_type_code !== 'recycler') return { data: { total: STAFF.length, limit: 25, offset: 0, items: STAFF } }
     if (url === '/users') return { data: { total: RECYCLERS.length, limit: 25, offset: 0, items: RECYCLERS } }
     if (url === '/catalogs/document-types') return { data: [{ code: 'CC', label: 'Cédula de Ciudadanía' }, { code: 'CE', label: 'Cédula de Extranjería' }] }
+    if (url === '/catalogs/roles') return { data: ROLES }
     if (url.startsWith('/catalogs')) return { data: [] }
     return { data: { total: 0, items: [] } }
   })

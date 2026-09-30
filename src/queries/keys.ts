@@ -31,6 +31,14 @@ export interface RecyclersListKey {
   rowsPerPage: number
 }
 
+export interface StaffListKey {
+  /** The organization's own kind of staff. */
+  userType: 'eca' | 'association'
+  search: string
+  page: number
+  rowsPerPage: number
+}
+
 export interface PageKey {
   page: number
   rowsPerPage: number
@@ -47,6 +55,7 @@ export const queryKeys = {
     materials: ['catalogs', 'materials'] as const,
     warehouses: ['catalogs', 'warehouses'] as const,
     documentTypes: ['catalogs', 'document-types'] as const,
+    roles: ['catalogs', 'roles'] as const,
   },
 
   weighings: {
@@ -70,6 +79,11 @@ export const queryKeys = {
     list: (kind: TransactionKind, page: PageKey) => ['transactions', 'list', kind, page] as const,
     pendingCount: (kind: TransactionKind) => ['transactions', 'count', kind, 'pending'] as const,
     stats: ['transactions', 'stats'] as const,
+  },
+
+  staff: {
+    all: ['staff'] as const,
+    list: (filters: StaffListKey) => ['staff', 'list', filters] as const,
   },
 
   recyclers: {

@@ -94,6 +94,23 @@ describe('accessibility: screens (ECA admin)', () => {
   })
 })
 
+describe('accessibility: staff (ECA admin)', () => {
+  beforeEach(() => serveApi('eca_admin'))
+
+  it('staff', async () => {
+    renderAt('/personal')
+    await screen.findByText('Pedro Pendiente')
+    await expectNoA11yViolations(document.body, { fullPage: true })
+  })
+
+  it('invite staff drawer', async () => {
+    renderAt('/personal')
+    await click(await screen.findByRole('button', { name: t.personal.inviteButton }))
+    await waitFor(() => screen.getByRole('presentation'))
+    await expectNoA11yViolations(document.body)
+  })
+})
+
 describe('accessibility: recyclers with verification actions (association admin)', () => {
   it('recyclers', async () => {
     serveApi('association_admin')
