@@ -15,6 +15,11 @@ export interface WeighingsListKey {
   affiliation: string
   /** Text typed in the search box, trimmed (name or document of who delivered); empty = no search. */
   search: string
+  /** Period typed as calendar days ("YYYY-MM-DD"); '' = unbounded on that side. */
+  dateFrom: string
+  dateTo: string
+  sort: string
+  order: string
   page: number
   rowsPerPage: number
 }

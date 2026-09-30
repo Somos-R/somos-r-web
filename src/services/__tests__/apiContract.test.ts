@@ -30,6 +30,28 @@ describe('API contract (English names and values)', () => {
       expect(seen[0].params).not.toHaveProperty('estado')
     })
 
+    it('orders with ?sort=&order= and bounds the period with date_from/date_to', async () => {
+      await weighingsService.list({ sort: 'total_value', order: 'asc', date_from: '2026-03-01T05:00:00.000Z', date_to: '2026-03-31T04:59:59.999Z' })
+      expect(seen[0].params).toMatchObject({ sort: 'total_value', order: 'asc', date_from: '2026-03-01T05:00:00.000Z', date_to: '2026-03-31T04:59:59.999Z' })
+    })
+
+    it('downloads the CSV from /weighings/export.csv with the same filters and no page', async () => {
+      await weighingsService.exportCsv({ status: 'validated', sort: 'kg', order: 'desc' })
+      expect(seen[0].url).toBe('/weighings/export.csv')
+      expect(seen[0].responseType).toBe('blob')
+      expect(seen[0].params).toEqual({ status: 'validated', sort: 'kg', order: 'desc' })
+    })
+
+    it('reads the error code of a failed download, which arrives as a Blob', async () => {
+      apiClient.defaults.adapter = mockAdapter(() => ({
+        status: 400,
+        data: new Blob([JSON.stringify({ detail: 'Demasiados', code: 'export_too_large' })]),
+      }))
+      await expect(weighingsService.exportCsv()).rejects.toMatchObject({
+        response: { data: { code: 'export_too_large' } },
+      })
+    })
+
     it.each(['validated', 'rejected', 'paid'] as const)('sends status "%s" when transitioning', async (status) => {
       await weighingsService.updateStatus('w1', { status })
       expect(bodyOf(seen[0])).toEqual({ status })

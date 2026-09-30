@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react'
-import { describe, it, expect } from 'vitest'
-import { Table, TableHead, TableBody, TableRow, TableCell, TablePagination } from '../Table'
+import userEvent from '@testing-library/user-event'
+import { describe, it, expect, vi } from 'vitest'
+import { Table, TableHead, TableBody, TableRow, TableCell, TablePagination, SortableTableCell } from '../Table'
 
 describe('Table', () => {
   it('renders rows and cells', () => {
@@ -51,3 +52,42 @@ describe('TablePagination', () => {
   })
 })
 
+
+describe('SortableTableCell', () => {
+  const renderHeader = (props: Partial<React.ComponentProps<typeof SortableTableCell>> = {}) => {
+    const onSort = vi.fn()
+    render(
+      <Table>
+        <TableHead>
+          <TableRow>
+            <SortableTableCell active={false} direction="asc" onSort={onSort} {...props}>Kg</SortableTableCell>
+          </TableRow>
+        </TableHead>
+      </Table>
+    )
+    return onSort
+  }
+
+  it('is a button that asks to sort when clicked', async () => {
+    const onSort = renderHeader()
+    await userEvent.click(screen.getByRole('button', { name: 'Kg' }))
+    expect(onSort).toHaveBeenCalledTimes(1)
+  })
+
+  it('can be used from the keyboard', async () => {
+    const onSort = renderHeader()
+    await userEvent.tab()
+    await userEvent.keyboard('{Enter}')
+    expect(onSort).toHaveBeenCalledTimes(1)
+  })
+
+  it('announces the direction of the active column with aria-sort', () => {
+    renderHeader({ active: true, direction: 'desc' })
+    expect(screen.getByRole('columnheader')).toHaveAttribute('aria-sort', 'descending')
+  })
+
+  it('announces nothing on a column that is not the current order', () => {
+    renderHeader()
+    expect(screen.getByRole('columnheader')).not.toHaveAttribute('aria-sort')
+  })
+})

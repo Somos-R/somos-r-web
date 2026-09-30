@@ -5,14 +5,15 @@ import TextField from '@mui/material/TextField'
 import Tooltip from '@mui/material/Tooltip'
 import {
   Badge, Button, Input,
-  Table, TableHead, TableBody, TableRow, TableCell, TableContainer, TablePagination,
+  Table, TableHead, TableBody, TableRow, TableCell, SortableTableCell, TableContainer, TablePagination, type SortDirection,
   Loader,
 } from '../../components/ui'
 import { t } from '../../lib/i18n'
 import type { PaginationProps } from '../../lib/pagination'
 import { PAGE_SIZE_OPTIONS } from '../../lib/pagination'
 import { getMaterialColor, getStatusStyle, type CatalogRef } from '../../lib/catalog'
-import type { AffiliationStatus, WeighingStatus } from '../../services/weighings'
+import { isBackwards } from '../../lib/period'
+import type { AffiliationStatus, WeighingSortColumn, WeighingStatus } from '../../services/weighings'
 
 export interface Weighing {
   id: string
@@ -25,6 +26,12 @@ export interface Weighing {
   price_per_kg: number
   status: WeighingStatus
   rejection_reason?: string | null
+}
+
+/** The column the server orders by and which way. */
+export interface WeighingSort {
+  column: WeighingSortColumn
+  direction: SortDirection
 }
 
 interface WeighingsTableProps {
@@ -42,6 +49,13 @@ interface WeighingsTableProps {
   onSearchChange: (text: string) => void
   affiliation: AffiliationStatus | ''
   onAffiliationChange: (affiliation: AffiliationStatus | '') => void
+  sort: WeighingSort
+  onSortChange: (column: WeighingSortColumn) => void
+  /** Period as calendar days ("YYYY-MM-DD"); '' leaves that side open. */
+  dateFrom: string
+  dateTo: string
+  onDateFromChange: (day: string) => void
+  onDateToChange: (day: string) => void
   pagination: PaginationProps
   onValidate?: (id: string) => void
   onReject?: (id: string) => void
@@ -80,6 +94,12 @@ export default function WeighingsTable({
   onSearchChange,
   affiliation,
   onAffiliationChange,
+  sort,
+  onSortChange,
+  dateFrom,
+  dateTo,
+  onDateFromChange,
+  onDateToChange,
   pagination,
   onValidate,
   onReject,
@@ -97,7 +117,13 @@ export default function WeighingsTable({
   const total = pagination.total
   const countLabel = `${total.toLocaleString('es-CO')} ${total !== 1 ? t.pesajes.countPlural : t.pesajes.countSingular}`
   const hasActions = onValidate || onReject || onMarkPaid
-  const hasFilters = status !== '' || materialCode !== '' || affiliation !== '' || search.trim() !== ''
+  const hasFilters = status !== '' || materialCode !== '' || affiliation !== '' || search.trim() !== '' || dateFrom !== '' || dateTo !== ''
+  const backwards = isBackwards(dateFrom, dateTo)
+  const sortHeader = (column: WeighingSortColumn, label: string, align?: 'right') => (
+    <SortableTableCell align={align} active={sort.column === column} direction={sort.direction} onSort={() => onSortChange(column)}>
+      {label}
+    </SortableTableCell>
+  )
 
   return (
     <TableContainer sx={{ opacity: isFetching ? 0.6 : 1, transition: 'opacity 120ms' }}>
@@ -139,6 +165,24 @@ export default function WeighingsTable({
             <MenuItem key={k} value={k}>{v.label}</MenuItem>
           ))}
         </TextField>
+        <Input
+          label={t.pesajes.period.from}
+          type="date"
+          value={dateFrom}
+          onChange={(e) => onDateFromChange(e.target.value)}
+          fullWidth={false}
+          sx={{ width: 160 }}
+        />
+        <Input
+          label={t.pesajes.period.to}
+          type="date"
+          value={dateTo}
+          onChange={(e) => onDateToChange(e.target.value)}
+          error={backwards}
+          helperText={backwards ? t.pesajes.period.backwards : undefined}
+          fullWidth={false}
+          sx={{ width: 160 }}
+        />
         <Typography variant="caption" color="text.secondary" sx={{ ml: 'auto' }}>{countLabel}</Typography>
       </Box>
 
@@ -153,14 +197,14 @@ export default function WeighingsTable({
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>{t.pesajes.table.date}</TableCell>
+                {sortHeader('occurred_at', t.pesajes.table.date)}
                 <TableCell>{t.pesajes.table.recycler}</TableCell>
                 <TableCell>{t.pesajes.table.affiliation}</TableCell>
                 <TableCell>{t.pesajes.table.material}</TableCell>
-                <TableCell align="right">{t.pesajes.table.kg}</TableCell>
-                <TableCell align="right">{t.pesajes.table.pricePerKg}</TableCell>
-                <TableCell align="right">{t.pesajes.table.total}</TableCell>
-                <TableCell>{t.pesajes.table.status}</TableCell>
+                {sortHeader('kg', t.pesajes.table.kg, 'right')}
+                {sortHeader('price_per_kg', t.pesajes.table.pricePerKg, 'right')}
+                {sortHeader('total_value', t.pesajes.table.total, 'right')}
+                {sortHeader('status', t.pesajes.table.status)}
                 {hasActions && <TableCell align="right">{t.common.actions}</TableCell>}
               </TableRow>
             </TableHead>

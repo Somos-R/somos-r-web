@@ -8,11 +8,14 @@ import DialogContent from '@mui/material/DialogContent'
 import DialogActions from '@mui/material/DialogActions'
 import MuiTextField from '@mui/material/TextField'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import WeighingsTable, { type Weighing } from './WeighingsTable'
+import WeighingsTable, { type Weighing, type WeighingSort } from './WeighingsTable'
 import RegisterWeighingDrawer from './RegisterWeighingDrawer'
 import { Card, CardContent, Button, Loader } from '../../components/ui'
 import { t } from '../../lib/i18n'
-import { weighingsService, type AffiliationStatus, type WeighingAPI, type WeighingStatus, type WeighingStatusTransition } from '../../services/weighings'
+import { weighingsService, type AffiliationStatus, type WeighingAPI, type WeighingSortColumn, type WeighingStatus, type WeighingStatusTransition } from '../../services/weighings'
+import { periodBounds } from '../../lib/period'
+import { saveBlob } from '../../lib/download'
+import { MIN_SEARCH_LENGTH } from '../../queries/recyclers'
 import { weighingsQueries } from '../../queries/weighings'
 import { catalogQueries } from '../../queries/catalogs'
 import { AFFECTED, invalidateAffected } from '../../queries/invalidation'
@@ -74,11 +77,29 @@ export default function Weighings() {
   const [search, setSearch] = useState('')
   // The box updates on every key; the request waits for a pause in typing.
   const debouncedSearch = useDebouncedValue(search.trim())
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
+  // Newest first, as the server does when nothing is asked.
+  const [sort, setSort] = useState<WeighingSort>({ column: 'occurred_at', direction: 'desc' })
   const pagination = usePagination()
+
+  // Clicking the ordered column flips it; a new column starts in its natural direction
+  // (newest first for dates, smallest first for the rest).
+  const handleSortChange = (column: WeighingSortColumn) => {
+    setSort((current) =>
+      current.column === column
+        ? { column, direction: current.direction === 'asc' ? 'desc' : 'asc' }
+        : { column, direction: column === 'occurred_at' ? 'desc' : 'asc' },
+    )
+    pagination.resetPage()
+  }
 
   // The server filters and paginates; the previous page stays on screen while the next loads.
   const { data: listData, isLoading: listLoading, isFetching: listFetching } = useQuery(
-    weighingsQueries.list({ status, materialCode, affiliation, search: debouncedSearch, page: pagination.page, rowsPerPage: pagination.rowsPerPage }),
+    weighingsQueries.list({
+      status, materialCode, affiliation, search: debouncedSearch, dateFrom, dateTo,
+      sort: sort.column, order: sort.direction, page: pagination.page, rowsPerPage: pagination.rowsPerPage,
+    }),
   )
   pagination.clamp(listData?.total)
 
@@ -95,6 +116,22 @@ export default function Weighings() {
     onSettled: () => {
       setActionLoadingId(null)
     },
+  })
+
+  // The file holds every weighing matching the filters on screen, not just the visible page. A failure
+  // (too many rows, no permission) is reported by the global handler.
+  const exportMutation = useMutation({
+    mutationFn: () =>
+      weighingsService.exportCsv({
+        status: status || undefined,
+        material_code: materialCode || undefined,
+        affiliation: affiliation || undefined,
+        q: debouncedSearch.length >= MIN_SEARCH_LENGTH ? debouncedSearch : undefined,
+        ...periodBounds(dateFrom, dateTo),
+        sort: sort.column,
+        order: sort.direction,
+      }),
+    onSuccess: (file) => saveBlob(file, `${t.pesajes.export.fileName}-${new Date().toISOString().slice(0, 10)}.csv`),
   })
 
   const handleValidate = (id: string) => {
@@ -141,7 +178,14 @@ export default function Weighings() {
           <Typography variant="h5" component="h1" fontWeight={600}>{t.pesajes.title}</Typography>
           <Typography variant="body2" color="text.secondary" mt={0.5}>{t.pesajes.subtitle}</Typography>
         </Box>
-        {can('weighings.create') && <Button onClick={() => setDrawerOpen(true)}>{t.pesajes.newWeighing}</Button>}
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          {can('weighings.view') && (
+            <Button variant="outlined" disabled={exportMutation.isPending} onClick={() => exportMutation.mutate()}>
+              {exportMutation.isPending ? t.pesajes.export.busy : t.pesajes.export.button}
+            </Button>
+          )}
+          {can('weighings.create') && <Button onClick={() => setDrawerOpen(true)}>{t.pesajes.newWeighing}</Button>}
+        </Box>
       </Box>
 
       <Grid container spacing={2}>
@@ -183,6 +227,12 @@ export default function Weighings() {
         onSearchChange={(text) => { setSearch(text); pagination.resetPage() }}
         affiliation={affiliation}
         onAffiliationChange={(next) => { setAffiliation(next); pagination.resetPage() }}
+        sort={sort}
+        onSortChange={handleSortChange}
+        dateFrom={dateFrom}
+        dateTo={dateTo}
+        onDateFromChange={(day) => { setDateFrom(day); pagination.resetPage() }}
+        onDateToChange={(day) => { setDateTo(day); pagination.resetPage() }}
         pagination={toPaginationProps(pagination, listData?.total ?? 0)}
         onValidate={can('weighings.review') ? handleValidate : undefined}
         onReject={can('weighings.review') ? handleOpenReject : undefined}

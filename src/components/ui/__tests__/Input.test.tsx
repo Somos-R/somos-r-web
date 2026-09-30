@@ -56,4 +56,9 @@ describe('Input', () => {
     render(<Input label="Kilogramos" value={12.5} onChange={() => {}} />)
     expect(screen.getByLabelText('Kilogramos')).toHaveValue('12.5')
   })
+
+  it('floats the label of a date field so it does not overlap the date mask', () => {
+    render(<Input label="Desde" type="date" value="" onChange={() => {}} />)
+    expect(screen.getByText('Desde', { selector: 'label' })).toHaveAttribute('data-shrink', 'true')
+  })
 })

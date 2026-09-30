@@ -193,6 +193,16 @@
     "countPlural": "pesajes",
     "emptySearch": "Sin resultados para \"{{query}}\"",
     "emptyState": "No hay pesajes registrados aún.",
+    "period": {
+      "from": "Desde",
+      "to": "Hasta",
+      "backwards": "La fecha inicial es posterior a la final"
+    },
+    "export": {
+      "button": "Descargar CSV",
+      "busy": "Preparando…",
+      "fileName": "pesajes"
+    },
     "table": {
       "date": "Fecha",
       "recycler": "Reciclador",
@@ -570,6 +580,7 @@
     }
   },
   "apiErrors": {
+    "export_too_large": "El reporte tiene demasiados pesajes. Acota el periodo o los filtros e inténtalo de nuevo.",
     "invalid_credentials": "Credenciales inválidas. Si fallaste varias veces, tu cuenta puede estar bloqueada unos minutos",
     "invalid_token": "Tu sesión no es válida. Inicia sesión de nuevo.",
     "session_closed": "Tu sesión se cerró. Inicia sesión de nuevo.",
