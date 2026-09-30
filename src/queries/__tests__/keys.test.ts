@@ -23,6 +23,9 @@ describe('queryKeys', () => {
     queryKeys.transactions.stats,
     queryKeys.recyclers.list({ status: 'all', search: '', ...page }),
     queryKeys.recyclers.list({ status: 'all', search: 'ana', ...page }),
+    queryKeys.catalogs.roles,
+    queryKeys.staff.list({ userType: 'eca', search: '', ...page }),
+    queryKeys.staff.list({ userType: 'association', search: '', ...page }),
     queryKeys.recyclers.count('verified'),
     queryKeys.recyclers.count('pending'),
     queryKeys.recyclers.verified(''),
@@ -41,6 +44,7 @@ describe('queryKeys', () => {
       transactions: queryKeys.transactions.all,
       recyclers: queryKeys.recyclers.all,
       catalogs: queryKeys.catalogs.all,
+      staff: queryKeys.staff.all,
       me: queryKeys.me,
     }
     for (const key of samples) {

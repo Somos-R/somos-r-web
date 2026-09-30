@@ -102,6 +102,10 @@ A query only notifies on its first failure, never when a background refetch fail
 
 Each route lives in `src/features/<name>/`. A feature folder contains the page component plus any feature-specific subcomponents (tables, drawers that wrap UI primitives). Features handle data fetching and mutations; they delegate rendering to `src/components/ui/`.
 
+### Staff invitations (`/personal`)
+
+Organization admins (`staff.view` / `staff.invite`, announced by the server) see the people of their own organization and invite more: `POST /users/invitations` creates the account **without a password** and emails a one-time link (48 h) that opens `/activate` (`SetPasswordPage`). Nobody types another person's password. `pending_activation` marks people who were invited and haven't chosen one yet: only they get "resend invitation". The role selector only offers the roles of the admin's own organization (`user_type_code` in `GET /catalogs/roles`); the server rejects the rest with `invalid_role`.
+
 ## UI Component System
 
 All reusable primitives live in `src/components/ui/` and are exported from `index.ts`. Every component is a thin, typed wrapper around MUI — never import from `@mui/material` directly inside feature code; always go through `src/components/ui/`.

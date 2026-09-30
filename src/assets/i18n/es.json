@@ -23,6 +23,7 @@
     "inventario": "Inventario",
     "transacciones": "Transacciones",
     "reportes": "Reportes",
+    "personal": "Personal",
     "configuracion": "Configuración"
   },
   "sidebar": {
@@ -488,6 +489,53 @@
     "reload": "Recargar la página",
     "chunkMessage": "No se pudo cargar esta pantalla. Puede que haya una versión nueva de la aplicación o que la conexión se haya interrumpido. Recarga la página para continuar."
   },
+  "personal": {
+    "title": "Personal",
+    "subtitle": "Personas que trabajan en tu organización",
+    "inviteButton": "Invitar persona",
+    "searchPlaceholder": "Buscar por nombre, documento o correo...",
+    "countSingular": "persona",
+    "countPlural": "personas",
+    "emptyState": "Aún no hay personal en tu organización.",
+    "emptySearch": "Sin resultados para \"{{query}}\"",
+    "table": {
+      "name": "Nombre",
+      "email": "Correo",
+      "idNumber": "Documento",
+      "role": "Rol",
+      "status": "Estado",
+      "actions": "Acciones"
+    },
+    "status": {
+      "active": "Activo",
+      "pending_activation": "Pendiente de activar",
+      "inactive": "Desactivado"
+    },
+    "resend": {
+      "button": "Reenviar invitación",
+      "successMessage": "Enviamos una nueva invitación a {{email}}",
+      "errorMessage": "No pudimos reenviar la invitación"
+    },
+    "invite": {
+      "drawerTitle": "Invitar persona",
+      "submitLabel": "Enviar invitación",
+      "successMessage": "Invitación enviada a {{email}}. Tiene 48 horas para crear su contraseña.",
+      "errorMessage": "No pudimos enviar la invitación",
+      "fields": {
+        "fullName": "Nombre completo",
+        "email": "Correo electrónico",
+        "documentType": "Tipo de documento",
+        "documentNumber": "Número de documento",
+        "phone": "Teléfono",
+        "role": "Rol"
+      },
+      "validation": {
+        "emailInvalid": "Correo electrónico no válido",
+        "documentNumberLength": "El documento debe tener entre 6 y 20 caracteres",
+        "digitsOnly": "Solo dígitos"
+      }
+    }
+  },
   "apiErrors": {
     "invalid_credentials": "Credenciales inválidas. Si fallaste varias veces, tu cuenta puede estar bloqueada unos minutos",
     "invalid_token": "Tu sesión no es válida. Inicia sesión de nuevo.",
@@ -523,6 +571,10 @@
     "account_already_exists": "Ya existe una cuenta con esos datos.",
     "tax_id_already_registered": "Ese NIT ya está registrado.",
     "invalid_role": "Ese rol no es válido para este tipo de usuario.",
+    "invalid_id_type": "El tipo de documento no es válido.",
+    "no_organization": "Tu cuenta no pertenece a una organización, así que no puede invitar personal.",
+    "organization_not_active": "Tu organización aún no está aprobada para invitar personal.",
+    "invitation_not_pending": "Esa persona ya activó su cuenta.",
     "method_not_allowed": "Esa operación no está permitida.",
     "internal_error": "Ocurrió un error en el servidor. Inténtalo de nuevo en unos minutos."
   }

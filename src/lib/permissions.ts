@@ -36,6 +36,8 @@ export type ServerPermission =
   | 'transactions.create'
   | 'transactions.manage'
   | 'transactions.pay'
+  | 'staff.view'
+  | 'staff.invite'
 
 /** Screen-level permissions that are not a server capability: they are derived from one, or need none. */
 export type UiPermission = 'dashboard.view' | 'recyclers.register' | 'reports.view' | 'settings.view'

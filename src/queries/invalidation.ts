@@ -21,6 +21,8 @@ export const AFFECTED = {
   transactionChanged: [queryKeys.transactions.all, queryKeys.inventory.all, queryKeys.weighings.all],
   /** Minimum stock or reference price edited. */
   inventoryEdited: [queryKeys.inventory.all],
+  /** Someone was invited, or their invitation was sent again. */
+  staffChanged: [queryKeys.staff.all],
   /** A recycler was registered, verified or rejected. */
   recyclerChanged: [queryKeys.recyclers.all],
 } as const satisfies Record<string, readonly QueryKey[]>

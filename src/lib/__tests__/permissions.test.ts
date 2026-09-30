@@ -26,6 +26,9 @@ const MATRIX: Record<Exclude<Permission, 'settings.view'>, boolean[]> = {
   'transactions.create':  [false, false, false, true,  false, true],
   'transactions.manage':  [false, false, false, true,  false, true],
   'transactions.pay':     [true,  false, false, true,  false, false],
+  // Only organization admins see and invite their organization's staff.
+  'staff.view':          [true,  false, false, true,  false, false],
+  'staff.invite':        [true,  false, false, true,  false, false],
   // Pages built on weighing data follow weighings.view.
   'dashboard.view':       [true,  true,  false, true,  true,  true],
   'reports.view':         [true,  true,  false, true,  true,  true],
