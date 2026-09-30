@@ -102,6 +102,14 @@ A query only notifies on its first failure, never when a background refetch fail
 
 Each route lives in `src/features/<name>/`. A feature folder contains the page component plus any feature-specific subcomponents (tables, drawers that wrap UI primitives). Features handle data fetching and mutations; they delegate rendering to `src/components/ui/`.
 
+### ECA ↔ Association links (`/vinculaciones`)
+
+Many-to-many, **always started by the ECA and decided by the Association**; either side can end an active link, and the ECA can cancel its own pending request. The server announces `links.view` (both organization admins), `links.request` (ECA admin) and `links.decide` (Association admin); the page picks its side from them, never from the user type.
+- **ECA** (`EcaLinks`): "my links" (filter by state; a rejection shows its reason) and the **directory** of approved associations (`GET /directory/associations`, name search debounced, ignored under 2 characters), each with the state of the link. "Request" is offered only where there is no link or it was rejected/removed ("request again"); a pending or active one has nothing to ask.
+- **Association** (`AssociationLinks`): the requests ECAs made (starts on *pending*, which is what needs an answer): accept, reject (optional reason of up to 200 characters that the ECA sees) and end an active link. No directory: an Association never starts a link.
+- Ending a link or cancelling a request asks for confirmation. Every action reloads **links and directory** (the directory carries each link's state), reports its own result, and on failure reloads too: a refusal usually means the other side already answered (`link_not_pending`).
+- The other organization is shown as a name and a city only (that is all the server gives).
+
 ### Staff invitations (`/personal`)
 
 Organization admins (`staff.view` / `staff.invite`, announced by the server) see the people of their own organization and invite more: `POST /users/invitations` creates the account **without a password** and emails a one-time link (48 h) that opens `/activate` (`SetPasswordPage`). Nobody types another person's password. `pending_activation` marks people who were invited and haven't chosen one yet: only they get "resend invitation". The role selector only offers the roles of the admin's own organization (`user_type_code` in `GET /catalogs/roles`); the server rejects the rest with `invalid_role`.

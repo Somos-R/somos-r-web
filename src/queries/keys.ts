@@ -39,6 +39,19 @@ export interface StaffListKey {
   rowsPerPage: number
 }
 
+export interface LinksListKey {
+  /** '' means every state. */
+  status: string
+  page: number
+  rowsPerPage: number
+}
+
+export interface DirectoryKey {
+  search: string
+  page: number
+  rowsPerPage: number
+}
+
 export interface PageKey {
   page: number
   rowsPerPage: number
@@ -79,6 +92,13 @@ export const queryKeys = {
     list: (kind: TransactionKind, page: PageKey) => ['transactions', 'list', kind, page] as const,
     pendingCount: (kind: TransactionKind) => ['transactions', 'count', kind, 'pending'] as const,
     stats: ['transactions', 'stats'] as const,
+  },
+
+  /** ECA <-> Association links and the directory of associations (which carries the link state). */
+  links: {
+    all: ['links'] as const,
+    list: (filters: LinksListKey) => ['links', 'list', filters] as const,
+    directory: (filters: DirectoryKey) => ['links', 'directory', filters] as const,
   },
 
   staff: {

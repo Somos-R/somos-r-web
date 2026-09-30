@@ -21,6 +21,7 @@ const BACKEND_CODES = [
   'account_already_exists', 'tax_id_already_registered',
   'invalid_role', 'method_not_allowed', 'internal_error',
   'invalid_id_type', 'no_organization', 'organization_not_active', 'invitation_not_pending',
+  'link_not_found', 'link_already_requested', 'link_already_active', 'link_not_pending', 'link_not_removable',
 ]
 
 describe('error code dictionary', () => {

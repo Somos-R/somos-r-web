@@ -19,6 +19,19 @@ function seeded() {
 
 const invalidated = (client: QueryClient, key: readonly unknown[]) => client.getQueryState(key)?.isInvalidated
 
+describe('link changes', () => {
+  it('reload the links and the directory (which carries the link state), and nothing else', () => {
+    const client = seeded()
+    client.setQueryData(queryKeys.links.list({ status: '', page: 0, rowsPerPage: 25 }), 1)
+    client.setQueryData(queryKeys.links.directory({ search: '', page: 0, rowsPerPage: 10 }), 1)
+    invalidateAffected(client, AFFECTED.linkChanged)
+    expect(invalidated(client, queryKeys.links.list({ status: '', page: 0, rowsPerPage: 25 }))).toBe(true)
+    expect(invalidated(client, queryKeys.links.directory({ search: '', page: 0, rowsPerPage: 10 }))).toBe(true)
+    expect(invalidated(client, queryKeys.weighings.stats)).toBe(false)
+    expect(invalidated(client, queryKeys.catalogs.materials)).toBe(false)
+  })
+})
+
 describe('invalidateAffected', () => {
   it('marks stale everything the action touches and nothing else', () => {
     const client = seeded()

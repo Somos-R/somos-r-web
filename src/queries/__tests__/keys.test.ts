@@ -26,6 +26,10 @@ describe('queryKeys', () => {
     queryKeys.catalogs.roles,
     queryKeys.staff.list({ userType: 'eca', search: '', ...page }),
     queryKeys.staff.list({ userType: 'association', search: '', ...page }),
+    queryKeys.links.list({ status: '', page: 0, rowsPerPage: 25 }),
+    queryKeys.links.list({ status: 'requested', page: 0, rowsPerPage: 25 }),
+    queryKeys.links.directory({ search: '', page: 0, rowsPerPage: 10 }),
+    queryKeys.links.directory({ search: 'uno', page: 0, rowsPerPage: 10 }),
     queryKeys.recyclers.count('verified'),
     queryKeys.recyclers.count('pending'),
     queryKeys.recyclers.verified(''),
@@ -45,6 +49,7 @@ describe('queryKeys', () => {
       recyclers: queryKeys.recyclers.all,
       catalogs: queryKeys.catalogs.all,
       staff: queryKeys.staff.all,
+      links: queryKeys.links.all,
       me: queryKeys.me,
     }
     for (const key of samples) {

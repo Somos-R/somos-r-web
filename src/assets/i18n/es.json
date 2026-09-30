@@ -24,7 +24,8 @@
     "transacciones": "Transacciones",
     "reportes": "Reportes",
     "personal": "Personal",
-    "configuracion": "Configuración"
+    "configuracion": "Configuración",
+    "vinculaciones": "Vinculaciones"
   },
   "sidebar": {
     "brand": "Somos R",
@@ -576,6 +577,84 @@
     "organization_not_active": "Tu organización aún no está aprobada para invitar personal.",
     "invitation_not_pending": "Esa persona ya activó su cuenta.",
     "method_not_allowed": "Esa operación no está permitida.",
-    "internal_error": "Ocurrió un error en el servidor. Inténtalo de nuevo en unos minutos."
+    "internal_error": "Ocurrió un error en el servidor. Inténtalo de nuevo en unos minutos.",
+    "link_not_found": "El vínculo no existe o ya no está disponible.",
+    "link_already_requested": "Ya hay una solicitud pendiente con esa asociación.",
+    "link_already_active": "Ya están vinculadas.",
+    "link_not_pending": "Esa solicitud ya fue respondida. Actualizamos la pantalla.",
+    "link_not_removable": "Ese vínculo ya no se puede retirar. Actualizamos la pantalla."
+  },
+  "vinculaciones": {
+    "title": "Vinculaciones",
+    "subtitleEca": "Las asociaciones con las que tu ECA trabaja. Tú las solicitas y la asociación decide.",
+    "subtitleAssociation": "Las ECA que piden trabajar con tu asociación. Tú decides.",
+    "status": {
+      "requested": "Pendiente",
+      "active": "Activa",
+      "rejected": "Rechazada",
+      "removed": "Retirada"
+    },
+    "filter": {
+      "label": "Estado",
+      "all": "Todos los estados"
+    },
+    "countSingular": "vínculo",
+    "countPlural": "vínculos",
+    "table": {
+      "association": "Asociación",
+      "eca": "ECA",
+      "city": "Ciudad",
+      "status": "Estado",
+      "requested": "Solicitada",
+      "decided": "Respondida",
+      "reason": "Motivo del rechazo",
+      "actions": "Acciones"
+    },
+    "noReason": "Sin motivo",
+    "noCity": "—",
+    "emptyEca": "Aún no has solicitado ninguna vinculación. Busca una asociación abajo.",
+    "emptyAssociation": "No hay vínculos en este estado.",
+    "actions": {
+      "accept": "Aceptar",
+      "reject": "Rechazar",
+      "remove": "Retirar vínculo",
+      "cancel": "Cancelar solicitud",
+      "request": "Solicitar vinculación",
+      "requestAgain": "Solicitar de nuevo"
+    },
+    "confirm": {
+      "removeTitle": "¿Retirar este vínculo?",
+      "removeMessage": "Dejarán de estar vinculadas. Los pesajes que ya se recibieron no se borran.",
+      "removeButton": "Retirar",
+      "cancelTitle": "¿Cancelar la solicitud?",
+      "cancelMessage": "La asociación ya no verá tu solicitud. Puedes volver a pedirla cuando quieras.",
+      "cancelButton": "Cancelar solicitud",
+      "keep": "Mantener"
+    },
+    "reject": {
+      "title": "Rechazar la solicitud",
+      "message": "Puedes indicar un motivo para que la ECA lo vea. Ella puede volver a solicitar.",
+      "reasonLabel": "Motivo (opcional)",
+      "confirmButton": "Rechazar solicitud"
+    },
+    "messages": {
+      "requested": "Solicitud enviada a {{name}}",
+      "accepted": "Vinculación aceptada",
+      "rejected": "Solicitud rechazada",
+      "removed": "Vínculo retirado",
+      "cancelled": "Solicitud cancelada",
+      "actionError": "No pudimos completar la acción"
+    },
+    "directory": {
+      "title": "Buscar asociaciones",
+      "searchPlaceholder": "Buscar por nombre...",
+      "empty": "No hay asociaciones con ese nombre.",
+      "emptyList": "Aún no hay asociaciones aprobadas.",
+      "name": "Asociación"
+    },
+    "links": {
+      "title": "Mis vínculos",
+      "requestsTitle": "Solicitudes y vínculos"
+    }
   }
 }
