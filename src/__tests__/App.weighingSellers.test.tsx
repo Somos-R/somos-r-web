@@ -96,8 +96,25 @@ describe('who delivers: the document lookup', () => {
     expect(within(person).getByText(/Asociación Uno/)).toBeInTheDocument()
     expect(within(person).getByText(t.pesajes.affiliation.linked)).toBeInTheDocument()
     expect(within(person).getByText(t.pesajes.drawer.person.affiliationNote.linked)).toBeInTheDocument()
+    // Its standing in the association's registry, so the operator sees it before weighing.
+    expect(within(person).getByText(`${t.pesajes.drawer.person.registryStatus}: ${t.recicladores.status.verified}`)).toBeInTheDocument()
     // The document type the operator chose travels with the number.
     expect(sent('GET', '/recyclers/lookup')[0].params).toEqual({ document: '1001', id_type: 'CC' })
+  })
+
+  it('shows a recycler still pending in the registry, and none when the server sends no status', async () => {
+    serve()
+    renderAt('/pesajes')
+    const drawer = await openDrawer()
+    lookupReply = { data: recycler({ verification_status: 'pending' }) }
+    await search(drawer, '1001')
+    expect(await drawer.findByText(`${t.pesajes.drawer.person.registryStatus}: ${t.recicladores.status.pending}`)).toBeInTheDocument()
+
+    await userEvent.click(drawer.getByRole('button', { name: t.pesajes.drawer.person.change }))
+    lookupReply = { data: recycler({ verification_status: null }) }
+    await userEvent.click(drawer.getByRole('button', { name: t.pesajes.drawer.person.searchButton }))
+    await drawer.findByRole('region', { name: t.pesajes.drawer.who })
+    expect(drawer.queryByText(new RegExp(`^${t.pesajes.drawer.person.registryStatus}:`))).not.toBeInTheDocument()
   })
 
   it('says when the recycler belongs to an association that is not linked, or to none', async () => {
