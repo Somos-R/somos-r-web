@@ -21,12 +21,21 @@ const weighing = (id: string, name: string, status: string, reason: string | nul
   material: MATERIALS[0], warehouse_id: 'b1', warehouse: WAREHOUSES[0], kg: 10, price_per_kg: 500, status,
   rejection_reason: reason, validated_by: null, validated_at: null, occurred_at: '2026-01-01T00:00:00Z',
   created_at: '2026-01-01T00:00:00Z', total_value: 5000,
+  affiliation_status: 'linked', seller_name: null, seller_id_type: null, seller_id_number: null,
+})
+
+// Material received from someone who is not registered: no recycler, identified by name and document.
+const walkIn = (id: string, name: string) => ({
+  ...weighing(id, name, 'rejected', 'Sin soporte'),
+  recycler_id: null, recycler: null, affiliation_status: 'independent',
+  seller_name: name, seller_id_type: 'CC', seller_id_number: '55501',
 })
 
 const WEIGHINGS = [
   weighing('w1', 'Rita Pendiente', 'pending_validation'),
   weighing('w2', 'Vera Validada', 'validated'),
   weighing('w3', 'Rosa Rechazada', 'rejected', 'Material mojado'),
+  walkIn('w4', 'Wilson Vendedor'),
 ]
 
 const INVENTORY = [
@@ -66,6 +75,11 @@ export function serveApi(role: 'eca_admin' | 'association_admin' = 'eca_admin') 
     const params = (c.params ?? {}) as Record<string, string>
     if (url === '/auth/me') {
       return { data: { id: 'me', email: 'me@x.co', full_name: 'Persona Prueba', phone: null, id_type: 'CC', id_number: '9', user_type_code: userType, role_code: role, capabilities: capabilitiesForRole(role), is_active: true, email_verified_at: null, created_at: '2026-01-01T00:00:00Z' } }
+    }
+    if (url === '/recyclers/lookup') {
+      return params.document === '1001'
+        ? { data: { id: 'r1', full_name: 'Rita Reciclaje', id_type: 'CC', id_number: '1001', is_active: true, verification_status: 'verified', association: { id: 'a1', legal_name: 'Asociación Uno', city: 'Bogotá' }, affiliation: 'linked' } }
+        : { status: 404, data: { detail: 'x', code: 'recycler_not_found' } }
     }
     if (url === '/weighings') return { data: { total: WEIGHINGS.length, items: WEIGHINGS } }
     if (url === '/weighings/stats') return { data: { total_weighings_month: 3, total_kg_month: 30, pending_count: 1, by_material: [] } }

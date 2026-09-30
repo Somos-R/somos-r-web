@@ -32,6 +32,7 @@ const makeWeighings = (n: number) =>
     material_code: MATERIALS[i % 2].code, material: MATERIALS[i % 2], warehouse_id: 'b1', warehouse: WAREHOUSES[0],
     kg: 10, price_per_kg: 500, status: WEIGHING_STATUSES[i % 4], rejection_reason: null, validated_by: null,
     validated_at: null, occurred_at: '2026-01-01T00:00:00Z', created_at: '2026-01-01T00:00:00Z', total_value: 5000,
+    affiliation_status: 'linked', seller_name: null, seller_id_type: null, seller_id_number: null,
   }))
 
 const makeInventory = (n: number) =>
@@ -106,7 +107,8 @@ function serveApi() {
     }
     if (url === '/weighings') {
       return { data: paged(data.weighings, params, (w) =>
-        (!params.status || w.status === params.status) && (!params.material_code || w.material_code === params.material_code)) }
+        (!params.status || w.status === params.status) && (!params.material_code || w.material_code === params.material_code) &&
+        (!params.q || (w.recycler?.full_name ?? w.seller_name ?? '').toLowerCase().includes(String(params.q).toLowerCase()))) }
     }
     if (url === '/weighings/stats') return { data: { total_weighings_month: 1234, total_kg_month: 12340, pending_count: 309, by_material: [] } }
     if (url === '/inventory') {
@@ -308,16 +310,36 @@ describe('lists are paginated and filtered by the server', () => {
     })
   })
 
-  describe('weighing form recycler picker', () => {
-    it('looks recyclers up on the server as the user types instead of listing them all', async () => {
+  describe('weighings search', () => {
+    it('searches on the server, once per pause, and starts again from the first page', async () => {
       renderAt('/pesajes')
-      await screen.findAllByText(/Persona|kg/, {}, { timeout: 3000 }).catch(() => undefined)
-      await userEvent.click(await screen.findByRole('button', { name: t.pesajes.newWeighing }))
-      const picker = await screen.findByRole('combobox', { name: new RegExp(t.pesajes.drawer.recycler) })
-      await userEvent.type(picker, 'Persona 42')
-      await waitFor(() =>
-        expect(lastTo('/users')?.params).toMatchObject({ verification_status: 'verified', q: 'Persona 42', limit: 20 }),
-      )
+      await screen.findByText('Reciclador 0')
+      await nextPage()
+      await waitFor(() => expect(lastTo('/weighings')?.params).toMatchObject({ offset: 25 }))
+      await userEvent.type(screen.getByPlaceholderText(t.pesajes.searchPlaceholder), 'Reciclador 42')
+      await waitFor(() => expect(lastTo('/weighings')?.params).toMatchObject({ q: 'Reciclador 42', offset: 0 }))
+      expect(await screen.findByText('Reciclador 42')).toBeInTheDocument()
+      expect(screen.queryByText('Reciclador 0')).not.toBeInTheDocument()
+    })
+
+    it('does not send a search shorter than the server accepts', async () => {
+      renderAt('/pesajes')
+      await screen.findByText('Reciclador 0')
+      await userEvent.type(screen.getByPlaceholderText(t.pesajes.searchPlaceholder), 'R')
+      await new Promise((resolve) => setTimeout(resolve, 450))
+      expect(requestsTo('/weighings').every((r) => r.params.q === undefined)).toBe(true)
+    })
+  })
+
+  describe('weighings affiliation filter', () => {
+    it('is applied on the server and goes back to the first page', async () => {
+      renderAt('/pesajes')
+      await screen.findByText('Reciclador 0')
+      await nextPage()
+      await waitFor(() => expect(lastTo('/weighings')?.params).toMatchObject({ offset: 25 }))
+      await userEvent.click(screen.getByRole('combobox', { name: t.common.filterByAffiliation }))
+      await userEvent.click(await screen.findByRole('option', { name: t.pesajes.affiliation.independent }))
+      await waitFor(() => expect(lastTo('/weighings')?.params).toMatchObject({ affiliation: 'independent', offset: 0 }))
     })
   })
 

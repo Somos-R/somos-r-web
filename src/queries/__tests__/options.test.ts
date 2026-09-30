@@ -32,14 +32,14 @@ describe('query options', () => {
   it('turn the page and filters of a weighings list into limit/offset', async () => {
     const calls = record()
     await new QueryClient().fetchQuery(
-      weighingsQueries.list({ status: 'pending', materialCode: 'PET', page: 2, rowsPerPage: 10 }),
+      weighingsQueries.list({ status: 'pending', materialCode: 'PET', affiliation: '', search: '', page: 2, rowsPerPage: 10 }),
     )
     expect(calls[0].params).toMatchObject({ status: 'pending', material_code: 'PET', limit: 10, offset: 20 })
   })
 
   it('omit empty filters instead of sending them', async () => {
     const calls = record()
-    await new QueryClient().fetchQuery(weighingsQueries.list({ status: '', materialCode: '', page: 0, rowsPerPage: 10 }))
+    await new QueryClient().fetchQuery(weighingsQueries.list({ status: '', materialCode: '', affiliation: '', search: '', page: 0, rowsPerPage: 10 }))
     expect(calls[0].params.status).toBeUndefined()
     expect(calls[0].params.material_code).toBeUndefined()
   })
@@ -74,3 +74,25 @@ describe('links queries', () => {
   })
 })
 
+
+describe('weighings affiliation filter', () => {
+  it('is sent when set and left out when empty', async () => {
+    const calls = record()
+    const client = new QueryClient()
+    await client.fetchQuery(weighingsQueries.list({ status: '', materialCode: '', affiliation: 'unlinked_association', search: '', page: 0, rowsPerPage: 10 }))
+    await client.fetchQuery(weighingsQueries.list({ status: '', materialCode: '', affiliation: '', search: '', page: 0, rowsPerPage: 10 }))
+    expect(calls[0].params.affiliation).toBe('unlinked_association')
+    expect(calls[1].params.affiliation).toBeUndefined()
+  })
+})
+
+describe('weighings text search', () => {
+  it('is sent trimmed, and not at all when shorter than the server accepts', async () => {
+    const calls = record()
+    const client = new QueryClient()
+    await client.fetchQuery(weighingsQueries.list({ status: '', materialCode: '', affiliation: '', search: ' Wilson ', page: 0, rowsPerPage: 10 }))
+    await client.fetchQuery(weighingsQueries.list({ status: '', materialCode: '', affiliation: '', search: 'W', page: 0, rowsPerPage: 10 }))
+    expect(calls[0].params.q).toBe('Wilson')
+    expect(calls[1].params.q).toBeUndefined()
+  })
+})

@@ -11,15 +11,16 @@ import { t } from '../lib/i18n'
 import { fakeJwt, mockAdapter } from '../test/helpers'
 import { capabilitiesForRole } from '../test/capabilities'
 
-// A real page crashing while it renders: the weighing comes back without its recycler, which
+// A real page crashing while it renders: the weighing comes back without its material, which
 // makes Weighings throw. The rest of the app must keep working around it.
 
 const BROKEN_WEIGHING = {
   id: 'w1', recycler_id: 'r1', recycler: null, material_code: 'plastic',
-  material: { code: 'plastic', label: 'Plástico', unit: 'kg' }, warehouse_id: 'b1',
+  material: null, warehouse_id: 'b1',
   warehouse: { id: 'b1', name: 'Bodega', address: null }, kg: 1, price_per_kg: 1, status: 'validated',
   rejection_reason: null, validated_by: null, validated_at: null, occurred_at: '2026-01-01T00:00:00Z',
   created_at: '2026-01-01T00:00:00Z', total_value: 1,
+  affiliation_status: 'independent', seller_name: 'Vendedor', seller_id_type: 'CC', seller_id_number: '1',
 }
 
 function serveApi() {

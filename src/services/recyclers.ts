@@ -42,6 +42,19 @@ export interface UpdateRecyclerPayload {
   phone?: string | null
 }
 
+/** What an ECA needs to weigh someone: who they are and how they relate to that ECA. No contact data. */
+export interface RecyclerLookup {
+  id: string
+  full_name: string
+  id_type: string
+  id_number: string
+  is_active: boolean
+  verification_status: 'pending' | 'verified' | 'rejected' | null
+  association: { id: string; legal_name: string; city: string | null } | null
+  /** Relative to the ECA that asks: `linked` only for a verified recycler of an association linked to it. */
+  affiliation: 'linked' | 'unlinked_association' | 'independent'
+}
+
 export interface RecyclersListParams {
   limit?: number
   offset?: number
@@ -51,6 +64,14 @@ export interface RecyclersListParams {
 }
 
 export const recyclersService = {
+  /**
+   * Finds a registered recycler by document, whatever their association (an ECA receives material
+   * from anyone). `id_type` is optional; sending it avoids matches between different kinds of
+   * document with the same number. Rejects with 404 `recycler_not_found` when there is none.
+   */
+  lookup: (params: { document: string; id_type?: string }, options?: RequestOptions): Promise<RecyclerLookup> =>
+    apiClient.get('/recyclers/lookup', { params, signal: options?.signal }).then((r) => r.data),
+
   list: (params: RecyclersListParams = {}, options?: RequestOptions): Promise<RecyclersListResponse> =>
     apiClient
       .get('/users', {

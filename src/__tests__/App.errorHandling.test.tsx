@@ -101,12 +101,12 @@ describe('errors shown to the user', () => {
   it('shows the translated message for the backend error code, not its wording', async () => {
     serveApi((c) =>
       c.method === 'patch' && String(c.url) === '/weighings/w1/status'
-        ? { status: 400, data: { detail: 'Texto del backend que puede cambiar', code: 'recycler_not_verified' } }
+        ? { status: 400, data: { detail: 'Texto del backend que puede cambiar', code: 'recycler_inactive' } }
         : undefined,
     )
     renderAt('/pesajes')
     await userEvent.click(await screen.findByRole('button', { name: /Validar/ }))
-    expect(await screen.findByText(t.apiErrors.recycler_not_verified)).toBeInTheDocument()
+    expect(await screen.findByText(t.apiErrors.recycler_inactive)).toBeInTheDocument()
     expect(screen.queryByText('Texto del backend que puede cambiar')).not.toBeInTheDocument()
   })
 

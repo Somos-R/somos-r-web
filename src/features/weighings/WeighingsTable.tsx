@@ -4,7 +4,7 @@ import MenuItem from '@mui/material/MenuItem'
 import TextField from '@mui/material/TextField'
 import Tooltip from '@mui/material/Tooltip'
 import {
-  Badge, Button,
+  Badge, Button, Input,
   Table, TableHead, TableBody, TableRow, TableCell, TableContainer, TablePagination,
   Loader,
 } from '../../components/ui'
@@ -12,12 +12,14 @@ import { t } from '../../lib/i18n'
 import type { PaginationProps } from '../../lib/pagination'
 import { PAGE_SIZE_OPTIONS } from '../../lib/pagination'
 import { getMaterialColor, getStatusStyle, type CatalogRef } from '../../lib/catalog'
-import type { WeighingStatus } from '../../services/weighings'
+import type { AffiliationStatus, WeighingStatus } from '../../services/weighings'
 
 export interface Weighing {
   id: string
   occurred_at: string
-  reciclador_nombre: string
+  /** Who delivered: a registered recycler, or an unregistered seller identified by name and document. */
+  person: { name: string; document: string | null; registered: boolean }
+  affiliation: AffiliationStatus
   material: CatalogRef
   kg: number
   price_per_kg: number
@@ -36,6 +38,10 @@ interface WeighingsTableProps {
   materialCode: string
   onMaterialChange: (code: string) => void
   materialOptions: CatalogRef[]
+  search: string
+  onSearchChange: (text: string) => void
+  affiliation: AffiliationStatus | ''
+  onAffiliationChange: (affiliation: AffiliationStatus | '') => void
   pagination: PaginationProps
   onValidate?: (id: string) => void
   onReject?: (id: string) => void
@@ -50,6 +56,15 @@ const STATUS_CONFIG: Record<WeighingStatus, { label: string; color: 'warning' | 
   rejected:           { label: t.pesajes.status.rejected,           color: 'error' },
 }
 
+const AFFILIATION_CONFIG: Record<AffiliationStatus, { label: string; color: 'success' | 'warning' | 'default' }> = {
+  linked: { label: t.pesajes.affiliation.linked, color: 'success' },
+  unlinked_association: { label: t.pesajes.affiliation.unlinked_association, color: 'warning' },
+  independent: { label: t.pesajes.affiliation.independent, color: 'default' },
+}
+
+// A value this build doesn't know yet shows as it is instead of crashing (same rule as statuses).
+const affiliationStyle = (affiliation: string) => getStatusStyle(AFFILIATION_CONFIG, affiliation, 'default' as const)
+
 const statusStyle = (status: string) => getStatusStyle(STATUS_CONFIG, status, 'default' as const)
 
 export default function WeighingsTable({
@@ -61,6 +76,10 @@ export default function WeighingsTable({
   materialCode,
   onMaterialChange,
   materialOptions,
+  search,
+  onSearchChange,
+  affiliation,
+  onAffiliationChange,
   pagination,
   onValidate,
   onReject,
@@ -78,11 +97,18 @@ export default function WeighingsTable({
   const total = pagination.total
   const countLabel = `${total.toLocaleString('es-CO')} ${total !== 1 ? t.pesajes.countPlural : t.pesajes.countSingular}`
   const hasActions = onValidate || onReject || onMarkPaid
-  const hasFilters = status !== '' || materialCode !== ''
+  const hasFilters = status !== '' || materialCode !== '' || affiliation !== '' || search.trim() !== ''
 
   return (
     <TableContainer sx={{ opacity: isFetching ? 0.6 : 1, transition: 'opacity 120ms' }}>
       <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1.5, px: 2, py: 1.5, borderBottom: '1px solid', borderColor: 'divider' }}>
+        <Input
+          placeholder={t.pesajes.searchPlaceholder}
+          value={search}
+          onChange={(e) => onSearchChange(e.target.value)}
+          fullWidth={false}
+          sx={{ width: 260 }}
+        />
         <TextField
           select size="small" SelectProps={{ displayEmpty: true, inputProps: { 'aria-label': t.common.filterByMaterial } }} value={materialCode}
           onChange={(e) => onMaterialChange(e.target.value)}
@@ -103,6 +129,16 @@ export default function WeighingsTable({
             <MenuItem key={k} value={k}>{v.label}</MenuItem>
           ))}
         </TextField>
+        <TextField
+          select size="small" SelectProps={{ displayEmpty: true, inputProps: { 'aria-label': t.common.filterByAffiliation } }} value={affiliation}
+          onChange={(e) => onAffiliationChange(e.target.value as AffiliationStatus | '')}
+          sx={{ width: 200 }}
+        >
+          <MenuItem value="">{t.pesajes.filterAllAffiliations}</MenuItem>
+          {Object.entries(AFFILIATION_CONFIG).map(([k, v]) => (
+            <MenuItem key={k} value={k}>{v.label}</MenuItem>
+          ))}
+        </TextField>
         <Typography variant="caption" color="text.secondary" sx={{ ml: 'auto' }}>{countLabel}</Typography>
       </Box>
 
@@ -119,6 +155,7 @@ export default function WeighingsTable({
               <TableRow>
                 <TableCell>{t.pesajes.table.date}</TableCell>
                 <TableCell>{t.pesajes.table.recycler}</TableCell>
+                <TableCell>{t.pesajes.table.affiliation}</TableCell>
                 <TableCell>{t.pesajes.table.material}</TableCell>
                 <TableCell align="right">{t.pesajes.table.kg}</TableCell>
                 <TableCell align="right">{t.pesajes.table.pricePerKg}</TableCell>
@@ -133,7 +170,17 @@ export default function WeighingsTable({
                   <TableCell sx={{ color: 'text.secondary', fontSize: '0.85rem' }}>
                     {new Date(p.occurred_at).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' })}
                   </TableCell>
-                  <TableCell sx={{ fontWeight: 500 }}>{p.reciclador_nombre}</TableCell>
+                  <TableCell>
+                    <Typography variant="body2" fontWeight={500}>{p.person.name}</Typography>
+                    {p.person.document && (
+                      <Typography variant="caption" color="text.secondary">
+                        {p.person.document}{p.person.registered ? '' : ` · ${t.pesajes.table.unregistered}`}
+                      </Typography>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <Badge label={affiliationStyle(p.affiliation).label} color={affiliationStyle(p.affiliation).color} />
+                  </TableCell>
                   <TableCell>
                     <Badge label={p.material.label} color={getMaterialColor(p.material.code)} />
                   </TableCell>

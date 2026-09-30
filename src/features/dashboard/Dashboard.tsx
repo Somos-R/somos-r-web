@@ -110,7 +110,7 @@ export default function Dashboard() {
                 {i > 0 && <Divider />}
                 <ListItem sx={{ px: 2, py: 1.25 }}>
                   <ListItemText
-                    primary={w.recycler.full_name}
+                    primary={w.recycler?.full_name ?? w.seller_name ?? t.pesajes.table.unregistered}
                     secondary={w.material.label}
                     primaryTypographyProps={{ fontWeight: 500, variant: 'body2' }}
                     secondaryTypographyProps={{ variant: 'caption' }}

@@ -1,6 +1,7 @@
 import { keepPreviousData, queryOptions } from '@tanstack/react-query'
-import { weighingsService, type WeighingStatus } from '../services/weighings'
+import { weighingsService, type AffiliationStatus, type WeighingStatus } from '../services/weighings'
 import { queryKeys, type WeighingsListKey } from './keys'
+import { MIN_SEARCH_LENGTH } from './recyclers'
 
 export const weighingsQueries = {
   /** One filtered page; the previous page stays on screen while the next one loads. */
@@ -12,6 +13,8 @@ export const weighingsQueries = {
           {
             status: (filters.status || undefined) as WeighingStatus | undefined,
             material_code: filters.materialCode || undefined,
+            affiliation: (filters.affiliation || undefined) as AffiliationStatus | undefined,
+            q: filters.search.trim().length >= MIN_SEARCH_LENGTH ? filters.search.trim() : undefined,
             limit: filters.rowsPerPage,
             offset: filters.page * filters.rowsPerPage,
           },

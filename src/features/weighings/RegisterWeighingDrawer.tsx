@@ -9,11 +9,8 @@ import MuiTextField from '@mui/material/TextField'
 import InputAdornment from '@mui/material/InputAdornment'
 import { X } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Button, Snackbar, type SelectOption } from '../../components/ui'
-// Not in the ui barrel on purpose: MUI's Autocomplete is heavy and would join the first download.
-import { Autocomplete } from '../../components/ui/Autocomplete'
-import { useDebouncedValue } from '../../hooks/useDebouncedValue'
-import { recyclersQueries } from '../../queries/recyclers'
+import { Button, Snackbar } from '../../components/ui'
+import { PersonPicker, type Person } from './PersonPicker'
 import { catalogQueries } from '../../queries/catalogs'
 import { inventoryQueries } from '../../queries/inventory'
 import { AFFECTED, invalidateAffected } from '../../queries/invalidation'
@@ -27,31 +24,24 @@ interface Props {
 }
 
 interface FormState {
-  recycler_id: string
   material_code: string
   warehouse_id: string
   kg: string
   price_per_kg: string
 }
 
-const EMPTY: FormState = { recycler_id: '', material_code: '', warehouse_id: '', kg: '', price_per_kg: '' }
+const EMPTY: FormState = { material_code: '', warehouse_id: '', kg: '', price_per_kg: '' }
 
 export default function RegisterWeighingDrawer({ open, onClose }: Props) {
   const queryClient = useQueryClient()
   const [form, setForm] = useState<FormState>(EMPTY)
-  const [errors, setErrors] = useState<Partial<FormState>>({})
+  // Who delivers is held apart from the plain fields: it is a registered recycler or an unregistered seller.
+  const [person, setPerson] = useState<Person | null>(null)
+  const [errors, setErrors] = useState<Partial<Record<keyof FormState | 'person', string>>>({})
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
     open: false, message: '', severity: 'success',
   })
 
-  // The recycler picker searches on the server as the user types (there can be far more than fit in a list).
-  const [selectedRecycler, setSelectedRecycler] = useState<SelectOption | null>(null)
-  const [recyclerSearch, setRecyclerSearch] = useState('')
-  const debouncedRecyclerSearch = useDebouncedValue(recyclerSearch)
-  const { data: recyclersData, isFetching: recyclersLoading } = useQuery({
-    ...recyclersQueries.verified(debouncedRecyclerSearch),
-    enabled: open,
-  })
   const { data: materials = [] } = useQuery({ ...catalogQueries.materials(), enabled: open })
   const { data: warehouses = [] } = useQuery({ ...catalogQueries.warehouses(), enabled: open })
 
@@ -74,14 +64,17 @@ export default function RegisterWeighingDrawer({ open, onClose }: Props) {
   const [wasOpen, setWasOpen] = useState(open)
   if (open !== wasOpen) {
     setWasOpen(open)
-    if (open) { setForm(EMPTY); setErrors({}); setSuggestionAppliedFor(''); setSelectedRecycler(null); setRecyclerSearch('') }
+    if (open) { setForm(EMPTY); setErrors({}); setSuggestionAppliedFor(''); setPerson(null) }
   }
 
   const mutation = useMutation({
     meta: { silent: true },
     mutationFn: (f: FormState) =>
       weighingsService.create({
-        recycler_id: f.recycler_id,
+        // Exactly one of the two: a registered recycler, or the unregistered seller's own data.
+        ...(person?.kind === 'registered'
+          ? { recycler_id: person.recycler.id }
+          : { seller: { full_name: person!.full_name, id_type: person!.id_type, id_number: person!.id_number } }),
         material_code: f.material_code,
         warehouse_id: f.warehouse_id,
         kg: Number(f.kg),
@@ -98,8 +91,8 @@ export default function RegisterWeighingDrawer({ open, onClose }: Props) {
   })
 
   const validate = (): boolean => {
-    const e: Partial<FormState> = {}
-    if (!form.recycler_id)  e.recycler_id  = t.pesajes.drawer.validation.recycler
+    const e: Partial<Record<keyof FormState | 'person', string>> = {}
+    if (!person) e.person = t.pesajes.drawer.validation.person
     if (!form.material_code) e.material_code = t.pesajes.drawer.validation.material
     if (!form.warehouse_id) e.warehouse_id  = t.pesajes.drawer.validation.warehouse
     if (!form.kg || Number(form.kg) <= 0) e.kg = t.pesajes.drawer.validation.kg
@@ -117,11 +110,6 @@ export default function RegisterWeighingDrawer({ open, onClose }: Props) {
     setErrors((p) => ({ ...p, [key]: '' }))
   }
 
-  const recyclerOptions: SelectOption[] = (recyclersData?.items ?? []).map((r) => ({
-    value: r.id,
-    label: `${r.full_name} — ${r.id_number}`,
-  }))
-
   return (
     <>
       <Drawer anchor="right" open={open} onClose={onClose} PaperProps={{ sx: { width: 440 } }}>
@@ -136,21 +124,8 @@ export default function RegisterWeighingDrawer({ open, onClose }: Props) {
 
         <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2.5, overflowY: 'auto', flex: 1 }}>
 
-          {/* Reciclador */}
-          <Autocomplete
-            label={t.pesajes.drawer.recycler}
-            required
-            options={recyclerOptions}
-            value={selectedRecycler}
-            onChange={(option) => { setSelectedRecycler(option); set('recycler_id', option?.value ?? '') }}
-            onInputChange={setRecyclerSearch}
-            loading={recyclersLoading}
-            error={!!errors.recycler_id}
-            helperText={errors.recycler_id ?? t.pesajes.drawer.onlyVerified}
-            placeholder={t.pesajes.drawer.selectRecycler}
-            noOptionsText={t.pesajes.drawer.noVerifiedRecyclers}
-            loadingText={t.pesajes.drawer.searchingRecyclers}
-          />
+          {/* Quién entrega */}
+          <PersonPicker value={person} onChange={(next) => { setPerson(next); setErrors((p) => ({ ...p, person: '' })) }} error={errors.person} />
 
           {/* Material */}
           <MuiTextField

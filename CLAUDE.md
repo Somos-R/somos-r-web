@@ -72,7 +72,7 @@ Never load "all" rows and filter in the browser: the API returns one page (`limi
 - The table is controlled: it receives the page's rows and a `PaginationProps` (`toPaginationProps(pagination, total)`); the count shown is the server `total`, never `data.length`.
 - Counts and totals (dashboard, "pending" cards) come from the server: `list({ ..., limit: 1 }).total` or the stats endpoints, never from filtering a page.
 - Filter options come from the catalogs (`catalogQueries.materials()/warehouses()`), not from the rows on screen.
-- Text search happens on the server: `GET /users?q=` (contains, no case or accents, 2 characters minimum). The box keeps its own state and the query gets `useDebouncedValue(search.trim())` (300 ms), so it is one request per pause in typing; changing the text calls `pagination.resetPage()`. Pickers over long lists (the recycler in the weighing form) use the `Autocomplete` primitive (imported from `components/ui/Autocomplete`, not the barrel: it is heavy and belongs to the page chunk that uses it, not the first download), which shows what the server returned for the typed text, never a full list.
+- Text search happens on the server: `GET /users?q=` (contains, no case or accents, 2 characters minimum). The box keeps its own state and the query gets `useDebouncedValue(search.trim())` (300 ms), so it is one request per pause in typing; changing the text calls `pagination.resetPage()`. The same for weighings (`GET /weighings?q=`: name or document of whoever delivered, registered or not) and staff.
 
 ### Code splitting
 
@@ -109,6 +109,10 @@ Many-to-many, **always started by the ECA and decided by the Association**; eith
 - **Association** (`AssociationLinks`): the requests ECAs made (starts on *pending*, which is what needs an answer): accept, reject (optional reason of up to 200 characters that the ECA sees) and end an active link. No directory: an Association never starts a link.
 - Ending a link or cancelling a request asks for confirmation. Every action reloads **links and directory** (the directory carries each link's state), reports its own result, and on failure reloads too: a refusal usually means the other side already answered (`link_not_pending`).
 - The other organization is shown as a name and a city only (that is all the server gives).
+
+### Weighings: an ECA receives material from whoever brings it
+
+The weighing form (`RegisterWeighingDrawer` + `PersonPicker`) doesn't pick the recycler from a list: it **identifies them by document** (`GET /recyclers/lookup?document=&id_type=`; `id_type` is sent whenever the operator chose one, to avoid matches between different kinds of document). A registered recycler of *any* association (or none) shows their association and how they relate to this ECA (`affiliation`: `linked`, `unlinked_association`, `independent`), which decides whether the weighing reaches an association; a deactivated account is refused up front. If there is no such recycler (404 `recycler_not_found`) the weighing is registered as an **unregistered seller** with their name and document. The create payload has **exactly one** of `recycler_id` or `seller` (the types enforce it). Weighings, therefore, may have `recycler: null` with `seller_*` fields: never assume a recycler when rendering. The list filters by `affiliation` and searches by `q`.
 
 ### Staff invitations (`/personal`)
 
