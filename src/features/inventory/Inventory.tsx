@@ -4,13 +4,15 @@ import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 import MuiTextField from '@mui/material/TextField'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import InventoryTable, { type InventoryItem } from './InventoryTable'
+import InventoryTable, { type InventoryItem, type InventorySort } from './InventoryTable'
 import { Card, CardContent, Dialog, DialogTitle, DialogContent, DialogActions, Button, Snackbar, Loader } from '../../components/ui'
 import { t, interpolate } from '../../lib/i18n'
 import { inventoryQueries } from '../../queries/inventory'
 import { catalogQueries } from '../../queries/catalogs'
 import { AFFECTED, invalidateAffected } from '../../queries/invalidation'
-import { inventoryService, type InventoryItemAPI, type InventoryStatus } from '../../services/inventory'
+import { inventoryService, type InventoryItemAPI, type InventorySortColumn, type InventoryStatus } from '../../services/inventory'
+import { csvFileName, saveBlob } from '../../lib/download'
+import { nextSort } from '../../lib/sorting'
 import { toPaginationProps, usePagination } from '../../lib/pagination'
 import { useRoles } from '../../hooks/useRoles'
 
@@ -55,11 +57,21 @@ export default function Inventory() {
   const [status, setStatus] = useState<InventoryStatus | ''>('')
   const [materialCode, setMaterialCode] = useState('')
   const [warehouseId, setWarehouseId] = useState('')
+  // A to Z by material, as the server does when nothing is asked.
+  const [sort, setSort] = useState<InventorySort>({ column: 'material', direction: 'asc' })
   const pagination = usePagination()
+
+  const handleSortChange = (column: InventorySortColumn) => {
+    setSort((current) => nextSort(current, column, 'updated_at'))
+    pagination.resetPage()
+  }
 
   // The server filters and paginates; the previous page stays on screen while the next loads.
   const { data: listData, isLoading: listLoading, isFetching: listFetching } = useQuery(
-    inventoryQueries.list({ status, materialCode, warehouseId, page: pagination.page, rowsPerPage: pagination.rowsPerPage }),
+    inventoryQueries.list({
+      status, materialCode, warehouseId, sort: sort.column, order: sort.direction,
+      page: pagination.page, rowsPerPage: pagination.rowsPerPage,
+    }),
   )
   pagination.clamp(listData?.total)
 
@@ -81,6 +93,20 @@ export default function Inventory() {
     onError: () => {
       setEditError(t.inventario.updateError)
     },
+  })
+
+  // The file holds every inventory row matching the filters and order on screen, not just the visible page.
+  // A failure (too many rows) is reported by the global handler.
+  const exportMutation = useMutation({
+    mutationFn: () =>
+      inventoryService.exportCsv({
+        status: status || undefined,
+        material_code: materialCode || undefined,
+        warehouse_id: warehouseId || undefined,
+        sort: sort.column,
+        order: sort.direction,
+      }),
+    onSuccess: (file) => saveBlob(file, csvFileName(t.inventario.exportFile)),
   })
 
   const handleOpenEdit = (item: InventoryItem) => {
@@ -116,9 +142,16 @@ export default function Inventory() {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <Box>
-        <Typography variant="h5" component="h1" fontWeight={600}>{t.inventario.title}</Typography>
-        <Typography variant="body2" color="text.secondary" mt={0.5}>{t.inventario.subtitle}</Typography>
+      <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+        <Box>
+          <Typography variant="h5" component="h1" fontWeight={600}>{t.inventario.title}</Typography>
+          <Typography variant="body2" color="text.secondary" mt={0.5}>{t.inventario.subtitle}</Typography>
+        </Box>
+        {can('inventory.view') && (
+          <Button variant="outlined" disabled={exportMutation.isPending} onClick={() => exportMutation.mutate()}>
+            {exportMutation.isPending ? t.common.exportCsv.busy : t.common.exportCsv.button}
+          </Button>
+        )}
       </Box>
 
       <Grid container spacing={2}>
@@ -148,6 +181,8 @@ export default function Inventory() {
         warehouseId={warehouseId}
         onWarehouseChange={(id) => { setWarehouseId(id); pagination.resetPage() }}
         warehouseOptions={warehouses}
+        sort={sort}
+        onSortChange={handleSortChange}
         pagination={toPaginationProps(pagination, listData?.total ?? 0)}
         onEdit={can('inventory.edit') ? handleOpenEdit : undefined}
       />

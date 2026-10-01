@@ -15,7 +15,7 @@ describe('queryKeys', () => {
     queryKeys.weighings.list({ status: '', materialCode: '', affiliation: 'independent', search: '', ...order, ...page }),
     queryKeys.weighings.stats,
     queryKeys.weighings.recent,
-    queryKeys.inventory.list({ status: '', materialCode: '', warehouseId: '', ...page }),
+    queryKeys.inventory.list({ status: '', materialCode: '', warehouseId: '', sort: 'material', order: 'asc', ...page }),
     queryKeys.inventory.stats,
     queryKeys.inventory.priceSuggestion('PET', 'w1'),
     queryKeys.transactions.list('purchase', { ...page, ...order }),

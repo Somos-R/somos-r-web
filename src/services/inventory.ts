@@ -1,4 +1,6 @@
 import { apiClient, type RequestOptions } from '../lib/apiClient'
+import { unwrapBlobError } from '../lib/download'
+import type { SortOrder } from '../lib/sorting'
 
 export type InventoryStatus = 'available' | 'low_stock' | 'out_of_stock'
 
@@ -41,10 +43,19 @@ export interface InventoryStats {
   out_of_stock_count: number
 }
 
-export interface InventoryListParams {
+export type InventorySortColumn =
+  | 'material' | 'warehouse' | 'stock_kg' | 'price_per_kg' | 'total_value' | 'status' | 'updated_at'
+
+/** What narrows and orders the inventory; the list adds a page, the CSV export takes every match. */
+export interface InventoryFilters {
   material_code?: string
   warehouse_id?: string
   status?: InventoryStatus
+  sort?: InventorySortColumn
+  order?: SortOrder
+}
+
+export type InventoryListParams = InventoryFilters & {
   limit?: number
   offset?: number
 }
@@ -57,6 +68,13 @@ export interface UpdateInventoryPayload {
 export const inventoryService = {
   list: (params: InventoryListParams = {}, options?: RequestOptions): Promise<InventoryListResponse> =>
     apiClient.get('/inventory', { params: { limit: 50, ...params }, signal: options?.signal }).then((r) => r.data),
+
+  /** Every inventory row matching the filters (not one page) as a CSV file. */
+  exportCsv: (params: InventoryFilters = {}, options?: RequestOptions): Promise<Blob> =>
+    apiClient
+      .get('/inventory/export.csv', { params, responseType: 'blob', signal: options?.signal })
+      .then((r) => r.data as Blob)
+      .catch(unwrapBlobError),
 
   stats: (options?: RequestOptions): Promise<InventoryStats> =>
     apiClient.get('/inventory/stats', { signal: options?.signal }).then((r) => r.data),

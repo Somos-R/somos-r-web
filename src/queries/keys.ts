@@ -28,6 +28,8 @@ export interface InventoryListKey {
   status: string
   materialCode: string
   warehouseId: string
+  sort: string
+  order: string
   page: number
   rowsPerPage: number
 }
