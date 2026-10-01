@@ -1,6 +1,7 @@
 import { keepPreviousData, queryOptions } from '@tanstack/react-query'
 import { periodBounds } from '../lib/period'
-import { weighingsService, type AffiliationStatus, type SortOrder, type WeighingSortColumn, type WeighingStatus } from '../services/weighings'
+import type { SortOrder } from '../lib/sorting'
+import { weighingsService, type AffiliationStatus, type WeighingSortColumn, type WeighingStatus } from '../services/weighings'
 import { queryKeys, type WeighingsListKey } from './keys'
 import { MIN_SEARCH_LENGTH } from './recyclers'
 

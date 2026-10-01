@@ -14,7 +14,8 @@ import { Card, CardContent, Button, Loader } from '../../components/ui'
 import { t } from '../../lib/i18n'
 import { weighingsService, type AffiliationStatus, type WeighingAPI, type WeighingSortColumn, type WeighingStatus, type WeighingStatusTransition } from '../../services/weighings'
 import { periodBounds } from '../../lib/period'
-import { saveBlob } from '../../lib/download'
+import { csvFileName, saveBlob } from '../../lib/download'
+import { nextSort } from '../../lib/sorting'
 import { MIN_SEARCH_LENGTH } from '../../queries/recyclers'
 import { weighingsQueries } from '../../queries/weighings'
 import { catalogQueries } from '../../queries/catalogs'
@@ -83,14 +84,8 @@ export default function Weighings() {
   const [sort, setSort] = useState<WeighingSort>({ column: 'occurred_at', direction: 'desc' })
   const pagination = usePagination()
 
-  // Clicking the ordered column flips it; a new column starts in its natural direction
-  // (newest first for dates, smallest first for the rest).
   const handleSortChange = (column: WeighingSortColumn) => {
-    setSort((current) =>
-      current.column === column
-        ? { column, direction: current.direction === 'asc' ? 'desc' : 'asc' }
-        : { column, direction: column === 'occurred_at' ? 'desc' : 'asc' },
-    )
+    setSort((current) => nextSort(current, column, 'occurred_at'))
     pagination.resetPage()
   }
 
@@ -131,7 +126,7 @@ export default function Weighings() {
         sort: sort.column,
         order: sort.direction,
       }),
-    onSuccess: (file) => saveBlob(file, `${t.pesajes.export.fileName}-${new Date().toISOString().slice(0, 10)}.csv`),
+    onSuccess: (file) => saveBlob(file, csvFileName(t.pesajes.exportFile)),
   })
 
   const handleValidate = (id: string) => {
@@ -181,7 +176,7 @@ export default function Weighings() {
         <Box sx={{ display: 'flex', gap: 1 }}>
           {can('weighings.view') && (
             <Button variant="outlined" disabled={exportMutation.isPending} onClick={() => exportMutation.mutate()}>
-              {exportMutation.isPending ? t.pesajes.export.busy : t.pesajes.export.button}
+              {exportMutation.isPending ? t.common.exportCsv.busy : t.common.exportCsv.button}
             </Button>
           )}
           {can('weighings.create') && <Button onClick={() => setDrawerOpen(true)}>{t.pesajes.newWeighing}</Button>}

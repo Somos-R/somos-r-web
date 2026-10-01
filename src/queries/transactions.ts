@@ -1,13 +1,25 @@
 import { keepPreviousData, queryOptions } from '@tanstack/react-query'
-import { transactionsService } from '../services/transactions'
-import { queryKeys, type PageKey, type TransactionKind } from './keys'
+import { periodBounds } from '../lib/period'
+import type { SortOrder } from '../lib/sorting'
+import { transactionsService, type TransactionSortColumn } from '../services/transactions'
+import { queryKeys, type TransactionKind, type TransactionsListKey } from './keys'
 
 export const transactionsQueries = {
-  list: (kind: TransactionKind, page: PageKey) =>
+  list: (kind: TransactionKind, filters: TransactionsListKey) =>
     queryOptions({
-      queryKey: queryKeys.transactions.list(kind, page),
+      queryKey: queryKeys.transactions.list(kind, filters),
       queryFn: ({ signal }) =>
-        transactionsService.list({ type: kind, limit: page.rowsPerPage, offset: page.page * page.rowsPerPage }, { signal }),
+        transactionsService.list(
+          {
+            type: kind,
+            ...periodBounds(filters.dateFrom, filters.dateTo),
+            sort: filters.sort as TransactionSortColumn,
+            order: filters.order as SortOrder,
+            limit: filters.rowsPerPage,
+            offset: filters.page * filters.rowsPerPage,
+          },
+          { signal },
+        ),
       placeholderData: keepPreviousData,
     }),
 

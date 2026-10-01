@@ -66,6 +66,14 @@ export interface PageKey {
   rowsPerPage: number
 }
 
+/** One page of a tab (purchases or sales), with the period and order the server applies. */
+export interface TransactionsListKey extends PageKey {
+  dateFrom: string
+  dateTo: string
+  sort: string
+  order: string
+}
+
 export type TransactionKind = 'purchase' | 'sale'
 
 export const queryKeys = {
@@ -98,7 +106,7 @@ export const queryKeys = {
 
   transactions: {
     all: ['transactions'] as const,
-    list: (kind: TransactionKind, page: PageKey) => ['transactions', 'list', kind, page] as const,
+    list: (kind: TransactionKind, filters: TransactionsListKey) => ['transactions', 'list', kind, filters] as const,
     pendingCount: (kind: TransactionKind) => ['transactions', 'count', kind, 'pending'] as const,
     stats: ['transactions', 'stats'] as const,
   },

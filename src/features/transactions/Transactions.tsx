@@ -7,7 +7,7 @@ import Tab from '@mui/material/Tab'
 import Tooltip from '@mui/material/Tooltip'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
-  Table, TableHead, TableBody, TableRow, TableCell, TableContainer, TablePagination,
+  Table, TableHead, TableBody, TableRow, TableCell, SortableTableCell, TableContainer, TablePagination,
   Badge, Button, Input, Select, Dialog, DialogTitle, DialogContent, DialogActions, Card, CardContent,
   Loader,
 } from '../../components/ui'
@@ -15,13 +15,19 @@ import { t, interpolate } from '../../lib/i18n'
 import {
   transactionsService,
   type TransactionAPI,
+  type TransactionSortColumn,
   type TransactionStatus,
   type CreateSalePayload,
 } from '../../services/transactions'
 import { transactionsQueries } from '../../queries/transactions'
+import type { TransactionKind } from '../../queries/keys'
 import { catalogQueries } from '../../queries/catalogs'
 import { AFFECTED, invalidateAffected } from '../../queries/invalidation'
+import PeriodFilter from '../../components/lists/PeriodFilter'
 import { getApiErrorMessage } from '../../lib/apiError'
+import { csvFileName, saveBlob } from '../../lib/download'
+import { periodBounds } from '../../lib/period'
+import { nextSort, type SortState } from '../../lib/sorting'
 import { useRoles } from '../../hooks/useRoles'
 import { PAGE_SIZE_OPTIONS, usePagination } from '../../lib/pagination'
 
@@ -62,13 +68,20 @@ export default function Transactions() {
   const purchasePagination = usePagination()
   const salePagination = usePagination()
 
+  // One period and one order for both tabs; the server applies them to whichever list is on screen.
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
+  const [sort, setSort] = useState<SortState<TransactionSortColumn>>({ column: 'occurred_at', direction: 'desc' })
+  const listFilters = { dateFrom, dateTo, sort: sort.column, order: sort.direction }
+  const resetPages = () => { purchasePagination.resetPage(); salePagination.resetPage() }
+
   const { data: purchasesData, isLoading: purchasesLoading, isFetching: purchasesFetching } = useQuery(
-    transactionsQueries.list('purchase', { page: purchasePagination.page, rowsPerPage: purchasePagination.rowsPerPage }),
+    transactionsQueries.list('purchase', { ...listFilters, page: purchasePagination.page, rowsPerPage: purchasePagination.rowsPerPage }),
   )
   purchasePagination.clamp(purchasesData?.total)
 
   const { data: salesData, isLoading: salesLoading, isFetching: salesFetching } = useQuery(
-    transactionsQueries.list('sale', { page: salePagination.page, rowsPerPage: salePagination.rowsPerPage }),
+    transactionsQueries.list('sale', { ...listFilters, page: salePagination.page, rowsPerPage: salePagination.rowsPerPage }),
   )
   salePagination.clamp(salesData?.total)
 
@@ -103,6 +116,43 @@ export default function Transactions() {
     // Also closes the cancel dialog so the error notification isn't hidden behind it.
     onSettled: () => { setActionLoadingId(null); setCancelTargetId(null) },
   })
+
+  // The file holds every transaction of that tab matching the period and order on screen, not just the
+  // visible page. A failure (too many rows) is reported by the global handler.
+  const exportMutation = useMutation({
+    mutationFn: (kind: TransactionKind) =>
+      transactionsService.exportCsv({ type: kind, ...periodBounds(dateFrom, dateTo), sort: sort.column, order: sort.direction }),
+    onSuccess: (file, kind) => saveBlob(file, csvFileName(t.transacciones.exportFile[kind])),
+  })
+
+  const handleSortChange = (column: TransactionSortColumn) => {
+    setSort((current) => nextSort(current, column, 'occurred_at'))
+    resetPages()
+  }
+
+  const sortHeader = (column: TransactionSortColumn, label: string, align?: 'right') => (
+    <SortableTableCell align={align} active={sort.column === column} direction={sort.direction} onSort={() => handleSortChange(column)}>
+      {label}
+    </SortableTableCell>
+  )
+
+  const renderToolbar = (kind: TransactionKind) => (
+    <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1.5, px: 2, py: 1.5, borderBottom: '1px solid', borderColor: 'divider' }}>
+      <PeriodFilter
+        from={dateFrom}
+        to={dateTo}
+        onFromChange={(day) => { setDateFrom(day); resetPages() }}
+        onToChange={(day) => { setDateTo(day); resetPages() }}
+      />
+      {can('transactions.view') && (
+        <Box sx={{ ml: 'auto' }}>
+          <Button variant="outlined" disabled={exportMutation.isPending} onClick={() => exportMutation.mutate(kind)}>
+            {exportMutation.isPending ? t.common.exportCsv.busy : t.common.exportCsv.button}
+          </Button>
+        </Box>
+      )}
+    </Box>
+  )
 
   const handleSaleSubmit = () => {
     if (!saleForm.warehouse_id || !saleForm.kg || !saleForm.price_per_kg) {
@@ -194,16 +244,17 @@ export default function Transactions() {
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}><Loader /></Box>
           ) : (
             <TableContainer sx={{ opacity: purchasesFetching ? 0.6 : 1, transition: 'opacity 120ms' }}>
+              {renderToolbar('purchase')}
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell>{t.transacciones.table.date}</TableCell>
+                    {sortHeader('occurred_at', t.transacciones.table.date)}
                     <TableCell>{t.transacciones.table.recycler}</TableCell>
                     <TableCell>{t.transacciones.table.material}</TableCell>
-                    <TableCell align="right">{t.transacciones.table.kg}</TableCell>
-                    <TableCell align="right">{t.transacciones.table.pricePerKg}</TableCell>
-                    <TableCell align="right">{t.transacciones.table.total}</TableCell>
-                    <TableCell>{t.transacciones.table.status}</TableCell>
+                    {sortHeader('kg', t.transacciones.table.kg, 'right')}
+                    {sortHeader('price_per_kg', t.transacciones.table.pricePerKg, 'right')}
+                    {sortHeader('total_value', t.transacciones.table.total, 'right')}
+                    {sortHeader('status', t.transacciones.table.status)}
                     <TableCell>{t.common.actions}</TableCell>
                   </TableRow>
                 </TableHead>
@@ -275,16 +326,17 @@ export default function Transactions() {
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}><Loader /></Box>
           ) : (
             <TableContainer sx={{ opacity: salesFetching ? 0.6 : 1, transition: 'opacity 120ms' }}>
+              {renderToolbar('sale')}
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell>{t.transacciones.table.date}</TableCell>
+                    {sortHeader('occurred_at', t.transacciones.table.date)}
                     <TableCell>{t.transacciones.table.company}</TableCell>
                     <TableCell>{t.transacciones.table.material}</TableCell>
-                    <TableCell align="right">{t.transacciones.table.kg}</TableCell>
-                    <TableCell align="right">{t.transacciones.table.pricePerKg}</TableCell>
-                    <TableCell align="right">{t.transacciones.table.total}</TableCell>
-                    <TableCell>{t.transacciones.table.status}</TableCell>
+                    {sortHeader('kg', t.transacciones.table.kg, 'right')}
+                    {sortHeader('price_per_kg', t.transacciones.table.pricePerKg, 'right')}
+                    {sortHeader('total_value', t.transacciones.table.total, 'right')}
+                    {sortHeader('status', t.transacciones.table.status)}
                     <TableCell>{t.common.actions}</TableCell>
                   </TableRow>
                 </TableHead>
