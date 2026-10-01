@@ -30,6 +30,11 @@ export interface CreateRecyclerPayload {
   id_type: string
   id_number: string
   phone: string | null
+  /**
+   * The association the recycler belongs to (it is who verifies them). Association staff leave it out: the
+   * backend uses their own. Anyone else must send it, or the backend answers 422 `association_required`.
+   */
+  association_id?: string
 }
 
 export interface UpdateStatusPayload {

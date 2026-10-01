@@ -55,6 +55,10 @@ export function getErrorCode(error: unknown): string | undefined {
   return typeof code === 'string' ? code : undefined
 }
 
+// A 422 normally means "a field is invalid" and gets the generic validation text. These carry a stable code
+// whose own sentence says what to do (choose a role, choose an association), so they are translated instead.
+const CODED_422 = new Set(['invalid_role', 'association_required', 'invalid_association'])
+
 /**
  * Turns a failed API call into text that is safe to render.
  *
@@ -77,7 +81,7 @@ export function getApiErrorMessage(error: unknown, fallback: string): string {
     const seconds = retryAfterSeconds(response.headers)
     return seconds ? interpolate(t.errors.tooManyRequestsWait, { seconds }) : t.errors.tooManyRequests
   }
-  if (response.status === 422 && getErrorCode(error) !== 'invalid_role') {
+  if (response.status === 422 && !CODED_422.has(getErrorCode(error) ?? '')) {
     return Array.isArray(detail) ? validationMessage(detail) : t.errors.validation
   }
 

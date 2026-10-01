@@ -20,7 +20,7 @@ const BACKEND_CODES = [
   'invalid_link', 'wrong_current_password',
   'account_already_exists', 'tax_id_already_registered',
   'invalid_role', 'method_not_allowed', 'internal_error',
-  'invalid_id_type', 'no_organization', 'organization_not_active', 'invitation_not_pending',
+  'invalid_id_type', 'association_required', 'invalid_association', 'no_organization', 'organization_not_active', 'invitation_not_pending',
   'export_too_large', 'link_not_found', 'link_already_requested', 'link_already_active', 'link_not_pending', 'link_not_removable',
 ]
 
@@ -55,6 +55,12 @@ describe('getErrorCode', () => {
 })
 
 describe('getApiErrorMessage with codes', () => {
+  it('translates a 422 that carries a code with its own sentence, and keeps the generic text for the rest', () => {
+    expect(getApiErrorMessage(failure(422, { detail: 'x', code: 'association_required' }), 'fallback')).toBe(t.apiErrors.association_required)
+    expect(getApiErrorMessage(failure(422, { detail: 'x', code: 'invalid_association' }), 'fallback')).toBe(t.apiErrors.invalid_association)
+    expect(getApiErrorMessage(failure(422, { detail: 'x', code: 'invalid_id_type' }), 'fallback')).toBe(t.errors.validation)
+  })
+
   it('prefers the translated code over the backend wording, which may change', () => {
     const error = failure(404, { detail: 'Pesaje no encontrado (texto viejo)', code: 'weighing_not_found' })
     expect(getApiErrorMessage(error, 'fallback')).toBe(t.apiErrors.weighing_not_found)
