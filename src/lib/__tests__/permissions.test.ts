@@ -29,6 +29,7 @@ const MATRIX: Record<Exclude<Permission, 'settings.view'>, boolean[]> = {
   // Only organization admins see and invite their organization's staff.
   'staff.view':          [true,  false, false, true,  false, false],
   'staff.invite':        [true,  false, false, true,  false, false],
+  'staff.manage':        [true,  false, false, true,  false, false],
   // Links between an ECA and an Association: both admins see them, the ECA asks, the Association decides.
   'links.view':          [true,  false, false, true,  false, false],
   'links.request':       [false, false, false, true,  false, false],

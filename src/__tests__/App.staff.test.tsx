@@ -10,6 +10,7 @@ import { clearSession, setTokens } from '../lib/session'
 import { t } from '../lib/i18n'
 import { fakeJwt, mockAdapter } from '../test/helpers'
 import { capabilitiesForRole } from '../test/capabilities'
+import { expectNoA11yViolations } from '../test/axe'
 import type { StaffRole } from '../lib/permissions'
 
 // The "Personal" screen: an organization admin sees their own staff and invites people, who choose
@@ -25,6 +26,8 @@ const STAFF = [
   person('s1', 'Carla Operadora', 'eca_operator'),
   person('s2', 'Pedro Pendiente', 'eca_warehouse', { pending_activation: true, is_active: true }),
   person('s3', 'Dora Desactivada', 'eca_operator', { is_active: false }),
+  // The signed-in admin themselves (their id is 'me'): nobody deactivates their own account.
+  person('me', 'Ana Administradora', 'eca_admin'),
 ]
 
 const ROLES = [
@@ -37,6 +40,7 @@ const ROLES = [
 interface Recorded { method: string; url: string; params: Record<string, unknown>; body: unknown }
 let requests: Recorded[]
 let inviteFailure: { status: number; code: string } | null
+let statusFailure: { status: number; code: string } | null
 
 function signInAs(role: StaffRole, userType: string) {
   setTokens({ access_token: fakeJwt({ sub: 'me' }), refresh_token: 'r' })
@@ -58,6 +62,12 @@ function signInAs(role: StaffRole, userType: string) {
       if (inviteFailure) return { status: inviteFailure.status, data: { detail: 'x', code: inviteFailure.code } }
       const body = JSON.parse(c.data)
       return { status: 201, data: person('new', body.full_name, body.role_code, { email: body.email, pending_activation: true }) }
+    }
+    const statusUrl = /^\/users\/([^/]+)\/status$/.exec(url)
+    if (statusUrl && method === 'PATCH') {
+      if (statusFailure) return { status: statusFailure.status, data: { detail: 'x', code: statusFailure.code } }
+      const found = STAFF.find((p) => p.id === statusUrl[1])!
+      return { data: { ...found, is_active: JSON.parse(c.data).is_active } }
     }
     if (/^\/users\/[^/]+\/invitation\/resend$/.test(url)) return { data: person('s2', 'Pedro Pendiente', 'eca_warehouse', { pending_activation: true }) }
     if (url === '/catalogs/roles') return { data: ROLES }
@@ -84,6 +94,7 @@ describe('staff screen', () => {
     resetNotifier()
     requests = []
     inviteFailure = null
+    statusFailure = null
   })
 
   it('lists the staff of the admin\'s own kind of organization, with role and status', async () => {
@@ -156,6 +167,73 @@ describe('staff screen', () => {
     await userEvent.click(await screen.findByRole('option', { name: 'ECA · Operador de báscula' }))
     await userEvent.click(screen.getByRole('button', { name: t.personal.invite.submitLabel }))
     expect(await screen.findByText('Ya existe una cuenta con esos datos.')).toBeInTheDocument()
+  })
+
+  it('deactivates a person after confirming, with the optional reason, and reloads the list', async () => {
+    signInAs('eca_admin', 'eca')
+    renderAt('/personal')
+    await screen.findByText('Carla Operadora')
+    await userEvent.click(screen.getByRole('button', { name: `${t.personal.status_change.deactivateButton} Carla Operadora` }))
+    const dialog = within(await screen.findByRole('dialog'))
+    // Nothing is sent until the admin confirms.
+    expect(to('PATCH', '/users/s1/status')).toHaveLength(0)
+    await userEvent.type(dialog.getByLabelText(t.personal.status_change.reasonLabel), '  Renunció  ')
+    await userEvent.click(dialog.getByRole('button', { name: t.personal.status_change.confirmDeactivate }))
+
+    await waitFor(() => expect(to('PATCH', '/users/s1/status')).toHaveLength(1))
+    expect(to('PATCH', '/users/s1/status')[0].body).toEqual({ is_active: false, reason: 'Renunció' })
+    expect(await screen.findByText('Carla Operadora fue desactivada')).toBeInTheDocument()
+    await waitFor(() => expect(to('GET', '/users').length).toBeGreaterThanOrEqual(2))
+  })
+
+  it('deactivates without a reason when none is given', async () => {
+    signInAs('eca_admin', 'eca')
+    renderAt('/personal')
+    await screen.findByText('Carla Operadora')
+    await userEvent.click(screen.getByRole('button', { name: `${t.personal.status_change.deactivateButton} Carla Operadora` }))
+    await userEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: t.personal.status_change.confirmDeactivate }))
+    await waitFor(() => expect(to('PATCH', '/users/s1/status')).toHaveLength(1))
+    expect(to('PATCH', '/users/s1/status')[0].body).toEqual({ is_active: false })
+  })
+
+  it('reactivates a deactivated person in one step, and offers it only to them', async () => {
+    signInAs('eca_admin', 'eca')
+    renderAt('/personal')
+    await screen.findByText('Carla Operadora')
+    expect(screen.getAllByRole('button', { name: new RegExp(`^${t.personal.status_change.reactivateButton}`) })).toHaveLength(1)
+    await userEvent.click(screen.getByRole('button', { name: `${t.personal.status_change.reactivateButton} Dora Desactivada` }))
+    await waitFor(() => expect(to('PATCH', '/users/s3/status')).toHaveLength(1))
+    expect(to('PATCH', '/users/s3/status')[0].body).toEqual({ is_active: true })
+    expect(await screen.findByText('Dora Desactivada fue reactivada')).toBeInTheDocument()
+  })
+
+  it('does not offer to deactivate their own account', async () => {
+    signInAs('eca_admin', 'eca')
+    renderAt('/personal')
+    await screen.findByText('Ana Administradora')
+    const own = screen.getByRole('row', { name: /Ana Administradora/ })
+    expect(within(own).queryByRole('button')).not.toBeInTheDocument()
+  })
+
+  it('shows the translated reason when the server refuses the change', async () => {
+    signInAs('eca_admin', 'eca')
+    statusFailure = { status: 404, code: 'user_not_found' }
+    renderAt('/personal')
+    await screen.findByText('Carla Operadora')
+    await userEvent.click(screen.getByRole('button', { name: `${t.personal.status_change.deactivateButton} Carla Operadora` }))
+    await userEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: t.personal.status_change.confirmDeactivate }))
+    expect(await screen.findByText(t.apiErrors.user_not_found)).toBeInTheDocument()
+    // The list reloads: the person was probably changed by someone else.
+    await waitFor(() => expect(to('GET', '/users').length).toBeGreaterThanOrEqual(2))
+  })
+
+  it('has no accessibility violations with the deactivation dialog open', async () => {
+    signInAs('eca_admin', 'eca')
+    renderAt('/personal')
+    await screen.findByText('Carla Operadora')
+    await userEvent.click(screen.getByRole('button', { name: `${t.personal.status_change.deactivateButton} Carla Operadora` }))
+    await screen.findByRole('dialog')
+    await expectNoA11yViolations()
   })
 
   it('is not reachable for roles the server did not give staff.view', async () => {

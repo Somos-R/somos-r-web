@@ -38,6 +38,7 @@ export type ServerPermission =
   | 'transactions.pay'
   | 'staff.view'
   | 'staff.invite'
+  | 'staff.manage'
   | 'links.view'
   | 'links.request'
   | 'links.decide'
