@@ -7,10 +7,11 @@ import { queryClient } from '../lib/queryClient'
 import { resetNotifier } from '../lib/notifier'
 import { clearSession } from '../lib/session'
 import { t } from '../lib/i18n'
+import { httpError } from '../test/helpers'
 import { renderAt, serveApi } from '../test/fakeApi'
 import { saveBlob } from '../lib/download'
 
-vi.mock('../lib/download', () => ({ saveBlob: vi.fn() }))
+vi.mock('../lib/download', async (importOriginal) => ({ ...(await importOriginal<typeof import('../lib/download')>()), saveBlob: vi.fn() }))
 
 // What the weighings screen asks the server when the operator orders the table, bounds a period or
 // downloads the CSV. The server does the ordering and the filtering; the screen only sends the request.
@@ -32,7 +33,6 @@ function serveWithExport() {
       exportRequests.push((config.params ?? {}) as Params)
       if (exportFails) {
         const body = new Blob([JSON.stringify({ detail: 'x', code: 'export_too_large' })])
-        const { httpError } = await import('../test/helpers')
         throw httpError(config, 400, body)
       }
       return { status: 200, data: new Blob(['date,kg\n']), statusText: 'OK', headers: {}, config }
@@ -86,8 +86,8 @@ describe('weighings: order, period and CSV', () => {
     renderAt('/pesajes')
     await screen.findByText('Rita Pendiente')
 
-    fireEvent.change(screen.getByLabelText(t.pesajes.period.from), { target: { value: '2026-03-01' } })
-    fireEvent.change(screen.getByLabelText(t.pesajes.period.to), { target: { value: '2026-03-31' } })
+    fireEvent.change(screen.getByLabelText(t.common.period.from), { target: { value: '2026-03-01' } })
+    fireEvent.change(screen.getByLabelText(t.common.period.to), { target: { value: '2026-03-31' } })
 
     await waitFor(() => expect(lastList()).toMatchObject({
       date_from: new Date('2026-03-01T00:00:00.000').toISOString(),
@@ -99,19 +99,19 @@ describe('weighings: order, period and CSV', () => {
   it('warns when the period runs backwards', async () => {
     renderAt('/pesajes')
     await screen.findByText('Rita Pendiente')
-    fireEvent.change(screen.getByLabelText(t.pesajes.period.from), { target: { value: '2026-03-10' } })
-    fireEvent.change(screen.getByLabelText(t.pesajes.period.to), { target: { value: '2026-03-01' } })
-    expect(await screen.findByText(t.pesajes.period.backwards)).toBeInTheDocument()
+    fireEvent.change(screen.getByLabelText(t.common.period.from), { target: { value: '2026-03-10' } })
+    fireEvent.change(screen.getByLabelText(t.common.period.to), { target: { value: '2026-03-01' } })
+    expect(await screen.findByText(t.common.period.backwards)).toBeInTheDocument()
   })
 
   it('downloads the CSV with the filters and order on screen, and no page', async () => {
     renderAt('/pesajes')
     await screen.findByText('Rita Pendiente')
     await userEvent.click(screen.getByRole('button', { name: t.pesajes.table.kg }))
-    fireEvent.change(screen.getByLabelText(t.pesajes.period.from), { target: { value: '2026-03-01' } })
+    fireEvent.change(screen.getByLabelText(t.common.period.from), { target: { value: '2026-03-01' } })
     await waitFor(() => expect(lastList()).toMatchObject({ sort: 'kg', date_from: expect.any(String) }))
 
-    await userEvent.click(screen.getByRole('button', { name: t.pesajes.export.button }))
+    await userEvent.click(screen.getByRole('button', { name: t.common.exportCsv.button }))
 
     await waitFor(() => expect(saveBlob).toHaveBeenCalledTimes(1))
     expect(exportRequests[0]).toMatchObject({ sort: 'kg', order: 'asc', date_from: new Date('2026-03-01T00:00:00.000').toISOString() })
@@ -124,7 +124,7 @@ describe('weighings: order, period and CSV', () => {
     exportFails = true
     renderAt('/pesajes')
     await screen.findByText('Rita Pendiente')
-    await userEvent.click(screen.getByRole('button', { name: t.pesajes.export.button }))
+    await userEvent.click(screen.getByRole('button', { name: t.common.exportCsv.button }))
     expect(await screen.findByText(t.apiErrors.export_too_large)).toBeInTheDocument()
     expect(saveBlob).not.toHaveBeenCalled()
   })

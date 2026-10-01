@@ -1,4 +1,6 @@
 import { apiClient, type RequestOptions } from '../lib/apiClient'
+import { unwrapBlobError } from '../lib/download'
+import type { SortOrder } from '../lib/sorting'
 
 export type TransactionType = 'purchase' | 'sale'
 export type TransactionStatus = 'pending' | 'paid' | 'cancelled' | 'delivered'
@@ -67,15 +69,30 @@ export interface CreateSalePayload {
   buyer_email?: string
 }
 
+export type TransactionSortColumn = 'occurred_at' | 'kg' | 'price_per_kg' | 'total_value' | 'status'
+
+/** What narrows and orders the transactions; the list adds a page, the CSV export takes every match. */
+export interface TransactionFilters {
+  type?: TransactionType
+  status?: TransactionStatus
+  material_code?: string
+  /** ISO instants bounding `occurred_at`, both inclusive. */
+  date_from?: string
+  date_to?: string
+  sort?: TransactionSortColumn
+  order?: SortOrder
+}
+
 export const transactionsService = {
-  list: (params: {
-    type?: TransactionType
-    status?: TransactionStatus
-    material_code?: string
-    limit?: number
-    offset?: number
-  } = {}, options?: RequestOptions): Promise<TransactionListResponse> =>
+  list: (params: TransactionFilters & { limit?: number; offset?: number } = {}, options?: RequestOptions): Promise<TransactionListResponse> =>
     apiClient.get('/transactions', { params: { limit: 50, ...params }, signal: options?.signal }).then((r) => r.data),
+
+  /** Every transaction matching the filters (not one page) as a CSV file. */
+  exportCsv: (params: TransactionFilters = {}, options?: RequestOptions): Promise<Blob> =>
+    apiClient
+      .get('/transactions/export.csv', { params, responseType: 'blob', signal: options?.signal })
+      .then((r) => r.data as Blob)
+      .catch(unwrapBlobError),
 
   stats: (options?: RequestOptions): Promise<TransactionStats> =>
     apiClient.get('/transactions/stats', { signal: options?.signal }).then((r) => r.data),

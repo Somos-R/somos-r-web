@@ -1,4 +1,6 @@
 import { apiClient, type RequestOptions } from '../lib/apiClient'
+import { unwrapBlobError } from '../lib/download'
+import type { SortOrder } from '../lib/sorting'
 
 export type WeighingStatus = 'pending_validation' | 'validated' | 'rejected' | 'paid'
 
@@ -86,7 +88,6 @@ export interface UpdateWeighingStatusPayload {
 }
 
 export type WeighingSortColumn = 'occurred_at' | 'kg' | 'price_per_kg' | 'total_value' | 'status'
-export type SortOrder = 'asc' | 'desc'
 
 /** What narrows and orders the weighings; the list adds a page, the CSV export takes every match. */
 export interface WeighingFilters {
@@ -102,28 +103,6 @@ export interface WeighingFilters {
   date_to?: string
   sort?: WeighingSortColumn
   order?: SortOrder
-}
-
-// An error answered to a file download arrives as a Blob, which hides the JSON `code` and `detail` the
-// error handling reads. Decode it so a failed export is reported like any other failed request.
-const readText = (blob: Blob): Promise<string> =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(String(reader.result))
-    reader.onerror = () => reject(reader.error)
-    reader.readAsText(blob)
-  })
-
-async function unwrapBlobError(error: unknown): Promise<never> {
-  const response = (error as { response?: { data?: unknown } }).response
-  if (response?.data instanceof Blob) {
-    try {
-      response.data = JSON.parse(await readText(response.data))
-    } catch {
-      response.data = {}
-    }
-  }
-  throw error
 }
 
 export const weighingsService = {

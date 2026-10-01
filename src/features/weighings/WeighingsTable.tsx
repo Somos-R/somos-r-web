@@ -5,14 +5,15 @@ import TextField from '@mui/material/TextField'
 import Tooltip from '@mui/material/Tooltip'
 import {
   Badge, Button, Input,
-  Table, TableHead, TableBody, TableRow, TableCell, SortableTableCell, TableContainer, TablePagination, type SortDirection,
+  Table, TableHead, TableBody, TableRow, TableCell, SortableTableCell, TableContainer, TablePagination,
   Loader,
 } from '../../components/ui'
 import { t } from '../../lib/i18n'
 import type { PaginationProps } from '../../lib/pagination'
 import { PAGE_SIZE_OPTIONS } from '../../lib/pagination'
 import { getMaterialColor, getStatusStyle, type CatalogRef } from '../../lib/catalog'
-import { isBackwards } from '../../lib/period'
+import PeriodFilter from '../../components/lists/PeriodFilter'
+import type { SortState } from '../../lib/sorting'
 import type { AffiliationStatus, WeighingSortColumn, WeighingStatus } from '../../services/weighings'
 
 export interface Weighing {
@@ -29,10 +30,7 @@ export interface Weighing {
 }
 
 /** The column the server orders by and which way. */
-export interface WeighingSort {
-  column: WeighingSortColumn
-  direction: SortDirection
-}
+export type WeighingSort = SortState<WeighingSortColumn>
 
 interface WeighingsTableProps {
   /** The rows of the current page, already filtered by the server. */
@@ -118,7 +116,6 @@ export default function WeighingsTable({
   const countLabel = `${total.toLocaleString('es-CO')} ${total !== 1 ? t.pesajes.countPlural : t.pesajes.countSingular}`
   const hasActions = onValidate || onReject || onMarkPaid
   const hasFilters = status !== '' || materialCode !== '' || affiliation !== '' || search.trim() !== '' || dateFrom !== '' || dateTo !== ''
-  const backwards = isBackwards(dateFrom, dateTo)
   const sortHeader = (column: WeighingSortColumn, label: string, align?: 'right') => (
     <SortableTableCell align={align} active={sort.column === column} direction={sort.direction} onSort={() => onSortChange(column)}>
       {label}
@@ -165,24 +162,7 @@ export default function WeighingsTable({
             <MenuItem key={k} value={k}>{v.label}</MenuItem>
           ))}
         </TextField>
-        <Input
-          label={t.pesajes.period.from}
-          type="date"
-          value={dateFrom}
-          onChange={(e) => onDateFromChange(e.target.value)}
-          fullWidth={false}
-          sx={{ width: 160 }}
-        />
-        <Input
-          label={t.pesajes.period.to}
-          type="date"
-          value={dateTo}
-          onChange={(e) => onDateToChange(e.target.value)}
-          error={backwards}
-          helperText={backwards ? t.pesajes.period.backwards : undefined}
-          fullWidth={false}
-          sx={{ width: 160 }}
-        />
+        <PeriodFilter from={dateFrom} to={dateTo} onFromChange={onDateFromChange} onToChange={onDateToChange} />
         <Typography variant="caption" color="text.secondary" sx={{ ml: 'auto' }}>{countLabel}</Typography>
       </Box>
 
