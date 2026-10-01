@@ -13,7 +13,7 @@ const BACKEND_CODES = [
   'invalid_credentials', 'invalid_token', 'session_closed', 'session_outdated', 'account_disabled',
   'invalid_refresh_token', 'unauthorized',
   'forbidden', 'account_not_verified', 'user_type_not_visible', 'user_type_not_editable',
-  'role_assignment_admin_only', 'role_assignment_other_organization', 'role_change_admin_only', 'cannot_change_own_role',
+  'role_assignment_admin_only', 'role_assignment_other_organization', 'role_change_admin_only', 'cannot_change_own_role', 'cannot_change_own_status',
   'weighing_not_found', 'transaction_not_found', 'user_not_found', 'recycler_not_found', 'material_not_found',
   'warehouse_not_found', 'inventory_item_not_found', 'inventory_not_found', 'not_found',
   'invalid_transition', 'insufficient_stock', 'recycler_inactive', 'not_a_recycler', 'rejection_reason_required',

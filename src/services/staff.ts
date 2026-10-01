@@ -47,6 +47,13 @@ export const staffService = {
   invite: (payload: InviteStaffPayload): Promise<StaffMember> =>
     apiClient.post('/users/invitations', payload).then((r) => r.data),
 
+  /**
+   * Deactivates or reactivates a person of the caller's own organization. Deactivating ends their
+   * sessions; repeating the same state is harmless. `reason` is up to 200 characters.
+   */
+  setActive: (userId: string, payload: { is_active: boolean; reason?: string }): Promise<StaffMember> =>
+    apiClient.patch(`/users/${userId}/status`, payload).then((r) => r.data),
+
   /** A new link for someone who has not activated yet (the previous one stops working). */
   resendInvitation: (userId: string): Promise<StaffMember> =>
     apiClient.post(`/users/${userId}/invitation/resend`).then((r) => r.data),

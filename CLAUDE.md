@@ -116,7 +116,7 @@ The weighing form (`RegisterWeighingDrawer` + `PersonPicker`) doesn't pick the r
 
 ### Staff invitations (`/personal`)
 
-Organization admins (`staff.view` / `staff.invite`, announced by the server) see the people of their own organization and invite more: `POST /users/invitations` creates the account **without a password** and emails a one-time link (48 h) that opens `/activate` (`SetPasswordPage`). Nobody types another person's password. `pending_activation` marks people who were invited and haven't chosen one yet: only they get "resend invitation". The role selector only offers the roles of the admin's own organization (`user_type_code` in `GET /catalogs/roles`); the server rejects the rest with `invalid_role`.
+Organization admins (`staff.view` / `staff.invite`, announced by the server) see the people of their own organization and invite more: `POST /users/invitations` creates the account **without a password** and emails a one-time link (48 h) that opens `/activate` (`SetPasswordPage`). Nobody types another person's password. `pending_activation` marks people who were invited and haven't chosen one yet: only they get "resend invitation". Admins also **deactivate and reactivate** their people (`staff.manage`, `PATCH /users/{id}/status {is_active, reason?}`): deactivating asks for confirmation with an optional reason (200 characters) and ends the person's sessions; reactivating is one step; nobody gets the action on their own row (`cannot_change_own_status`), and a failure reloads the list (the person was probably changed by someone else). The role selector only offers the roles of the admin's own organization (`user_type_code` in `GET /catalogs/roles`); the server rejects the rest with `invalid_role`.
 
 ## UI Component System
 

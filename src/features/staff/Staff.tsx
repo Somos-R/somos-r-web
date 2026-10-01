@@ -4,11 +4,12 @@ import Typography from '@mui/material/Typography'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import StaffTable from './StaffTable'
 import InviteStaffDrawer from './InviteStaffDrawer'
+import DeactivateStaffDialog from './DeactivateStaffDialog'
 import { Snackbar } from '../../components/ui'
 import { catalogQueries } from '../../queries/catalogs'
 import { staffQueries } from '../../queries/staff'
 import { AFFECTED, invalidateAffected } from '../../queries/invalidation'
-import { staffService } from '../../services/staff'
+import { staffService, type StaffMember } from '../../services/staff'
 import { t, interpolate } from '../../lib/i18n'
 import { useAuth } from '../../hooks/useAuth'
 import { useRoles } from '../../hooks/useRoles'
@@ -23,6 +24,8 @@ export default function Staff() {
 
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [resendingId, setResendingId] = useState<string | null>(null)
+  const [deactivating, setDeactivating] = useState<StaffMember | null>(null)
+  const [changingId, setChangingId] = useState<string | null>(null)
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
     open: false,
     message: '',
@@ -60,6 +63,27 @@ export default function Staff() {
     onSettled: () => setResendingId(null),
   })
 
+  // Deactivating or reactivating: the server closes the person's sessions on deactivation. On failure the
+  // list reloads too (the person may already have been changed by another admin).
+  const statusMutation = useMutation({
+    meta: { silent: true, refreshOnError: AFFECTED.staffChanged },
+    mutationFn: ({ person, active, reason }: { person: StaffMember; active: boolean; reason?: string }) => {
+      setChangingId(person.id)
+      return staffService.setActive(person.id, { is_active: active, reason })
+    },
+    onSuccess: (updated, { person, active }) => {
+      invalidateAffected(queryClient, AFFECTED.staffChanged)
+      setDeactivating(null)
+      const message = interpolate(active ? t.personal.status_change.reactivated : t.personal.status_change.deactivated, { name: updated.full_name || person.full_name })
+      setSnackbar({ open: true, message, severity: 'success' })
+    },
+    onError: (err: unknown) => {
+      setDeactivating(null)
+      setSnackbar({ open: true, message: getApiErrorMessage(err, t.personal.status_change.errorMessage), severity: 'error' })
+    },
+    onSettled: () => setChangingId(null),
+  })
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       <Box>
@@ -78,7 +102,20 @@ export default function Staff() {
         onInviteClick={can('staff.invite') ? () => setDrawerOpen(true) : undefined}
         onResend={can('staff.invite') ? (id) => resendMutation.mutate(id) : undefined}
         resendingId={resendingId}
+        currentUserId={user?.id}
+        onDeactivate={can('staff.manage') ? setDeactivating : undefined}
+        onReactivate={can('staff.manage') ? (person) => statusMutation.mutate({ person, active: true }) : undefined}
+        changingId={changingId}
       />
+
+      {deactivating && (
+        <DeactivateStaffDialog
+          name={deactivating.full_name}
+          busy={statusMutation.isPending}
+          onClose={() => setDeactivating(null)}
+          onConfirm={(reason) => statusMutation.mutate({ person: deactivating, active: false, reason })}
+        />
+      )}
 
       {can('staff.invite') && (
         <InviteStaffDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} userType={userType} />
