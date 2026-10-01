@@ -1,15 +1,6 @@
 {
   "common": {
     "save": "Guardar",
-    "period": {
-      "from": "Desde",
-      "to": "Hasta",
-      "backwards": "La fecha inicial es posterior a la final"
-    },
-    "exportCsv": {
-      "button": "Descargar CSV",
-      "busy": "Preparando…"
-    },
     "cancel": "Cancelar",
     "close": "Cerrar",
     "register": "Registrar",
@@ -202,7 +193,16 @@
     "countPlural": "pesajes",
     "emptySearch": "Sin resultados para \"{{query}}\"",
     "emptyState": "No hay pesajes registrados aún.",
-    "exportFile": "pesajes",
+    "period": {
+      "from": "Desde",
+      "to": "Hasta",
+      "backwards": "La fecha inicial es posterior a la final"
+    },
+    "export": {
+      "button": "Descargar CSV",
+      "busy": "Preparando…",
+      "fileName": "pesajes"
+    },
     "table": {
       "date": "Fecha",
       "recycler": "Reciclador",
