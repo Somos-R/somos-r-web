@@ -4,6 +4,7 @@ import MuiTableHead from '@mui/material/TableHead'
 import MuiTableBody from '@mui/material/TableBody'
 import MuiTableRow from '@mui/material/TableRow'
 import MuiTableCell from '@mui/material/TableCell'
+import MuiTableSortLabel from '@mui/material/TableSortLabel'
 import MuiTableContainer from '@mui/material/TableContainer'
 import MuiTablePagination from '@mui/material/TablePagination'
 import Paper from '@mui/material/Paper'
@@ -46,6 +47,29 @@ export function TableCell({ children, align, colSpan, sx }: TableCellProps) {
   return (
     <MuiTableCell align={align} colSpan={colSpan} sx={sx}>
       {children}
+    </MuiTableCell>
+  )
+}
+
+export type SortDirection = 'asc' | 'desc'
+
+interface SortableTableCellProps {
+  children: React.ReactNode
+  align?: 'left' | 'center' | 'right'
+  /** True when the table is currently ordered by this column. */
+  active: boolean
+  /** Direction of the current order; only meaningful while `active`. */
+  direction: SortDirection
+  onSort: () => void
+}
+
+/** A column header that orders the table: a button for keyboard users and `aria-sort` for screen readers. */
+export function SortableTableCell({ children, align, active, direction, onSort }: SortableTableCellProps) {
+  return (
+    <MuiTableCell align={align} sortDirection={active ? direction : false}>
+      <MuiTableSortLabel active={active} direction={active ? direction : 'asc'} onClick={onSort}>
+        {children}
+      </MuiTableSortLabel>
     </MuiTableCell>
   )
 }

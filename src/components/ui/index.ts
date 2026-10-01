@@ -9,6 +9,8 @@ export {
   TableBody,
   TableRow,
   TableCell,
+  SortableTableCell,
+  type SortDirection,
   TableContainer,
   TablePagination,
 } from './Table'

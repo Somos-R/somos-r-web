@@ -3,6 +3,7 @@ import { queryKeys } from '../keys'
 import { AFFECTED } from '../invalidation'
 
 const page = { page: 0, rowsPerPage: 10 }
+const order = { dateFrom: '', dateTo: '', sort: 'occurred_at', order: 'desc' }
 
 describe('queryKeys', () => {
   const samples = [
@@ -10,8 +11,8 @@ describe('queryKeys', () => {
     queryKeys.catalogs.materials,
     queryKeys.catalogs.warehouses,
     queryKeys.catalogs.documentTypes,
-    queryKeys.weighings.list({ status: '', materialCode: '', affiliation: '', search: '', ...page }),
-    queryKeys.weighings.list({ status: '', materialCode: '', affiliation: 'independent', search: '', ...page }),
+    queryKeys.weighings.list({ status: '', materialCode: '', affiliation: '', search: '', ...order, ...page }),
+    queryKeys.weighings.list({ status: '', materialCode: '', affiliation: 'independent', search: '', ...order, ...page }),
     queryKeys.weighings.stats,
     queryKeys.weighings.recent,
     queryKeys.inventory.list({ status: '', materialCode: '', warehouseId: '', ...page }),
@@ -22,11 +23,11 @@ describe('queryKeys', () => {
     queryKeys.transactions.pendingCount('purchase'),
     queryKeys.transactions.pendingCount('sale'),
     queryKeys.transactions.stats,
-    queryKeys.recyclers.list({ status: 'all', search: '', ...page }),
+    queryKeys.recyclers.list({ status: 'all', search: '', ...order, ...page }),
     queryKeys.recyclers.list({ status: 'all', search: 'ana', ...page }),
     queryKeys.catalogs.roles,
-    queryKeys.staff.list({ userType: 'eca', search: '', ...page }),
-    queryKeys.staff.list({ userType: 'association', search: '', ...page }),
+    queryKeys.staff.list({ userType: 'eca', search: '', ...order, ...page }),
+    queryKeys.staff.list({ userType: 'association', search: '', ...order, ...page }),
     queryKeys.links.list({ status: '', page: 0, rowsPerPage: 25 }),
     queryKeys.links.list({ status: 'requested', page: 0, rowsPerPage: 25 }),
     queryKeys.links.directory({ search: '', page: 0, rowsPerPage: 10 }),
@@ -63,10 +64,12 @@ describe('queryKeys', () => {
   })
 
   it('separates lists by every input they depend on', () => {
-    const a = queryKeys.weighings.list({ status: 'pending', materialCode: '', affiliation: '', search: '', ...page })
-    const b = queryKeys.weighings.list({ status: 'paid', materialCode: '', affiliation: '', search: '', ...page })
-    const c = queryKeys.weighings.list({ status: 'pending', materialCode: '', affiliation: '', search: '', page: 1, rowsPerPage: 10 })
-    expect(new Set([a, b, c].map((k) => JSON.stringify(k))).size).toBe(3)
+    const a = queryKeys.weighings.list({ status: 'pending', materialCode: '', affiliation: '', search: '', ...order, ...page })
+    const b = queryKeys.weighings.list({ status: 'paid', materialCode: '', affiliation: '', search: '', ...order, ...page })
+    const c = queryKeys.weighings.list({ status: 'pending', materialCode: '', affiliation: '', search: '', ...order, page: 1, rowsPerPage: 10 })
+    const d = queryKeys.weighings.list({ status: 'pending', materialCode: '', affiliation: '', search: '', ...order, sort: 'kg', ...page })
+    const e = queryKeys.weighings.list({ status: 'pending', materialCode: '', affiliation: '', search: '', ...order, dateFrom: '2026-03-01', ...page })
+    expect(new Set([a, b, c, d, e].map((k) => JSON.stringify(k))).size).toBe(5)
   })
 })
 

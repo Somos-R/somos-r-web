@@ -51,6 +51,8 @@ export function Input({
       size={size}
       sx={sx}
       slotProps={{
+        // A date field always shows its "dd/mm/aaaa" mask, which would overlap a label that hasn't floated.
+        inputLabel: type === 'date' ? { shrink: true } : undefined,
         input: {
           startAdornment: startAdornment ? (
             <InputAdornment position="start">{startAdornment}</InputAdornment>

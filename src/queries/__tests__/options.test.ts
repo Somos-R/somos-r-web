@@ -32,14 +32,14 @@ describe('query options', () => {
   it('turn the page and filters of a weighings list into limit/offset', async () => {
     const calls = record()
     await new QueryClient().fetchQuery(
-      weighingsQueries.list({ status: 'pending', materialCode: 'PET', affiliation: '', search: '', page: 2, rowsPerPage: 10 }),
+      weighingsQueries.list({ status: 'pending', materialCode: 'PET', affiliation: '', search: '', dateFrom: '', dateTo: '', sort: 'occurred_at', order: 'desc', page: 2, rowsPerPage: 10 }),
     )
     expect(calls[0].params).toMatchObject({ status: 'pending', material_code: 'PET', limit: 10, offset: 20 })
   })
 
   it('omit empty filters instead of sending them', async () => {
     const calls = record()
-    await new QueryClient().fetchQuery(weighingsQueries.list({ status: '', materialCode: '', affiliation: '', search: '', page: 0, rowsPerPage: 10 }))
+    await new QueryClient().fetchQuery(weighingsQueries.list({ status: '', materialCode: '', affiliation: '', search: '', dateFrom: '', dateTo: '', sort: 'occurred_at', order: 'desc', page: 0, rowsPerPage: 10 }))
     expect(calls[0].params.status).toBeUndefined()
     expect(calls[0].params.material_code).toBeUndefined()
   })
@@ -79,8 +79,8 @@ describe('weighings affiliation filter', () => {
   it('is sent when set and left out when empty', async () => {
     const calls = record()
     const client = new QueryClient()
-    await client.fetchQuery(weighingsQueries.list({ status: '', materialCode: '', affiliation: 'unlinked_association', search: '', page: 0, rowsPerPage: 10 }))
-    await client.fetchQuery(weighingsQueries.list({ status: '', materialCode: '', affiliation: '', search: '', page: 0, rowsPerPage: 10 }))
+    await client.fetchQuery(weighingsQueries.list({ status: '', materialCode: '', affiliation: 'unlinked_association', search: '', dateFrom: '', dateTo: '', sort: 'occurred_at', order: 'desc', page: 0, rowsPerPage: 10 }))
+    await client.fetchQuery(weighingsQueries.list({ status: '', materialCode: '', affiliation: '', search: '', dateFrom: '', dateTo: '', sort: 'occurred_at', order: 'desc', page: 0, rowsPerPage: 10 }))
     expect(calls[0].params.affiliation).toBe('unlinked_association')
     expect(calls[1].params.affiliation).toBeUndefined()
   })
@@ -90,9 +90,36 @@ describe('weighings text search', () => {
   it('is sent trimmed, and not at all when shorter than the server accepts', async () => {
     const calls = record()
     const client = new QueryClient()
-    await client.fetchQuery(weighingsQueries.list({ status: '', materialCode: '', affiliation: '', search: ' Wilson ', page: 0, rowsPerPage: 10 }))
-    await client.fetchQuery(weighingsQueries.list({ status: '', materialCode: '', affiliation: '', search: 'W', page: 0, rowsPerPage: 10 }))
+    await client.fetchQuery(weighingsQueries.list({ status: '', materialCode: '', affiliation: '', search: ' Wilson ', dateFrom: '', dateTo: '', sort: 'occurred_at', order: 'desc', page: 0, rowsPerPage: 10 }))
+    await client.fetchQuery(weighingsQueries.list({ status: '', materialCode: '', affiliation: '', search: 'W', dateFrom: '', dateTo: '', sort: 'occurred_at', order: 'desc', page: 0, rowsPerPage: 10 }))
     expect(calls[0].params.q).toBe('Wilson')
     expect(calls[1].params.q).toBeUndefined()
+  })
+})
+
+describe('weighings order and period', () => {
+  const base = { status: '', materialCode: '', affiliation: '', search: '', page: 0, rowsPerPage: 10 }
+
+  it('sends the column and direction the table is ordered by', async () => {
+    const calls = record()
+    await new QueryClient().fetchQuery(weighingsQueries.list({ ...base, dateFrom: '', dateTo: '', sort: 'kg', order: 'asc' }))
+    expect(calls[0].params).toMatchObject({ sort: 'kg', order: 'asc' })
+  })
+
+  it('turns calendar days into the instants that bound them, and leaves an empty side out', async () => {
+    const calls = record()
+    await new QueryClient().fetchQuery(
+      weighingsQueries.list({ ...base, dateFrom: '2026-03-01', dateTo: '', sort: 'occurred_at', order: 'desc' }),
+    )
+    expect(calls[0].params.date_from).toBe(new Date('2026-03-01T00:00:00.000').toISOString())
+    expect(calls[0].params.date_to).toBeUndefined()
+  })
+
+  it('keeps different orders and periods in different cache entries', () => {
+    const a = weighingsQueries.list({ ...base, dateFrom: '', dateTo: '', sort: 'kg', order: 'asc' }).queryKey
+    const b = weighingsQueries.list({ ...base, dateFrom: '', dateTo: '', sort: 'kg', order: 'desc' }).queryKey
+    const c = weighingsQueries.list({ ...base, dateFrom: '2026-03-01', dateTo: '', sort: 'kg', order: 'asc' }).queryKey
+    expect(JSON.stringify(a)).not.toBe(JSON.stringify(b))
+    expect(JSON.stringify(a)).not.toBe(JSON.stringify(c))
   })
 })

@@ -85,19 +85,57 @@ export interface UpdateWeighingStatusPayload {
   rejection_reason?: string
 }
 
+export type WeighingSortColumn = 'occurred_at' | 'kg' | 'price_per_kg' | 'total_value' | 'status'
+export type SortOrder = 'asc' | 'desc'
+
+/** What narrows and orders the weighings; the list adds a page, the CSV export takes every match. */
+export interface WeighingFilters {
+  recycler_id?: string
+  affiliation?: AffiliationStatus
+  /** Contains-search on the name and document of who delivered, registered or not (2+ characters). */
+  q?: string
+  material_code?: string
+  warehouse_id?: string
+  status?: WeighingStatus
+  /** ISO instants bounding `occurred_at`, both inclusive. */
+  date_from?: string
+  date_to?: string
+  sort?: WeighingSortColumn
+  order?: SortOrder
+}
+
+// An error answered to a file download arrives as a Blob, which hides the JSON `code` and `detail` the
+// error handling reads. Decode it so a failed export is reported like any other failed request.
+const readText = (blob: Blob): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(String(reader.result))
+    reader.onerror = () => reject(reader.error)
+    reader.readAsText(blob)
+  })
+
+async function unwrapBlobError(error: unknown): Promise<never> {
+  const response = (error as { response?: { data?: unknown } }).response
+  if (response?.data instanceof Blob) {
+    try {
+      response.data = JSON.parse(await readText(response.data))
+    } catch {
+      response.data = {}
+    }
+  }
+  throw error
+}
+
 export const weighingsService = {
-  list: (params: {
-    recycler_id?: string
-    affiliation?: AffiliationStatus
-    /** Contains-search on the name and document of who delivered, registered or not (2+ characters). */
-    q?: string
-    material_code?: string
-    warehouse_id?: string
-    status?: WeighingStatus
-    limit?: number
-    offset?: number
-  } = {}, options?: RequestOptions): Promise<WeighingListResponse> =>
+  list: (params: WeighingFilters & { limit?: number; offset?: number } = {}, options?: RequestOptions): Promise<WeighingListResponse> =>
     apiClient.get('/weighings', { params: { limit: 50, ...params }, signal: options?.signal }).then((r) => r.data),
+
+  /** Every weighing matching the filters (not one page) as a CSV file. */
+  exportCsv: (params: WeighingFilters = {}, options?: RequestOptions): Promise<Blob> =>
+    apiClient
+      .get('/weighings/export.csv', { params, responseType: 'blob', signal: options?.signal })
+      .then((r) => r.data as Blob)
+      .catch(unwrapBlobError),
 
   stats: (options?: RequestOptions): Promise<WeighingStats> =>
     apiClient.get('/weighings/stats', { signal: options?.signal }).then((r) => r.data),
