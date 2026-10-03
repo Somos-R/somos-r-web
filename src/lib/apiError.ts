@@ -57,7 +57,7 @@ export function getErrorCode(error: unknown): string | undefined {
 
 // A 422 normally means "a field is invalid" and gets the generic validation text. These carry a stable code
 // whose own sentence says what to do (choose a role, choose an association), so they are translated instead.
-const CODED_422 = new Set(['invalid_role', 'association_required', 'invalid_association', 'application_incomplete'])
+const CODED_422 = new Set(['invalid_role', 'association_required', 'invalid_association', 'application_incomplete', 'empty_file'])
 
 /**
  * Turns a failed API call into text that is safe to render.

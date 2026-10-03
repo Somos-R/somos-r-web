@@ -55,9 +55,24 @@ describe('accessibility: application to join Somos R', () => {
     applicant_phone: '300', consent_at: '2026-10-01T00:00:00Z', submitted_at: null, submission_count: 0, submissions_left: 3,
     can_edit: true, can_submit: true, missing_fields: [], feedback: null, ...over,
   })
+  // What the server asks for: one document not uploaded yet, one with the reviewer's verdict.
+  let slots: unknown[] = []
+  const withDocuments = () => {
+    slots = [
+      { document_type: { code: 'assoc_rut', label: 'RUT', is_required: true }, document: null },
+      {
+        document_type: { code: 'assoc_id', label: 'Cédula del representante legal', is_required: true },
+        document: { id: 'd', original_name: 'cedula.pdf', content_type: 'application/pdf', size_bytes: 2048, uploaded_at: '2026-10-02T00:00:00Z', status: 'not_compliant', review_comment: 'Está borrosa.' },
+      },
+    ]
+  }
+  beforeEach(() => { slots = [] })
   const serve = (view: Record<string, unknown>) => {
     apiClient.defaults.adapter = mockAdapter((c) => ({
-      data: c.url === '/catalogs/document-types' ? [{ code: 'CC', label: 'Cédula de Ciudadanía' }] : view,
+      data:
+        c.url === '/catalogs/document-types' ? [{ code: 'CC', label: 'Cédula de Ciudadanía' }]
+        : c.url === '/applications/current/documents' ? slots
+        : view,
     }))
   }
 
@@ -95,6 +110,22 @@ describe('accessibility: application to join Somos R', () => {
     }))
     renderAt('/solicitud?token=abc')
     await screen.findByRole('heading', { name: t.solicitud.form.feedbackTitle })
+    await expectNoA11yViolations(document.body, { fullPage: true })
+  })
+
+  it('form with documents to upload and a reviewer verdict', async () => {
+    withDocuments()
+    serve(application({ status: 'changes_requested', submission_count: 1, submissions_left: 2, can_submit: false, missing_fields: ['documents:assoc_rut'] }))
+    renderAt('/solicitud?token=abc')
+    await screen.findByRole('heading', { name: t.solicitud.documents.title })
+    await expectNoA11yViolations(document.body, { fullPage: true })
+  })
+
+  it('read-only form with documents', async () => {
+    withDocuments()
+    serve(application({ status: 'submitted', can_edit: false, can_submit: false, submission_count: 1, submissions_left: 2 }))
+    renderAt('/solicitud?token=abc')
+    await screen.findByRole('heading', { name: t.solicitud.documents.title })
     await expectNoA11yViolations(document.body, { fullPage: true })
   })
 

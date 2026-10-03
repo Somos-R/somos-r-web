@@ -16,4 +16,15 @@ export const applicationsQueries = {
       retry: false, // a bad link will not get better
       meta: { silent: true }, // the page renders the failure itself (invalid link vs. other errors)
     }),
+
+  /** The documents Somos R asks for, each with what the applicant has uploaded. Same rules as `current`. */
+  documents: (token: string) =>
+    queryOptions({
+      queryKey: queryKeys.applications.documents,
+      queryFn: ({ signal }) => applicationsService.documents(token, { signal }),
+      staleTime: 0,
+      gcTime: 0,
+      retry: false,
+      meta: { silent: true }, // the section shows its own error and retry
+    }),
 }

@@ -130,6 +130,7 @@ export const queryKeys = {
   applications: {
     all: ['applications'] as const,
     current: ['applications', 'current'] as const,
+    documents: ['applications', 'documents'] as const,
   },
 
   recyclers: {
