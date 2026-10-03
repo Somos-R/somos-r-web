@@ -126,6 +126,12 @@ export const queryKeys = {
     list: (filters: StaffListKey) => ['staff', 'list', filters] as const,
   },
 
+  /** The public application to join Somos R, read with the emailed link's token (never part of the key). */
+  applications: {
+    all: ['applications'] as const,
+    current: ['applications', 'current'] as const,
+  },
+
   recyclers: {
     all: ['recyclers'] as const,
     list: (filters: RecyclersListKey) => ['recyclers', 'list', filters] as const,

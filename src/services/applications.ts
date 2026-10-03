@@ -1,0 +1,84 @@
+import { apiClient, type RequestOptions } from '../lib/apiClient'
+
+export type OrganizationKind = 'association' | 'eca'
+
+/** Where an application is: only `draft` and `changes_requested` can be edited and sent. */
+export type ApplicationStatus =
+  | 'draft' | 'submitted' | 'in_review' | 'changes_requested' | 'approved' | 'rejected' | 'suspended'
+
+/** The data of the organization the applicant fills in, plus the applicant's own name. */
+export type ApplicationField =
+  | 'legal_name' | 'tax_id' | 'legal_representative' | 'contact_email' | 'contact_phone' | 'address' | 'city'
+  | 'applicant_name'
+
+/** What the applicant sees of their own request (`GET /applications/current`). */
+export interface ApplicationView {
+  id: string
+  type: OrganizationKind
+  status: ApplicationStatus
+  legal_name: string
+  tax_id: string | null
+  legal_representative: string | null
+  contact_email: string | null
+  contact_phone: string | null
+  address: string | null
+  city: string | null
+  applicant_name: string
+  applicant_email: string
+  consent_at: string
+  submitted_at: string | null
+  submission_count: number
+  submissions_left: number
+  /** Draft or changes requested. */
+  can_edit: boolean
+  /** Editable, nothing missing and sends left. */
+  can_submit: boolean
+  /** What is still empty and required to send (organization field names). */
+  missing_fields: string[]
+}
+
+export interface StartApplicationPayload {
+  type: OrganizationKind
+  legal_name: string
+  applicant_name: string
+  applicant_email: string
+  /** NIT; can be completed later. */
+  tax_id?: string
+  /** The applicant accepted the data treatment; the backend refuses `false`. */
+  consent: true
+}
+
+/** Only the fields that changed; `null` empties an optional field. */
+export type UpdateApplicationPayload = Partial<Record<ApplicationField, string | null>>
+
+interface ApplicationMessage {
+  message: string
+}
+
+// Public endpoints: nobody is signed in, so a 401 here is a bad link, never an expired session to refresh.
+// The applicant identifies themselves with the emailed link's token, sent in this header on every call.
+const TOKEN_HEADER = 'X-Application-Token'
+const asApplicant = (token: string, options?: RequestOptions) => ({
+  headers: { [TOKEN_HEADER]: token },
+  skipAuthRefresh: true,
+  signal: options?.signal,
+})
+
+export const applicationsService = {
+  /** Always answers the same, whether or not the email already applied. The link comes by email. */
+  start: (payload: StartApplicationPayload): Promise<ApplicationMessage> =>
+    apiClient.post('/applications', payload, { skipAuthRefresh: true }).then((r) => r.data),
+
+  /** Asks for another link (the previous one stops working). Same answer for any email. */
+  requestAccessLink: (email: string): Promise<ApplicationMessage> =>
+    apiClient.post('/applications/access-link', { email }, { skipAuthRefresh: true }).then((r) => r.data),
+
+  current: (token: string, options?: RequestOptions): Promise<ApplicationView> =>
+    apiClient.get('/applications/current', asApplicant(token, options)).then((r) => r.data),
+
+  update: (token: string, payload: UpdateApplicationPayload): Promise<ApplicationView> =>
+    apiClient.patch('/applications/current', payload, asApplicant(token)).then((r) => r.data),
+
+  submit: (token: string): Promise<ApplicationView> =>
+    apiClient.post('/applications/current/submit', undefined, asApplicant(token)).then((r) => r.data),
+}

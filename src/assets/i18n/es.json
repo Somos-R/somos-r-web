@@ -461,6 +461,86 @@
     "forbidden": "No tienes permisos para realizar esta acción.",
     "timeout": "El servidor tardó demasiado en responder. Si era una acción, revisa si se completó antes de repetirla."
   },
+  "solicitud": {
+    "title": "Solicitud para unirse a Somos R",
+    "subtitle": "Cuéntanos sobre tu organización. Te enviaremos un enlace por correo para completar y enviar la solicitud.",
+    "backToLogin": "Volver a iniciar sesión",
+    "start": {
+      "typeLabel": "Tipo de organización",
+      "types": {
+        "association": "Asociación de recicladores",
+        "eca": "ECA (estación de clasificación y aprovechamiento)"
+      },
+      "legalName": "Nombre de la organización",
+      "applicantName": "Tu nombre",
+      "applicantEmail": "Tu correo electrónico",
+      "taxId": "NIT (opcional, puedes completarlo después)",
+      "submit": "Empezar solicitud",
+      "sent": "Si el correo es válido, te enviamos un enlace para continuar tu solicitud. Revisa tu bandeja de entrada.",
+      "haveOne": "¿Ya empezaste una solicitud? Pide un enlace nuevo"
+    },
+    "consent": {
+      "title": "Tratamiento de datos personales",
+      "text": "Somos R tratará los datos personales del solicitante y los datos de la organización que registres en esta solicitud (nombre, NIT, representante legal, contacto y ubicación) con la única finalidad de evaluar la solicitud y, si es aprobada, crear y administrar las cuentas de la organización en la plataforma. Puedes consultar, corregir o pedir la eliminación de tus datos escribiendo al correo de contacto de Somos R, conforme a la Ley 1581 de 2012.",
+      "label": "He leído y acepto el tratamiento de mis datos personales y los de mi organización",
+      "required": "Debes aceptar el tratamiento de datos para continuar"
+    },
+    "resend": {
+      "title": "Pedir un enlace nuevo",
+      "subtitle": "Escribe el correo con el que empezaste la solicitud. El enlace anterior dejará de funcionar.",
+      "submit": "Enviar enlace",
+      "sent": "Si el correo tiene una solicitud, te enviamos un enlace nuevo. Revisa tu bandeja de entrada.",
+      "back": "Volver"
+    },
+    "invalidLink": {
+      "title": "El enlace no es válido",
+      "message": "El enlace venció, fue reemplazado por uno más reciente o está incompleto. Pide uno nuevo con el correo con el que empezaste la solicitud."
+    },
+    "form": {
+      "title": "Tu solicitud",
+      "subtitle": "Completa los datos de tu organización. Puedes guardar y volver cuando quieras con el mismo enlace.",
+      "fields": {
+        "legal_name": "Nombre de la organización",
+        "tax_id": "NIT",
+        "legal_representative": "Representante legal",
+        "contact_email": "Correo de contacto de la organización",
+        "contact_phone": "Teléfono de contacto",
+        "city": "Ciudad",
+        "address": "Dirección",
+        "applicant_name": "Tu nombre (quien llena la solicitud)"
+      },
+      "applicantEmail": "Tu correo: {{email}}",
+      "missingHint": "Obligatorio para enviar",
+      "missingSummary": "Faltan datos para enviar la solicitud: {{fields}}",
+      "dirtyHint": "Guarda tus cambios para poder enviar la solicitud.",
+      "submissionsLeft": "Envíos disponibles: {{count}}",
+      "save": "Guardar cambios",
+      "saved": "Cambios guardados",
+      "submit": "Enviar solicitud",
+      "confirm": {
+        "title": "¿Enviar la solicitud?",
+        "message": "Un equipo de Somos R la revisará. Mientras esté en revisión no podrás editarla, salvo que te pidan correcciones.",
+        "confirm": "Enviar",
+        "back": "Volver"
+      },
+      "validation": {
+        "nameShort": "Escribe al menos 2 caracteres",
+        "emailInvalid": "Correo inválido",
+        "tooLong": "Máximo {{max}} caracteres"
+      },
+      "loadError": "No pudimos cargar tu solicitud. Intenta de nuevo.",
+      "retry": "Reintentar"
+    },
+    "status": {
+      "draft": "Borrador: todavía no la has enviado.",
+      "submitted": "Solicitud enviada. Está en espera de revisión.",
+      "in_review": "Tu solicitud está en revisión.",
+      "changes_requested": "Se pidieron correcciones. Edita los datos y envía la solicitud de nuevo.",
+      "approved": "Tu organización fue aprobada.",
+      "rejected": "La solicitud no fue aprobada.",
+      "suspended": "La organización está suspendida."
+    }
+  },
   "account": {
     "backToLogin": "Volver a iniciar sesión",
     "goToLogin": "Iniciar sesión",
@@ -597,6 +677,11 @@
     }
   },
   "apiErrors": {
+    "invalid_application_link": "El enlace de tu solicitud no es válido o venció. Pide uno nuevo con tu correo.",
+    "organization_already_registered": "Ya existe una organización activa con ese NIT.",
+    "application_locked": "La solicitud ya fue enviada: no se puede editar hasta que pidan correcciones.",
+    "application_incomplete": "Faltan datos para enviar la solicitud. Revisa los campos marcados.",
+    "too_many_submissions": "Ya alcanzaste el máximo de envíos de esta solicitud.",
     "association_required": "Elige la asociación a la que pertenece el reciclador.",
     "invalid_association": "Esa asociación no existe o no está activa. Elige otra.",
     "export_too_large": "El reporte tiene demasiados pesajes. Acota el periodo o los filtros e inténtalo de nuevo.",

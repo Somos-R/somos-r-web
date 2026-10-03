@@ -37,7 +37,7 @@ npx vitest run src/components/ui/__tests__/FormDrawer.test.tsx
 
 ### Routing and auth gate
 
-`App.tsx` reads `isAuthenticated` from `useAuth()` (a session exists) and shows a loader until the user profile arrives, because roles come from the server. Authenticated routes render inside `DashboardLayout` (Sidebar + Header + `<Outlet />`). Unauthenticated requests redirect to `/login`. Routes come from `APP_ROUTES` in `src/routes.tsx` (one list feeds both the router and the sidebar); each one is wrapped in `<RequirePermission>`, which shows a 403 screen (or redirects `/` to the user's first allowed page). Public routes (`/login`, `/forgot-password`, `/activate`, `/reset-password`, `/verify-email`) sit outside the session gate.
+`App.tsx` reads `isAuthenticated` from `useAuth()` (a session exists) and shows a loader until the user profile arrives, because roles come from the server. Authenticated routes render inside `DashboardLayout` (Sidebar + Header + `<Outlet />`). Unauthenticated requests redirect to `/login`. Routes come from `APP_ROUTES` in `src/routes.tsx` (one list feeds both the router and the sidebar); each one is wrapped in `<RequirePermission>`, which shows a 403 screen (or redirects `/` to the user's first allowed page). Public routes (`/login`, `/forgot-password`, `/activate`, `/reset-password`, `/verify-email`, `/solicitud`) sit outside the session gate.
 
 ### State layers
 
@@ -114,6 +114,15 @@ Many-to-many, **always started by the ECA and decided by the Association**; eith
 
 The weighing form (`RegisterWeighingDrawer` + `PersonPicker`) doesn't pick the recycler from a list: it **identifies them by document** (`GET /recyclers/lookup?document=&id_type=`; `id_type` is sent whenever the operator chose one, to avoid matches between different kinds of document). A registered recycler of *any* association (or none) shows their association and how they relate to this ECA (`affiliation`: `linked`, `unlinked_association`, `independent`), which decides whether the weighing reaches an association; a deactivated account is refused up front. If there is no such recycler (404 `recycler_not_found`) the weighing is registered as an **unregistered seller** with their name and document. The create payload has **exactly one** of `recycler_id` or `seller` (the types enforce it). Weighings, therefore, may have `recycler: null` with `seller_*` fields: never assume a recycler when rendering. The list filters by `affiliation` and searches by `q`.
 
+### Application to join Somos R (`/solicitud`, public)
+
+An organization (Association or ECA) applies without an account (`features/application/`, loaded on demand like a page). **Without a token** it starts one: type, organization name, the applicant's name and email, optional NIT and the data-treatment consent (`POST /applications`, always answered the same so nobody can tell which emails applied; the link comes by email). **With `?token=`** (the emailed link) it opens that application: `useUrlToken` removes the token from the address bar at once and it lives only in memory, so reloading needs the link again (`POST /applications/access-link` asks for another; the previous one stops working).
+- The token goes in the `X-Application-Token` header of every call (`services/applications.ts`, with `skipAuthRefresh`: a 401 here is a bad link, never an expired session) and is **not** part of the query key (`applicationsQueries.current`, `gcTime: 0`).
+- The server decides what can be done: `can_edit` enables the fields, `can_submit` the Send button, `missing_fields` marks what is empty. `PATCH` sends only what changed and an emptied optional field as `null`. Send is disabled while there are unsaved changes and asks for confirmation (it locks the application; first send plus two corrections).
+- A bad or expired link (401 `invalid_application_link`) shows an explanation and asks for a new one.
+- The consent text (`solicitud.consent.text`) is shown by the web and the backend stores its version (`APPLICATION_CONSENT_VERSION`): **if the text changes, tell the backend to bump the version**. The current wording is provisional and needs legal review.
+- Not yet: document upload and the review by Somos R (the backend will add them).
+
 ### Staff invitations (`/personal`)
 
 Organization admins (`staff.view` / `staff.invite`, announced by the server) see the people of their own organization and invite more: `POST /users/invitations` creates the account **without a password** and emails a one-time link (48 h) that opens `/activate` (`SetPasswordPage`). Nobody types another person's password. `pending_activation` marks people who were invited and haven't chosen one yet: only they get "resend invitation". Admins also **deactivate and reactivate** their people (`staff.manage`, `PATCH /users/{id}/status {is_active, reason?}`): deactivating asks for confirmation with an optional reason (200 characters) and ends the person's sessions; reactivating is one step; nobody gets the action on their own row (`cannot_change_own_status`), and a failure reloads the list (the person was probably changed by someone else). The role selector only offers the roles of the admin's own organization (`user_type_code` in `GET /catalogs/roles`); the server rejects the rest with `invalid_role`.
@@ -122,7 +131,7 @@ Organization admins (`staff.view` / `staff.invite`, announced by the server) see
 
 All reusable primitives live in `src/components/ui/` and are exported from `index.ts`. Every component is a thin, typed wrapper around MUI — never import from `@mui/material` directly inside feature code; always go through `src/components/ui/`.
 
-Available primitives: `Button`, `Input`, `Select`, `Dialog`/`DialogTitle`/`DialogContent`/`DialogActions`, `FormDrawer`, `Badge`, `Card`/`CardContent`/`CardHeader`, `Table`/`TableHead`/`TableBody`/`TableRow`/`TableCell`/`TableContainer`/`TablePagination`, `Alert`, `Snackbar`.
+Available primitives: `Button`, `Checkbox`, `Input`, `Select`, `Dialog`/`DialogTitle`/`DialogContent`/`DialogActions`, `FormDrawer`, `Badge`, `Card`/`CardContent`/`CardHeader`, `Table`/`TableHead`/`TableBody`/`TableRow`/`TableCell`/`TableContainer`/`TablePagination`, `Alert`, `Snackbar`.
 
 The MUI theme is in `src/styles/theme.ts` (primary green `#059669`, `borderRadius: 8`, flat buttons, small outlined text fields by default).
 
