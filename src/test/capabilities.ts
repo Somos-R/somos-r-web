@@ -3,7 +3,7 @@ import type { StaffRole } from '../lib/permissions'
 // What `GET /auth/me` returns for each role, transcribed from the backend (app/core/permissions.py,
 // CAPABILITIES). Only for fake APIs in tests: the app itself never derives these from the role.
 const ECA_ALL = [
-  'inventory.edit', 'inventory.view', 'links.request', 'links.view', 'recyclers.view', 'staff.invite', 'staff.view',
+  'inventory.edit', 'inventory.view', 'links.request', 'links.view', 'recyclers.view', 'staff.invite', 'staff.manage', 'staff.view',
   'transactions.create',
   'transactions.manage', 'transactions.pay', 'transactions.view', 'weighings.create', 'weighings.pay',
   'weighings.review', 'weighings.view',
@@ -17,7 +17,7 @@ export const CAPABILITIES_BY_ROLE: Record<StaffRole, string[]> = {
     'transactions.view', 'weighings.view',
   ],
   association_admin: [
-    'inventory.view', 'links.decide', 'links.view', 'recyclers.verify', 'recyclers.view', 'staff.invite', 'staff.view',
+    'inventory.view', 'links.decide', 'links.view', 'recyclers.verify', 'recyclers.view', 'staff.invite', 'staff.manage', 'staff.view',
     'transactions.pay',
     'transactions.view', 'weighings.pay', 'weighings.review', 'weighings.view',
   ],

@@ -22,6 +22,12 @@ interface StaffTableProps {
   onInviteClick?: () => void
   onResend?: (id: string) => void
   resendingId?: string | null
+  /** Who is signed in: nobody deactivates their own account. */
+  currentUserId?: string
+  onDeactivate?: (person: StaffMember) => void
+  onReactivate?: (person: StaffMember) => void
+  /** The person whose status change is in flight. */
+  changingId?: string | null
 }
 
 type StatusKey = 'active' | 'pending_activation' | 'inactive'
@@ -46,7 +52,12 @@ export default function StaffTable({
   onInviteClick,
   onResend,
   resendingId,
+  currentUserId,
+  onDeactivate,
+  onReactivate,
+  changingId,
 }: StaffTableProps) {
+  const showActions = !!(onResend || onDeactivate)
   if (isLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
@@ -96,7 +107,7 @@ export default function StaffTable({
                 <TableCell>{t.personal.table.idNumber}</TableCell>
                 <TableCell>{t.personal.table.role}</TableCell>
                 <TableCell>{t.personal.table.status}</TableCell>
-                {onResend && <TableCell>{t.personal.table.actions}</TableCell>}
+                {showActions && <TableCell>{t.personal.table.actions}</TableCell>}
               </TableRow>
             </TableHead>
             <TableBody>
@@ -111,19 +122,44 @@ export default function StaffTable({
                     <TableCell>
                       <Badge label={t.personal.status[status]} color={STATUS_COLOR[status]} />
                     </TableCell>
-                    {onResend && (
+                    {showActions && (
                       <TableCell>
-                        {status === 'pending_activation' && (
-                          <Button
-                            variant="outlined"
-                            size="small"
-                            loading={resendingId === person.id}
-                            disabled={!!resendingId}
-                            onClick={() => onResend(person.id)}
-                          >
-                            {t.personal.resend.button}
-                          </Button>
-                        )}
+                        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                          {onResend && status === 'pending_activation' && (
+                            <Button
+                              variant="outlined"
+                              size="small"
+                              loading={resendingId === person.id}
+                              disabled={!!resendingId}
+                              onClick={() => onResend(person.id)}
+                            >
+                              {t.personal.resend.button}
+                            </Button>
+                          )}
+                          {person.id !== currentUserId && status !== 'inactive' && onDeactivate && (
+                            <Button
+                              variant="outlined"
+                              size="small"
+                              disabled={!!changingId}
+                              aria-label={`${t.personal.status_change.deactivateButton} ${person.full_name}`}
+                              onClick={() => onDeactivate(person)}
+                            >
+                              {t.personal.status_change.deactivateButton}
+                            </Button>
+                          )}
+                          {person.id !== currentUserId && status === 'inactive' && onReactivate && (
+                            <Button
+                              variant="outlined"
+                              size="small"
+                              loading={changingId === person.id}
+                              disabled={!!changingId}
+                              aria-label={`${t.personal.status_change.reactivateButton} ${person.full_name}`}
+                              onClick={() => onReactivate(person)}
+                            >
+                              {t.personal.status_change.reactivateButton}
+                            </Button>
+                          )}
+                        </Box>
                       </TableCell>
                     )}
                   </TableRow>

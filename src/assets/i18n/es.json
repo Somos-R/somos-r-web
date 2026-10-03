@@ -559,6 +559,17 @@
       "pending_activation": "Pendiente de activar",
       "inactive": "Desactivado"
     },
+    "status_change": {
+      "deactivateButton": "Desactivar",
+      "reactivateButton": "Reactivar",
+      "deactivateTitle": "Desactivar a esta persona",
+      "deactivateMessage": "No podrá iniciar sesión y se cerrarán sus sesiones abiertas. Puedes reactivarla cuando quieras.",
+      "reasonLabel": "Motivo (opcional)",
+      "confirmDeactivate": "Desactivar",
+      "deactivated": "{{name}} fue desactivada",
+      "reactivated": "{{name}} fue reactivada",
+      "errorMessage": "No pudimos cambiar el estado de la cuenta"
+    },
     "resend": {
       "button": "Reenviar invitación",
       "successMessage": "Enviamos una nueva invitación a {{email}}",
@@ -603,6 +614,7 @@
     "role_assignment_other_organization": "Solo puedes asignar roles dentro de tu organización.",
     "role_change_admin_only": "Solo un administrador puede cambiar roles.",
     "cannot_change_own_role": "No puedes cambiar tu propio rol.",
+    "cannot_change_own_status": "No puedes desactivar tu propia cuenta.",
     "not_found": "No encontramos lo que buscas.",
     "weighing_not_found": "El pesaje no existe o ya no está disponible.",
     "transaction_not_found": "La transacción no existe o ya no está disponible.",
