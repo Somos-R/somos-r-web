@@ -123,7 +123,8 @@ describe('an ECA admin', () => {
     expect(await screen.findByRole('heading', { level: 1, name: t.vinculaciones.title })).toBeInTheDocument()
     const links = await screen.findByRole('region', { name: t.vinculaciones.links.title })
     const rows = within(links)
-    expect(rows.getByRole('row', { name: /Asociación Dos/ })).toHaveTextContent(t.vinculaciones.status.requested)
+    // The region renders before its rows arrive: wait for the first one, the rest come with it.
+    expect(await rows.findByRole('row', { name: /Asociación Dos/ })).toHaveTextContent(t.vinculaciones.status.requested)
     expect(rows.getByRole('row', { name: /Asociación Tres/ })).toHaveTextContent(t.vinculaciones.status.active)
     expect(rows.getByRole('row', { name: /Asociación Cuatro/ })).toHaveTextContent('Sin cobertura en tu zona')
     expect(rows.getByRole('row', { name: /Asociación Cinco/ })).toHaveTextContent(t.vinculaciones.status.removed)
