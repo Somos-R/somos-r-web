@@ -14,7 +14,12 @@ import { mockAdapter } from '../test/helpers'
 // token travels in X-Application-Token, only a draft or a "changes requested" application can be edited, what
 // is missing decides whether it can be sent, and it can be sent a limited number of times.
 
-const REQUIRED = ['legal_name', 'tax_id', 'legal_representative', 'contact_email', 'contact_phone', 'address', 'city']
+const REQUIRED = [
+  'legal_name', 'tax_id', 'legal_representative', 'contact_email', 'contact_phone', 'address', 'city',
+  'applicant_id_type', 'applicant_id_number', 'applicant_phone',
+]
+// The three that the applicant (the future first administrator) fills in about themselves.
+const APPLICANT_ID = { applicant_id_type: 'CC', applicant_id_number: '1020304050', applicant_phone: '3001234567' }
 const TOKEN = 'good-token'
 const copy = t.solicitud
 const fields = copy.form.fields
@@ -30,8 +35,8 @@ let patchFailure: { status: number; code: string } | null
 const base = (over: Json = {}): Json => ({
   id: 'org1', type: 'association', status: 'draft', legal_name: 'Asociación Esperanza', tax_id: null,
   legal_representative: null, contact_email: null, contact_phone: null, address: null, city: null,
-  applicant_name: 'Laura Gómez', applicant_email: 'laura@asociacion.org', consent_at: '2026-10-01T00:00:00Z',
-  submitted_at: null, submission_count: 0, ...over,
+  applicant_name: 'Laura Gómez', applicant_email: 'laura@asociacion.org', applicant_id_type: null, applicant_id_number: null,
+  applicant_phone: null, consent_at: '2026-10-01T00:00:00Z', submitted_at: null, submission_count: 0, feedback: null, ...over,
 })
 
 /** What the backend adds: what is missing, whether it can be edited and whether it can be sent. */
@@ -59,6 +64,7 @@ function serveApplications() {
       return { status: 202, data: { message: 'enviado' } }
     }
     if (method === 'POST' && url === '/applications/access-link') return { status: 202, data: { message: 'enviado' } }
+    if (url === '/catalogs/document-types') return { data: [{ code: 'CC', label: 'Cédula de Ciudadanía' }, { code: 'CE', label: 'Cédula de Extranjería' }] }
 
     if (headers['X-Application-Token'] !== TOKEN) return { status: 401, data: { detail: 'x', code: 'invalid_application_link' } }
     if (method === 'GET' && url === '/applications/current') return { data: view() }
@@ -200,7 +206,7 @@ describe('application to join Somos R: complete and send (with the emailed token
     expect(screen.getByText(copy.status.draft)).toBeInTheDocument()
     expect(screen.getByText(/laura@asociacion\.org/)).toBeInTheDocument()
     expect(screen.getByText(new RegExp(`${copy.form.missingSummary.split('{{')[0]}.*${fields.tax_id}`))).toBeInTheDocument()
-    expect(screen.getAllByText(copy.form.missingHint)).toHaveLength(5) // tax id, representative, email, phone, address
+    expect(screen.getAllByText(copy.form.missingHint)).toHaveLength(8) // tax id, representative, email, phone, address + the applicant's document type, number and phone
     expect(screen.getByRole('button', { name: copy.form.submit })).toBeDisabled()
     expect(screen.getByRole('button', { name: copy.form.save })).toBeDisabled() // nothing changed yet
   })
@@ -231,7 +237,7 @@ describe('application to join Somos R: complete and send (with the emailed token
   })
 
   it('can be sent only when complete and saved, and asks for confirmation first', async () => {
-    app = base({ tax_id: '9001', legal_representative: 'Laura Gómez', contact_email: 'a@b.co', contact_phone: '3001234567', address: 'Calle 1' })
+    app = base({ ...APPLICANT_ID, tax_id: '9001', legal_representative: 'Laura Gómez', contact_email: 'a@b.co', contact_phone: '3001234567', address: 'Calle 1' })
     await open()
     expect(screen.getByRole('button', { name: copy.form.submit })).toBeDisabled() // the city is missing
 
@@ -256,14 +262,44 @@ describe('application to join Somos R: complete and send (with the emailed token
 
   it('opens an application whose corrections were requested as editable, and says how many sends are left', async () => {
     app = base({
-      status: 'changes_requested', tax_id: '9001', legal_representative: 'L', contact_email: 'a@b.co',
+      ...APPLICANT_ID, status: 'changes_requested', tax_id: '9001', legal_representative: 'L', contact_email: 'a@b.co',
       contact_phone: '300', address: 'Calle 1', city: 'Cali', submission_count: 1,
+      feedback: { summary: 'Falta el NIT correcto.\nRevisa la dirección.', created_at: '2026-10-02T00:00:00Z', submission_number: 1 },
     })
     await open()
     expect(screen.getByText(copy.status.changes_requested)).toBeInTheDocument()
+    // The reviewer's reason is shown above the form, as text.
+    expect(screen.getByRole('heading', { name: copy.form.feedbackTitle })).toBeInTheDocument()
+    expect(screen.getByText(/Falta el NIT correcto\./)).toBeInTheDocument()
     expect(screen.getByLabelText(fields.legal_name)).toBeEnabled()
     expect(screen.getByText(copy.form.submissionsLeft.replace('{{count}}', '2'))).toBeInTheDocument()
     expect(screen.getByRole('button', { name: copy.form.submit })).toBeEnabled()
+  })
+
+  it('asks for the applicant\'s own document and phone, and saves them with the same PATCH', async () => {
+    await open()
+    expect(screen.getByText(copy.form.applicantAdmin)).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('combobox', { name: fields.applicant_id_type }))
+    await userEvent.click(await screen.findByRole('option', { name: 'Cédula de Ciudadanía' }))
+    await type(fields.applicant_id_number, '1020304050')
+    await type(fields.applicant_phone, '3001234567')
+    await click(copy.form.save)
+
+    await screen.findByText(copy.form.saved)
+    expect(sentRequests('PATCH', '/applications/current')[0].body).toEqual(APPLICANT_ID)
+  })
+
+  it('does not send an applicant document number that is too long', async () => {
+    await open()
+    await type(fields.applicant_id_number, '1'.repeat(21))
+    await click(copy.form.save)
+    expect(screen.getByText(copy.form.validation.tooLong.replace('{{max}}', '20'))).toBeInTheDocument()
+    expect(sentRequests('PATCH', '/applications/current')).toHaveLength(0)
+  })
+
+  it('shows no reviewer feedback when there is none', async () => {
+    await open()
+    expect(screen.queryByRole('heading', { name: copy.form.feedbackTitle })).not.toBeInTheDocument()
   })
 
   it.each([

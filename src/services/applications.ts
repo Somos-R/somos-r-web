@@ -9,7 +9,7 @@ export type ApplicationStatus =
 /** The data of the organization the applicant fills in, plus the applicant's own name. */
 export type ApplicationField =
   | 'legal_name' | 'tax_id' | 'legal_representative' | 'contact_email' | 'contact_phone' | 'address' | 'city'
-  | 'applicant_name'
+  | 'applicant_name' | 'applicant_id_type' | 'applicant_id_number' | 'applicant_phone'
 
 /** What the applicant sees of their own request (`GET /applications/current`). */
 export interface ApplicationView {
@@ -25,6 +25,10 @@ export interface ApplicationView {
   city: string | null
   applicant_name: string
   applicant_email: string
+  /** The applicant becomes the first administrator, whose account needs a document and a phone. */
+  applicant_id_type: string | null
+  applicant_id_number: string | null
+  applicant_phone: string | null
   consent_at: string
   submitted_at: string | null
   submission_count: number
@@ -33,8 +37,18 @@ export interface ApplicationView {
   can_edit: boolean
   /** Editable, nothing missing and sends left. */
   can_submit: boolean
-  /** What is still empty and required to send (organization field names). */
+  /** What is still empty and required to send (field names). */
   missing_fields: string[]
+  /** Why the reviewer asked for corrections; only while `status` is `changes_requested`, null after resending. */
+  feedback: ApplicationFeedback | null
+}
+
+export interface ApplicationFeedback {
+  /** Written by the reviewer: plain text, never HTML. */
+  summary: string
+  created_at: string
+  /** Which send it answers. */
+  submission_number: number
 }
 
 export interface StartApplicationPayload {

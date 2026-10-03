@@ -494,7 +494,7 @@
     },
     "invalidLink": {
       "title": "El enlace no es válido",
-      "message": "El enlace venció, fue reemplazado por uno más reciente o está incompleto. Pide uno nuevo con el correo con el que empezaste la solicitud."
+      "message": "El enlace venció, fue reemplazado por uno más reciente, está incompleto o la solicitud ya fue resuelta. Si aún necesitas entrar, pide uno nuevo con el correo con el que empezaste la solicitud."
     },
     "form": {
       "title": "Tu solicitud",
@@ -507,9 +507,14 @@
         "contact_phone": "Teléfono de contacto",
         "city": "Ciudad",
         "address": "Dirección",
-        "applicant_name": "Tu nombre (quien llena la solicitud)"
+        "applicant_name": "Tu nombre (quien llena la solicitud)",
+        "applicant_id_type": "Tu tipo de documento",
+        "applicant_id_number": "Tu número de documento",
+        "applicant_phone": "Tu teléfono"
       },
       "applicantEmail": "Tu correo: {{email}}",
+      "applicantAdmin": "Quien llena la solicitud será el primer administrador de la organización, por eso pedimos su documento y su teléfono.",
+      "feedbackTitle": "Correcciones que pidió el revisor",
       "missingHint": "Obligatorio para enviar",
       "missingSummary": "Faltan datos para enviar la solicitud: {{fields}}",
       "dirtyHint": "Guarda tus cambios para poder enviar la solicitud.",

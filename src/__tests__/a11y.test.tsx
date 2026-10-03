@@ -51,11 +51,14 @@ describe('accessibility: application to join Somos R', () => {
   const application = (over: Record<string, unknown> = {}) => ({
     id: 'org1', type: 'association', status: 'draft', legal_name: 'Asociación Esperanza', tax_id: '9001',
     legal_representative: 'Laura Gómez', contact_email: 'a@b.co', contact_phone: '300', address: 'Calle 1', city: 'Cali',
-    applicant_name: 'Laura Gómez', applicant_email: 'laura@asociacion.org', consent_at: '2026-10-01T00:00:00Z',
-    submitted_at: null, submission_count: 0, submissions_left: 3, can_edit: true, can_submit: true, missing_fields: [], ...over,
+    applicant_name: 'Laura Gómez', applicant_email: 'laura@asociacion.org', applicant_id_type: 'CC', applicant_id_number: '1020',
+    applicant_phone: '300', consent_at: '2026-10-01T00:00:00Z', submitted_at: null, submission_count: 0, submissions_left: 3,
+    can_edit: true, can_submit: true, missing_fields: [], feedback: null, ...over,
   })
   const serve = (view: Record<string, unknown>) => {
-    apiClient.defaults.adapter = mockAdapter(() => ({ data: view }))
+    apiClient.defaults.adapter = mockAdapter((c) => ({
+      data: c.url === '/catalogs/document-types' ? [{ code: 'CC', label: 'Cédula de Ciudadanía' }] : view,
+    }))
   }
 
   it('start', async () => {
@@ -82,6 +85,16 @@ describe('accessibility: application to join Somos R', () => {
     serve(application({ city: null, can_submit: false, missing_fields: ['city'] }))
     renderAt('/solicitud?token=abc')
     await screen.findByLabelText(t.solicitud.form.fields.legal_name)
+    await expectNoA11yViolations(document.body, { fullPage: true })
+  })
+
+  it('form with the reviewer\'s corrections', async () => {
+    serve(application({
+      status: 'changes_requested', submission_count: 1, submissions_left: 2,
+      feedback: { summary: 'Falta el NIT correcto.', created_at: '2026-10-02T00:00:00Z', submission_number: 1 },
+    }))
+    renderAt('/solicitud?token=abc')
+    await screen.findByRole('heading', { name: t.solicitud.form.feedbackTitle })
     await expectNoA11yViolations(document.body, { fullPage: true })
   })
 

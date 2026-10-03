@@ -3,7 +3,8 @@ import type { ApplicationField, ApplicationView, UpdateApplicationPayload } from
 
 /** The order the form shows them in. */
 export const FIELD_ORDER: ApplicationField[] = [
-  'legal_name', 'tax_id', 'legal_representative', 'contact_email', 'contact_phone', 'city', 'address', 'applicant_name',
+  'legal_name', 'tax_id', 'legal_representative', 'contact_email', 'contact_phone', 'city', 'address',
+  'applicant_name', 'applicant_id_type', 'applicant_id_number', 'applicant_phone',
 ]
 
 // The same limits the backend enforces, so a too-long value is explained here instead of failing as a 422.
@@ -16,6 +17,9 @@ const MAX_LENGTH: Record<ApplicationField, number> = {
   city: 100,
   address: 300,
   applicant_name: 255,
+  applicant_id_type: 10,
+  applicant_id_number: 20,
+  applicant_phone: 20,
 }
 
 /** These two can never be emptied: the organization needs a name and the application needs an author. */

@@ -1,15 +1,16 @@
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import Box from '@mui/material/Box'
 import Link from '@mui/material/Link'
 import Typography from '@mui/material/Typography'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
-  Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, Input, Loader, Snackbar,
+  Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, Input, Loader, Select, Snackbar,
 } from '../../components/ui'
 import { getApiErrorMessage, getErrorCode } from '../../lib/apiError'
 import { interpolate, t } from '../../lib/i18n'
 import { applicationsQueries } from '../../queries/applications'
+import { catalogQueries } from '../../queries/catalogs'
 import { AFFECTED } from '../../queries/invalidation'
 import {
   applicationsService, type ApplicationField, type ApplicationStatus, type ApplicationView,
@@ -33,6 +34,14 @@ const FULL_ROW: ApplicationField[] = ['legal_name', 'address']
 
 type Errors = Partial<Record<ApplicationField, string>>
 
+// Shown while the catalog loads (or if it fails): the same kinds the rest of the app offers.
+const FALLBACK_DOCUMENT_TYPES = [
+  { code: 'CC', label: t.recicladores.register.documentTypes.CC },
+  { code: 'CE', label: t.recicladores.register.documentTypes.CE },
+  { code: 'TI', label: t.recicladores.register.documentTypes.TI },
+  { code: 'PA', label: t.recicladores.register.documentTypes.PA },
+]
+
 function InvalidLink() {
   return (
     <AuthShell>
@@ -53,6 +62,8 @@ function Editor({ token, view }: { token: string; view: ApplicationView }) {
   const changes = changedFields(view, values)
   const dirty = Object.keys(changes).length > 0
   const labels = t.solicitud.form.fields
+  const { data: documentTypes = FALLBACK_DOCUMENT_TYPES } = useQuery(catalogQueries.documentTypes())
+  const documentOptions = documentTypes.map((d) => ({ value: d.code, label: d.label }))
 
   // A failure (the application was locked or changed meanwhile) is reported by the global handler and the
   // request is read again.
@@ -82,6 +93,11 @@ function Editor({ token, view }: { token: string; view: ApplicationView }) {
     save.mutate()
   }
 
+  const change = (field: ApplicationField, value: string) => {
+    setValues((p) => ({ ...p, [field]: value }))
+    setErrors((p) => ({ ...p, [field]: undefined }))
+  }
+
   const isMissing = (field: ApplicationField) => view.missing_fields.includes(field) && values[field].trim() === ''
   const missingLabels = view.missing_fields.map((f) => labels[f as ApplicationField] ?? f)
   const busy = save.isPending || submit.isPending
@@ -90,27 +106,54 @@ function Editor({ token, view }: { token: string; view: ApplicationView }) {
     <AuthShell wide>
       <AuthCard title={t.solicitud.form.title} subtitle={t.solicitud.form.subtitle}>
         <Alert severity={STATUS_SEVERITY[view.status] ?? 'info'}>{t.solicitud.status[view.status] ?? view.status}</Alert>
+        {view.feedback && view.status === 'changes_requested' && (
+          <Alert severity="warning">
+            <Typography variant="subtitle2" component="h2">{t.solicitud.form.feedbackTitle}</Typography>
+            {/* The reviewer's own words, shown as text (React escapes it) and keeping their line breaks. */}
+            <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>{view.feedback.summary}</Typography>
+          </Alert>
+        )}
         <Typography variant="body2" color="text.secondary">
           {interpolate(t.solicitud.form.applicantEmail, { email: view.applicant_email })}
         </Typography>
 
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
-          {FIELD_ORDER.map((field) => (
-            <Box key={field} sx={{ gridColumn: FULL_ROW.includes(field) ? { sm: '1 / -1' } : undefined }}>
-              <Input
-                label={labels[field]}
-                type={field === 'contact_email' ? 'email' : field === 'contact_phone' ? 'tel' : 'text'}
-                value={values[field]}
-                onChange={(e) => {
-                  setValues((p) => ({ ...p, [field]: e.target.value }))
-                  setErrors((p) => ({ ...p, [field]: undefined }))
-                }}
-                disabled={!view.can_edit || busy}
-                error={!!errors[field]}
-                helperText={errors[field] ?? (isMissing(field) ? t.solicitud.form.missingHint : undefined)}
-              />
-            </Box>
-          ))}
+          {FIELD_ORDER.map((field) => {
+            const hint = errors[field] ?? (isMissing(field) ? t.solicitud.form.missingHint : undefined)
+            const disabled = !view.can_edit || busy
+            return (
+              <Fragment key={field}>
+                {field === 'applicant_name' && (
+                  <Typography variant="body2" color="text.secondary" sx={{ gridColumn: { sm: '1 / -1' } }}>
+                    {t.solicitud.form.applicantAdmin}
+                  </Typography>
+                )}
+                <Box sx={{ gridColumn: FULL_ROW.includes(field) ? { sm: '1 / -1' } : undefined }}>
+                  {field === 'applicant_id_type' ? (
+                    <Select
+                      label={labels[field]}
+                      value={values[field]}
+                      onChange={(e) => change(field, e.target.value)}
+                      options={documentOptions}
+                      disabled={disabled}
+                      error={!!errors[field]}
+                      helperText={hint}
+                    />
+                  ) : (
+                    <Input
+                      label={labels[field]}
+                      type={field === 'contact_email' ? 'email' : field === 'contact_phone' || field === 'applicant_phone' ? 'tel' : 'text'}
+                      value={values[field]}
+                      onChange={(e) => change(field, e.target.value)}
+                      disabled={disabled}
+                      error={!!errors[field]}
+                      helperText={hint}
+                    />
+                  )}
+                </Box>
+              </Fragment>
+            )
+          })}
         </Box>
 
         {view.can_edit && missingLabels.length > 0 && (
