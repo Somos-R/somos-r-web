@@ -7,6 +7,8 @@ import { clearSession } from '../lib/session'
 import { t } from '../lib/i18n'
 import { expectNoA11yViolations } from '../test/axe'
 import { renderAt, serveApi } from '../test/fakeApi'
+import { apiClient } from '../lib/apiClient'
+import { mockAdapter } from '../test/helpers'
 
 // Accessibility of every screen and overlay, checked with axe-core on the rendered DOM. The API is a
 // small fake with one row of each kind (pending / validated / rejected...) so every control shows up.
@@ -42,6 +44,73 @@ describe('accessibility: public screens', () => {
     renderAt('/reset-password')
     await screen.findByText(t.account.invalidLink.title)
     await expectNoA11yViolations(document.body, { fullPage: true })
+  })
+})
+
+describe('accessibility: application to join Somos R', () => {
+  const application = (over: Record<string, unknown> = {}) => ({
+    id: 'org1', type: 'association', status: 'draft', legal_name: 'Asociación Esperanza', tax_id: '9001',
+    legal_representative: 'Laura Gómez', contact_email: 'a@b.co', contact_phone: '300', address: 'Calle 1', city: 'Cali',
+    applicant_name: 'Laura Gómez', applicant_email: 'laura@asociacion.org', applicant_id_type: 'CC', applicant_id_number: '1020',
+    applicant_phone: '300', consent_at: '2026-10-01T00:00:00Z', submitted_at: null, submission_count: 0, submissions_left: 3,
+    can_edit: true, can_submit: true, missing_fields: [], feedback: null, ...over,
+  })
+  const serve = (view: Record<string, unknown>) => {
+    apiClient.defaults.adapter = mockAdapter((c) => ({
+      data: c.url === '/catalogs/document-types' ? [{ code: 'CC', label: 'Cédula de Ciudadanía' }] : view,
+    }))
+  }
+
+  it('start', async () => {
+    renderAt('/solicitud')
+    await screen.findByRole('button', { name: t.solicitud.start.submit })
+    await expectNoA11yViolations(document.body, { fullPage: true })
+  })
+
+  it('ask for a new link', async () => {
+    renderAt('/solicitud')
+    await click(await screen.findByRole('button', { name: t.solicitud.start.haveOne }))
+    await screen.findByRole('button', { name: t.solicitud.resend.submit })
+    await expectNoA11yViolations(document.body, { fullPage: true })
+  })
+
+  it('invalid link', async () => {
+    apiClient.defaults.adapter = mockAdapter(() => ({ status: 401, data: { detail: 'x', code: 'invalid_application_link' } }))
+    renderAt('/solicitud?token=wrong')
+    await screen.findByRole('heading', { name: t.solicitud.invalidLink.title })
+    await expectNoA11yViolations(document.body, { fullPage: true })
+  })
+
+  it('form with missing data', async () => {
+    serve(application({ city: null, can_submit: false, missing_fields: ['city'] }))
+    renderAt('/solicitud?token=abc')
+    await screen.findByLabelText(t.solicitud.form.fields.legal_name)
+    await expectNoA11yViolations(document.body, { fullPage: true })
+  })
+
+  it('form with the reviewer\'s corrections', async () => {
+    serve(application({
+      status: 'changes_requested', submission_count: 1, submissions_left: 2,
+      feedback: { summary: 'Falta el NIT correcto.', created_at: '2026-10-02T00:00:00Z', submission_number: 1 },
+    }))
+    renderAt('/solicitud?token=abc')
+    await screen.findByRole('heading', { name: t.solicitud.form.feedbackTitle })
+    await expectNoA11yViolations(document.body, { fullPage: true })
+  })
+
+  it('read-only form', async () => {
+    serve(application({ status: 'submitted', can_edit: false, can_submit: false, submission_count: 1, submissions_left: 2 }))
+    renderAt('/solicitud?token=abc')
+    await screen.findByText(t.solicitud.status.submitted)
+    await expectNoA11yViolations(document.body, { fullPage: true })
+  })
+
+  it('confirm sending', async () => {
+    serve(application())
+    renderAt('/solicitud?token=abc')
+    await click(await screen.findByRole('button', { name: t.solicitud.form.submit }))
+    await screen.findByRole('dialog')
+    await expectNoA11yViolations()
   })
 })
 

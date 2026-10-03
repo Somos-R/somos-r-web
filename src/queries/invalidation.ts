@@ -25,6 +25,8 @@ export const AFFECTED = {
   linkChanged: [queryKeys.links.all],
   /** Someone was invited, or their invitation was sent again. */
   staffChanged: [queryKeys.staff.all],
+  /** The applicant saved or sent their application (and a failure usually means it changed meanwhile). */
+  applicationChanged: [queryKeys.applications.all],
   /** A recycler was registered, verified or rejected. */
   recyclerChanged: [queryKeys.recyclers.all],
 } as const satisfies Record<string, readonly QueryKey[]>

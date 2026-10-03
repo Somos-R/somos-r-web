@@ -2,8 +2,11 @@ import Box from '@mui/material/Box'
 import Paper from '@mui/material/Paper'
 import Typography from '@mui/material/Typography'
 
-/** Full-screen background shared by every public auth screen (login, activation, reset...). */
-export function AuthShell({ children }: { children: React.ReactNode }) {
+/**
+ * Full-screen background shared by every public screen (login, activation, reset...).
+ * `wide` is for the screens that hold a long form, like the application to join Somos R.
+ */
+export function AuthShell({ children, wide = false }: { children: React.ReactNode; wide?: boolean }) {
   return (
     <Box
       component="main"
@@ -16,7 +19,7 @@ export function AuthShell({ children }: { children: React.ReactNode }) {
         p: 2,
       }}
     >
-      <Box sx={{ width: '100%', maxWidth: 400 }}>{children}</Box>
+      <Box sx={{ width: '100%', maxWidth: wide ? 720 : 400 }}>{children}</Box>
     </Box>
   )
 }

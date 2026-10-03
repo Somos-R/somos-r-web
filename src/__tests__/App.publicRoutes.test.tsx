@@ -31,6 +31,12 @@ describe('public routes without a session', () => {
     expect(screen.getByText(heading)).toBeInTheDocument()
   })
 
+  it('/solicitud (loaded on demand) is reachable and does not bounce to /login', async () => {
+    renderAt('/solicitud')
+    expect(await screen.findByRole('heading', { name: t.solicitud.title })).toBeInTheDocument()
+    expect(window.location.pathname).toBe('/solicitud')
+  })
+
   it('still sends private routes to /login', () => {
     renderAt('/recicladores')
     expect(window.location.pathname).toBe('/login')

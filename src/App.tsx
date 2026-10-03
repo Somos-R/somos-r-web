@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
@@ -11,6 +12,7 @@ import VerifyEmailPage from './features/auth/VerifyEmailPage'
 import { t } from './lib/i18n'
 import { RequirePermission } from './components/layout/RequirePermission'
 import { APP_ROUTES } from './routes'
+import { ApplicationPage } from './lazyPages'
 import { NotificationHost } from './components/layout/NotificationHost'
 
 function NotFound() {
@@ -68,6 +70,15 @@ export default function App() {
         <Route path="/activate" element={<SetPasswordPage mode="activate" />} />
         <Route path="/reset-password" element={<SetPasswordPage mode="reset" />} />
         <Route path="/verify-email" element={<VerifyEmailPage />} />
+        {/* Public too: an organization applies to join Somos R, and comes back to its application by an emailed link. */}
+        <Route
+          path="/solicitud"
+          element={
+            <Suspense fallback={<FullScreen><Loader /></FullScreen>}>
+              <ApplicationPage />
+            </Suspense>
+          }
+        />
 
         {isAuthenticated ? (
           <Route element={<DashboardLayout />}>
