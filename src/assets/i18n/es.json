@@ -550,6 +550,36 @@
       "loadError": "No pudimos cargar tu solicitud. Intenta de nuevo.",
       "retry": "Reintentar"
     },
+    "documents": {
+      "title": "Documentos",
+      "subtitle": "Sube los documentos que pide Somos R. Solo se aceptan PDF, PNG o JPG de hasta {{max}} MB.",
+      "required": "Obligatorio",
+      "optional": "Opcional",
+      "none": "Todavía no has subido este documento.",
+      "upload": "Subir",
+      "replace": "Reemplazar",
+      "remove": "Quitar",
+      "uploadFor": "Subir {{label}}",
+      "replaceFor": "Reemplazar {{label}}",
+      "removeFor": "Quitar {{label}}",
+      "uploaded": "Documento subido",
+      "removed": "Documento quitado",
+      "loadError": "No pudimos cargar la lista de documentos.",
+      "retry": "Reintentar",
+      "empty": "Por ahora Somos R no pide documentos para esta organización.",
+      "reviewerComment": "Comentario del revisor",
+      "status": {
+        "pending": "Pendiente de revisión",
+        "ok": "Aprobado",
+        "missing": "Falta",
+        "not_compliant": "No cumple"
+      },
+      "validation": {
+        "empty": "El archivo está vacío.",
+        "tooLarge": "El archivo supera {{max}} MB.",
+        "type": "Solo se aceptan archivos PDF, PNG o JPG."
+      }
+    },
     "status": {
       "draft": "Borrador: todavía no la has enviado.",
       "submitted": "Solicitud enviada. Está en espera de revisión.",
@@ -696,6 +726,11 @@
     }
   },
   "apiErrors": {
+    "document_type_not_found": "Ese documento no se le pide a esta organización.",
+    "document_not_found": "No hay un archivo subido para ese documento.",
+    "file_too_large": "El archivo es demasiado grande. El máximo es 5 MB.",
+    "unsupported_file_type": "Solo se aceptan archivos PDF, PNG o JPG.",
+    "empty_file": "El archivo está vacío.",
     "invalid_application_link": "El enlace de tu solicitud no es válido o venció. Pide uno nuevo con tu correo.",
     "organization_already_registered": "Ya existe una organización activa con ese NIT.",
     "application_locked": "La solicitud ya fue enviada: no se puede editar hasta que pidan correcciones.",

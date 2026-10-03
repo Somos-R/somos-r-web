@@ -17,6 +17,7 @@ import {
 } from '../../services/applications'
 import { AuthCard, AuthShell } from '../auth/AuthShell'
 import { changedFields, FIELD_ORDER, toValues, validateField, type FormValues } from './applicationFields'
+import ApplicationDocuments from './ApplicationDocuments'
 import RequestAccessLinkForm from './RequestAccessLinkForm'
 
 const STATUS_SEVERITY: Record<ApplicationStatus, 'info' | 'success' | 'warning' | 'error'> = {
@@ -99,14 +100,19 @@ function Editor({ token, view }: { token: string; view: ApplicationView }) {
   }
 
   const isMissing = (field: ApplicationField) => view.missing_fields.includes(field) && values[field].trim() === ''
-  const missingLabels = view.missing_fields.map((f) => labels[f as ApplicationField] ?? f)
+  // A missing required document comes as `documents:<code>`: it is named with the label the server gives it.
+  const { data: documentSlots } = useQuery(applicationsQueries.documents(token))
+  const documentLabels = new Map((documentSlots ?? []).map((s) => [s.document_type.code, s.document_type.label]))
+  const missingLabels = view.missing_fields.map((f) =>
+    f.startsWith('documents:') ? (documentLabels.get(f.slice('documents:'.length)) ?? f.slice('documents:'.length)) : (labels[f as ApplicationField] ?? f),
+  )
   const busy = save.isPending || submit.isPending
 
   return (
     <AuthShell wide>
       <AuthCard title={t.solicitud.form.title} subtitle={t.solicitud.form.subtitle}>
         <Alert severity={STATUS_SEVERITY[view.status] ?? 'info'}>{t.solicitud.status[view.status] ?? view.status}</Alert>
-        {view.feedback && view.status === 'changes_requested' && (
+        {view.feedback?.summary && view.status === 'changes_requested' && (
           <Alert severity="warning">
             <Typography variant="subtitle2" component="h2">{t.solicitud.form.feedbackTitle}</Typography>
             {/* The reviewer's own words, shown as text (React escapes it) and keeping their line breaks. */}
@@ -155,6 +161,8 @@ function Editor({ token, view }: { token: string; view: ApplicationView }) {
             )
           })}
         </Box>
+
+        <ApplicationDocuments token={token} canEdit={view.can_edit && !busy} />
 
         {view.can_edit && missingLabels.length > 0 && (
           <Alert severity="warning">{interpolate(t.solicitud.form.missingSummary, { fields: missingLabels.join(', ') })}</Alert>

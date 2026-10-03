@@ -124,7 +124,8 @@ An organization (Association or ECA) applies without an account (`features/appli
 - The server decides what can be done: `can_edit` enables the fields, `can_submit` the Send button, `missing_fields` marks what is empty. `PATCH` sends only what changed and an emptied optional field as `null`. Send is disabled while there are unsaved changes and asks for confirmation (it locks the application; first send plus two corrections).
 - A bad or expired link (401 `invalid_application_link`) shows an explanation and asks for a new one.
 - The consent text (`solicitud.consent.text`) is shown by the web and the backend stores its version (`APPLICATION_CONSENT_VERSION`): **if the text changes, tell the backend to bump the version**. The current wording is provisional and needs legal review.
-- Not yet: document upload and the review by Somos R (the backend will add them).
+- **Documents** (`ApplicationDocuments`): the list of documents Somos R asks for is a catalog it edits from the backoffice, so the web never fixes it: every slot (label, required or not) is drawn from `GET /applications/current/documents`. One file per document (`PUT /applications/current/documents/{code}`, multipart field `file`; uploading again replaces it and sends it back to `pending`; `DELETE` removes it); only PDF, PNG or JPG up to 5 MB, checked in the client first as a courtesy (the backend decides by the file's content). A missing required document comes in `missing_fields` as `documents:<code>` and is named with the label the server gives it; it blocks sending. Each document carries the reviewer's verdict (`status`, `review_comment`), shown when the application comes back with corrections. The backend does not let the applicant download or preview the file: only name, size and status are shown.
+- Not yet: nothing on the review side lives in this app: Somos R reviews from the backoffice.
 
 ### Identity QR in the weighing form
 

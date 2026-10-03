@@ -7,7 +7,7 @@ import { apiClient } from '../lib/apiClient'
 import { queryClient } from '../lib/queryClient'
 import { resetNotifier } from '../lib/notifier'
 import { clearSession } from '../lib/session'
-import { t } from '../lib/i18n'
+import { interpolate, t } from '../lib/i18n'
 import { mockAdapter } from '../test/helpers'
 
 // The public application to join Somos R. The fake backend below follows the contract: the emailed link's
@@ -31,6 +31,16 @@ let seen: Seen[]
 let app: Json
 let startFailure: { status: number; code: string } | null
 let patchFailure: { status: number; code: string } | null
+let uploadFailure: { status: number; code: string } | null
+
+interface Slot { code: string; label: string; required: boolean; document: Json | null }
+// The documents Somos R asks for: a catalog the server owns, so the page must draw whatever comes.
+let slots: Slot[]
+const DOCUMENT_SLOTS = (): Slot[] => [
+  { code: 'assoc_rut', label: 'RUT', required: true, document: null },
+  { code: 'assoc_legal_representative_id', label: 'Cédula del representante legal', required: true, document: null },
+  { code: 'assoc_chamber', label: 'Certificado de la cámara de comercio', required: false, document: null },
+]
 
 const base = (over: Json = {}): Json => ({
   id: 'org1', type: 'association', status: 'draft', legal_name: 'Asociación Esperanza', tax_id: null,
@@ -41,7 +51,10 @@ const base = (over: Json = {}): Json => ({
 
 /** What the backend adds: what is missing, whether it can be edited and whether it can be sent. */
 function view(): Json {
-  const missing = REQUIRED.filter((f) => !app[f])
+  const missing = [
+    ...REQUIRED.filter((f) => !app[f]),
+    ...slots.filter((s) => s.required && !s.document).map((s) => `documents:${s.code}`),
+  ]
   const canEdit = app.status === 'draft' || app.status === 'changes_requested'
   const left = Math.max(3 - (app.submission_count as number), 0)
   return { ...app, submissions_left: left, can_edit: canEdit, can_submit: canEdit && missing.length === 0 && left > 0, missing_fields: missing }
@@ -51,12 +64,15 @@ function serveApplications() {
   seen = []
   startFailure = null
   patchFailure = null
+  uploadFailure = null
+  slots = []
   app = base()
   apiClient.defaults.adapter = mockAdapter((c) => {
     const method = String(c.method).toUpperCase()
     const url = String(c.url)
     const headers = (c.headers ?? {}) as unknown as Json
-    const body = c.data ? (JSON.parse(String(c.data)) as Json) : undefined
+    // A file upload is multipart: the test reads the file, everything else is JSON.
+    const body = c.data instanceof FormData ? ({ file: c.data.get('file') } as Json) : c.data ? (JSON.parse(String(c.data)) as Json) : undefined
     seen.push({ method, url, headers, body })
 
     if (method === 'POST' && url === '/applications') {
@@ -68,6 +84,29 @@ function serveApplications() {
 
     if (headers['X-Application-Token'] !== TOKEN) return { status: 401, data: { detail: 'x', code: 'invalid_application_link' } }
     if (method === 'GET' && url === '/applications/current') return { data: view() }
+    if (method === 'GET' && url === '/applications/current/documents') {
+      return { data: slots.map((s) => ({ document_type: { code: s.code, label: s.label, is_required: s.required }, document: s.document })) }
+    }
+    const documentRoute = /^\/applications\/current\/documents\/([^/]+)$/.exec(url)
+    if (documentRoute) {
+      const slot = slots.find((s) => s.code === documentRoute[1])
+      if (!slot) return { status: 404, data: { detail: 'x', code: 'document_type_not_found' } }
+      if (!view().can_edit) return { status: 409, data: { detail: 'x', code: 'application_locked' } }
+      if (method === 'PUT') {
+        if (uploadFailure) return { status: uploadFailure.status, data: { detail: 'x', code: uploadFailure.code } }
+        const file = (body as { file: File }).file
+        slot.document = {
+          id: `doc-${slot.code}`, original_name: file.name, content_type: file.type, size_bytes: file.size,
+          uploaded_at: '2026-10-03T00:00:00Z', status: 'pending', review_comment: null,
+        }
+        return { data: slot.document }
+      }
+      if (method === 'DELETE') {
+        if (!slot.document) return { status: 404, data: { detail: 'x', code: 'document_not_found' } }
+        slot.document = null
+        return { status: 204, data: undefined }
+      }
+    }
     if (method === 'PATCH' && url === '/applications/current') {
       if (patchFailure) return { status: patchFailure.status, data: { detail: 'x', code: patchFailure.code } }
       if (view().can_edit === false) return { status: 409, data: { detail: 'x', code: 'application_locked' } }
@@ -322,6 +361,154 @@ describe('application to join Somos R: complete and send (with the emailed token
 
     expect(await screen.findByText(t.apiErrors.application_locked)).toBeInTheDocument()
     await waitFor(() => expect(sentRequests('GET', '/applications/current').length).toBeGreaterThan(1))
+  })
+})
+
+describe('application to join Somos R: documents', () => {
+  const copy = t.solicitud
+  const docs = copy.documents
+  const PDF = (name = 'rut.pdf') => new File(['%PDF-1.4 contenido'], name, { type: 'application/pdf' })
+
+  beforeEach(() => {
+    clearSession()
+    queryClient.clear()
+    resetNotifier()
+    serveApplications()
+    slots = DOCUMENT_SLOTS()
+  })
+
+  const open = async () => {
+    renderAt(`/solicitud?token=${TOKEN}`)
+    await screen.findByLabelText(copy.form.fields.legal_name)
+    await screen.findByText('RUT')
+  }
+  const uploads = () => sentRequests('PUT', '/applications/current/documents/assoc_rut')
+  // The real file input of a document (the visible control is the button next to it).
+  const fileInput = (code: string) => screen.getByTestId(`document-file-${code}`)
+
+  it('draws the list the server sends, with what is required and what is not', async () => {
+    await open()
+    expect(screen.getByRole('heading', { name: docs.title })).toBeInTheDocument()
+    expect(screen.getByText('Cédula del representante legal')).toBeInTheDocument()
+    expect(screen.getByText('Certificado de la cámara de comercio')).toBeInTheDocument()
+    expect(screen.getAllByText(docs.required)).toHaveLength(2)
+    expect(screen.getAllByText(docs.optional)).toHaveLength(1)
+    expect(screen.getAllByText(docs.none)).toHaveLength(3)
+  })
+
+  it('says nothing is asked when the server lists no documents', async () => {
+    slots = []
+    renderAt(`/solicitud?token=${TOKEN}`)
+    expect(await screen.findByText(docs.empty)).toBeInTheDocument()
+  })
+
+  it('names a missing required document by its label, and does not let the application be sent', async () => {
+    app = base({ ...APPLICANT_ID, tax_id: '9001', legal_representative: 'L', contact_email: 'a@b.co', contact_phone: '300', address: 'Calle 1', city: 'Cali' })
+    await open()
+    expect(screen.getByText(/Faltan datos para enviar.*RUT.*Cédula del representante legal/)).toBeInTheDocument()
+    expect(screen.queryByText(/documents:/)).not.toBeInTheDocument() // never the raw code
+    expect(screen.getByRole('button', { name: copy.form.submit })).toBeDisabled()
+  })
+
+  it('uploads a file for a document, shows it, and the application can be sent once everything is attached', async () => {
+    app = base({ ...APPLICANT_ID, tax_id: '9001', legal_representative: 'L', contact_email: 'a@b.co', contact_phone: '300', address: 'Calle 1', city: 'Cali' })
+    await open()
+    await userEvent.upload(fileInput('assoc_rut'), PDF())
+
+    expect(await screen.findByText(docs.uploaded)).toBeInTheDocument()
+    expect(uploads()).toHaveLength(1)
+    expect((uploads()[0].body as { file: File }).file.name).toBe('rut.pdf')
+    expect(await screen.findByText(/rut\.pdf/)).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByText(/Faltan datos para enviar/).textContent).not.toMatch(/RUT/))
+    expect(screen.getByRole('button', { name: copy.form.submit })).toBeDisabled() // the identity document is still missing
+
+    await userEvent.upload(fileInput('assoc_legal_representative_id'), PDF('cedula.pdf'))
+    await waitFor(() => expect(screen.getByRole('button', { name: copy.form.submit })).toBeEnabled())
+  })
+
+  it('refuses a file that is empty, too big or of another kind, before uploading anything', async () => {
+    await open()
+    const input = fileInput('assoc_rut')
+
+    await userEvent.upload(input, new File([], 'vacio.pdf', { type: 'application/pdf' }))
+    expect(await screen.findByText(docs.validation.empty)).toBeInTheDocument()
+
+    await userEvent.upload(input, new File([new ArrayBuffer(5 * 1024 * 1024 + 1)], 'grande.pdf', { type: 'application/pdf' }))
+    expect(await screen.findByText(docs.validation.tooLarge.replace('{{max}}', '5'))).toBeInTheDocument()
+
+    await userEvent.upload(input, new File(['GIF89a'], 'animacion.gif', { type: 'image/gif' }), { applyAccept: false })
+    expect(await screen.findByText(docs.validation.type)).toBeInTheDocument()
+
+    expect(uploads()).toHaveLength(0)
+  })
+
+  it('accepts a PNG and a JPG by their kind', async () => {
+    await open()
+    await userEvent.upload(fileInput('assoc_rut'), new File(['x'], 'rut.png', { type: 'image/png' }))
+    await screen.findByText(/rut\.png/)
+    await userEvent.upload(fileInput('assoc_rut'), new File(['x'], 'rut.jpg', { type: 'image/jpeg' }))
+    await screen.findByText(/rut\.jpg/)
+  })
+
+  it('replaces a file already uploaded, and removes it', async () => {
+    await open()
+    await userEvent.upload(fileInput('assoc_rut'), PDF('primero.pdf'))
+    await screen.findByText(/primero\.pdf/)
+
+    await userEvent.upload(fileInput('assoc_rut'), PDF('segundo.pdf'))
+    expect(await screen.findByText(/segundo\.pdf/)).toBeInTheDocument()
+    expect(screen.queryByText(/primero\.pdf/)).not.toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: interpolate(docs.removeFor, { label: 'RUT' }) }))
+    expect(await screen.findByText(docs.removed)).toBeInTheDocument()
+    expect(sentRequests('DELETE', '/applications/current/documents/assoc_rut')).toHaveLength(1)
+    await waitFor(() => expect(screen.getAllByText(docs.none)).toHaveLength(3))
+  })
+
+  it('explains the server refusal of a file in Spanish', async () => {
+    uploadFailure = { status: 415, code: 'unsupported_file_type' }
+    await open()
+    await userEvent.upload(fileInput('assoc_rut'), PDF())
+    expect(await screen.findByText(t.apiErrors.unsupported_file_type)).toBeInTheDocument()
+  })
+
+  it('shows the reviewer verdict and comment of each document when the application comes back with corrections', async () => {
+    app = base({ status: 'changes_requested', submission_count: 1 })
+    slots[0].document = {
+      id: 'd1', original_name: 'rut.pdf', content_type: 'application/pdf', size_bytes: 2048, uploaded_at: '2026-10-02T00:00:00Z',
+      status: 'not_compliant', review_comment: 'Está vencido.',
+    }
+    slots[1].document = {
+      id: 'd2', original_name: 'cedula.pdf', content_type: 'application/pdf', size_bytes: 1024, uploaded_at: '2026-10-02T00:00:00Z',
+      status: 'ok', review_comment: null,
+    }
+    await open()
+    expect(screen.getByText(docs.status.not_compliant)).toBeInTheDocument()
+    expect(screen.getByText(`${docs.reviewerComment}: Está vencido.`)).toBeInTheDocument()
+    expect(screen.getByText(docs.status.ok)).toBeInTheDocument()
+    expect(screen.getByText(/2 KB/)).toBeInTheDocument()
+    // Uploaded but not looked at yet carries no verdict.
+    expect(screen.queryByText(docs.status.pending)).not.toBeInTheDocument()
+  })
+
+  it('is read-only once the application is sent: the files are listed but nothing can be changed', async () => {
+    app = base({ status: 'submitted' })
+    slots[0].document = {
+      id: 'd1', original_name: 'rut.pdf', content_type: 'application/pdf', size_bytes: 2048, uploaded_at: '2026-10-02T00:00:00Z',
+      status: 'pending', review_comment: null,
+    }
+    await open()
+    expect(screen.getByText(/rut\.pdf/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: interpolate(docs.replaceFor, { label: 'RUT' }) })).not.toBeInTheDocument()
+    expect(screen.queryByTestId('document-file-assoc_rut')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: interpolate(docs.removeFor, { label: 'RUT' }) })).not.toBeInTheDocument()
+  })
+
+  it('does not draw an empty box when the reviewer left corrections with no text', async () => {
+    app = base({ status: 'changes_requested', feedback: { summary: null, created_at: '2026-10-02T00:00:00Z', submission_number: 1 } })
+    await open()
+    expect(screen.getByText(copy.status.changes_requested)).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: copy.form.feedbackTitle })).not.toBeInTheDocument()
   })
 })
 

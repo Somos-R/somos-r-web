@@ -22,7 +22,8 @@ const BACKEND_CODES = [
   'invalid_role', 'method_not_allowed', 'internal_error',
   'invalid_id_type', 'association_required', 'invalid_association',
   'invalid_application_link', 'organization_already_registered', 'application_locked', 'application_incomplete',
-  'too_many_submissions', 'no_organization', 'organization_not_active', 'invitation_not_pending',
+  'too_many_submissions', 'document_type_not_found', 'document_not_found', 'file_too_large', 'unsupported_file_type',
+  'empty_file', 'no_organization', 'organization_not_active', 'invitation_not_pending',
   'export_too_large', 'link_not_found', 'link_already_requested', 'link_already_active', 'link_not_pending', 'link_not_removable',
 ]
 

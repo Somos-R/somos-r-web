@@ -44,8 +44,8 @@ export interface ApplicationView {
 }
 
 export interface ApplicationFeedback {
-  /** Written by the reviewer: plain text, never HTML. */
-  summary: string
+  /** Written by the reviewer: plain text, never HTML. Can be empty when they only marked documents. */
+  summary: string | null
   created_at: string
   /** Which send it answers. */
   submission_number: number
@@ -64,6 +64,33 @@ export interface StartApplicationPayload {
 
 /** Only the fields that changed; `null` empties an optional field. */
 export type UpdateApplicationPayload = Partial<Record<ApplicationField, string | null>>
+
+/** The reviewer's verdict on a document; `pending` until they look at it (and again after a new upload). */
+export type DocumentStatus = 'pending' | 'ok' | 'missing' | 'not_compliant'
+
+/** A document Somos R asks the organization for. The list comes from the server: it is a catalog Somos R edits. */
+export interface DocumentType {
+  code: string
+  label: string
+  is_required: boolean
+}
+
+/** A file the applicant attached. The server never says where it is stored and does not let it be downloaded. */
+export interface UploadedDocument {
+  id: string
+  original_name: string
+  content_type: string
+  size_bytes: number
+  uploaded_at: string
+  status: DocumentStatus
+  review_comment: string | null
+}
+
+/** One document that is asked for, and what has been uploaded for it (or null). */
+export interface DocumentSlot {
+  document_type: DocumentType
+  document: UploadedDocument | null
+}
 
 interface ApplicationMessage {
   message: string
@@ -92,6 +119,24 @@ export const applicationsService = {
 
   update: (token: string, payload: UpdateApplicationPayload): Promise<ApplicationView> =>
     apiClient.patch('/applications/current', payload, asApplicant(token)).then((r) => r.data),
+
+  documents: (token: string, options?: RequestOptions): Promise<DocumentSlot[]> =>
+    apiClient.get('/applications/current/documents', asApplicant(token, options)).then((r) => r.data),
+
+  /** One file per type of document: uploading again replaces the previous one and sends it back to `pending`. */
+  uploadDocument: (token: string, code: string, file: File): Promise<UploadedDocument> => {
+    const body = new FormData()
+    body.append('file', file)
+    return apiClient
+      .put(`/applications/current/documents/${encodeURIComponent(code)}`, body, {
+        ...asApplicant(token),
+        headers: { ...asApplicant(token).headers, 'Content-Type': 'multipart/form-data' },
+      })
+      .then((r) => r.data)
+  },
+
+  deleteDocument: (token: string, code: string): Promise<void> =>
+    apiClient.delete(`/applications/current/documents/${encodeURIComponent(code)}`, asApplicant(token)).then(() => undefined),
 
   submit: (token: string): Promise<ApplicationView> =>
     apiClient.post('/applications/current/submit', undefined, asApplicant(token)).then((r) => r.data),
