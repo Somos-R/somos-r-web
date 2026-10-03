@@ -107,16 +107,32 @@ function Editor({ token, view }: { token: string; view: ApplicationView }) {
     f.startsWith('documents:') ? (documentLabels.get(f.slice('documents:'.length)) ?? f.slice('documents:'.length)) : (labels[f as ApplicationField] ?? f),
   )
   const busy = save.isPending || submit.isPending
+  // The documents the reviewer sent back, listed with the general reason (each also carries its own verdict below).
+  const returnedDocuments = view.feedback?.documents ?? []
 
   return (
     <AuthShell wide>
       <AuthCard title={t.solicitud.form.title} subtitle={t.solicitud.form.subtitle}>
         <Alert severity={STATUS_SEVERITY[view.status] ?? 'info'}>{t.solicitud.status[view.status] ?? view.status}</Alert>
-        {view.feedback?.summary && view.status === 'changes_requested' && (
+        {view.status === 'changes_requested' && (view.feedback?.summary || returnedDocuments.length > 0) && (
           <Alert severity="warning">
             <Typography variant="subtitle2" component="h2">{t.solicitud.form.feedbackTitle}</Typography>
             {/* The reviewer's own words, shown as text (React escapes it) and keeping their line breaks. */}
-            <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>{view.feedback.summary}</Typography>
+            {view.feedback?.summary && (
+              <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>{view.feedback.summary}</Typography>
+            )}
+            {returnedDocuments.length > 0 && (
+              <Box component="ul" sx={{ m: 0, mt: 0.5, pl: 2.5 }}>
+                {returnedDocuments.map((d) => (
+                  <li key={d.code}>
+                    <Typography variant="body2" component="span">
+                      <strong>{d.label}</strong>: {t.solicitud.documents.status[d.status] ?? d.status}
+                      {d.comment ? ` · ${d.comment}` : ''}
+                    </Typography>
+                  </li>
+                ))}
+              </Box>
+            )}
           </Alert>
         )}
         <Typography variant="body2" color="text.secondary">

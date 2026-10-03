@@ -106,7 +106,10 @@ describe('accessibility: application to join Somos R', () => {
   it('form with the reviewer\'s corrections', async () => {
     serve(application({
       status: 'changes_requested', submission_count: 1, submissions_left: 2,
-      feedback: { summary: 'Falta el NIT correcto.', created_at: '2026-10-02T00:00:00Z', submission_number: 1 },
+      feedback: {
+        summary: 'Falta el NIT correcto.', created_at: '2026-10-02T00:00:00Z', submission_number: 1,
+        documents: [{ code: 'assoc_rut', label: 'RUT', status: 'not_compliant', comment: 'Está vencido.' }],
+      },
     }))
     renderAt('/solicitud?token=abc')
     await screen.findByRole('heading', { name: t.solicitud.form.feedbackTitle })
