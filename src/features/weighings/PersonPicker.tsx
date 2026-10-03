@@ -1,12 +1,17 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
+import { QrCode } from 'lucide-react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Alert, Badge, Button, Input, Select } from '../../components/ui'
 import { catalogQueries } from '../../queries/catalogs'
 import { recyclersService, type RecyclerLookup } from '../../services/recyclers'
 import { getApiErrorMessage, getErrorCode } from '../../lib/apiError'
+import { parseIdentityQr } from '../../lib/identityQr'
 import { t } from '../../lib/i18n'
+
+// The camera reader (and its decoder) is only downloaded when an operator opens it.
+const QrScannerDialog = lazy(() => import('./QrScannerDialog'))
 
 /** Who delivers the material: a registered recycler (found by document) or a person who is not registered. */
 export type Person =
@@ -50,10 +55,12 @@ export function PersonPicker({ value, onChange, error }: Props) {
   const [sellerNameError, setSellerNameError] = useState('')
   const [searchError, setSearchError] = useState('')
   const [inactive, setInactive] = useState(false)
+  const [scanning, setScanning] = useState(false)
 
   const lookup = useMutation({
     meta: { silent: true },
-    mutationFn: () => recyclersService.lookup({ document: document.trim(), id_type: idType }),
+    mutationFn: (who: { document: string; idType: string }) =>
+      recyclersService.lookup({ document: who.document, id_type: who.idType }),
     onSuccess: (recycler) => {
       if (recycler.is_active) onChange({ kind: 'registered', recycler })
       // A deactivated account can't be weighed: say so instead of letting the form fail later.
@@ -84,7 +91,24 @@ export function PersonPicker({ value, onChange, error }: Props) {
     setNotFound(false)
     setInactive(false)
     setSearchError('')
-    lookup.mutate()
+    lookup.mutate({ document: document.trim(), idType })
+  }
+
+  // A scanned QR is the same as typing its document: it fills the form and looks the person up at once.
+  // Returns null to accept it, or why it was not valid (the scanner stays open and says so).
+  const handleQr = (text: string): string | null => {
+    const qr = parseIdentityQr(text)
+    if (!qr) return t.pesajes.drawer.person.qr.invalid
+    if (!documentTypes.some((d) => d.code === qr.idType)) return t.pesajes.drawer.person.qr.unknownType
+    setScanning(false)
+    setIdType(qr.idType)
+    setDocument(qr.idNumber)
+    setDocumentError('')
+    setNotFound(false)
+    setInactive(false)
+    setSearchError('')
+    lookup.mutate({ document: qr.idNumber, idType: qr.idType })
+    return null
   }
 
   const registerAsSeller = () => {
@@ -142,7 +166,12 @@ export function PersonPicker({ value, onChange, error }: Props) {
   // ── Nobody yet: look them up by document.
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-      <Typography variant="subtitle2" component="h3" fontWeight={600}>{t.pesajes.drawer.who}</Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1 }}>
+        <Typography variant="subtitle2" component="h3" fontWeight={600}>{t.pesajes.drawer.who}</Typography>
+        <Button variant="text" size="small" startIcon={<QrCode size={16} />} onClick={() => setScanning(true)} disabled={lookup.isPending}>
+          {t.pesajes.drawer.person.qr.scanButton}
+        </Button>
+      </Box>
       <Box component="form" onSubmit={search} noValidate sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
         <Select
           label={t.pesajes.drawer.person.documentType}
@@ -165,6 +194,12 @@ export function PersonPicker({ value, onChange, error }: Props) {
           {t.pesajes.drawer.person.searchButton}
         </Button>
       </Box>
+
+      {scanning && (
+        <Suspense fallback={null}>
+          <QrScannerDialog open onClose={() => setScanning(false)} onDetect={handleQr} />
+        </Suspense>
+      )}
 
       {searchError && <Alert severity="error">{searchError}</Alert>}
       {inactive && <Alert severity="error">{t.pesajes.drawer.person.inactive}</Alert>}

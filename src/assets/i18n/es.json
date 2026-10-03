@@ -269,6 +269,20 @@
       },
       "who": "Quién entrega",
       "person": {
+        "qr": {
+          "scanButton": "Escanear QR",
+          "title": "Escanear QR del reciclador",
+          "starting": "Abriendo la cámara…",
+          "hint": "Apunta la cámara al QR de identidad del reciclador.",
+          "cameraLabel": "Vista de la cámara",
+          "invalid": "Ese QR no es una identidad de reciclador de Somos R. Prueba con otro o busca por documento.",
+          "unknownType": "El tipo de documento de ese QR no está disponible en este sistema. Busca por documento.",
+          "unsupported": "Este navegador o esta conexión no permite usar la cámara. Busca por documento.",
+          "denied": "No hay permiso para usar la cámara. Permítela en el navegador o busca por documento.",
+          "noCamera": "No se encontró una cámara en este equipo. Busca por documento.",
+          "failed": "No se pudo abrir la cámara. Busca por documento.",
+          "close": "Cerrar"
+        },
         "documentType": "Tipo de documento",
         "documentNumber": "Número de documento",
         "documentLength": "El documento debe tener entre 3 y 20 caracteres",
