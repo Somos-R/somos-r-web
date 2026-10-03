@@ -43,12 +43,22 @@ export interface ApplicationView {
   feedback: ApplicationFeedback | null
 }
 
+/** A document the reviewer sent back, and why. */
+export interface FeedbackDocument {
+  code: string
+  label: string
+  status: 'missing' | 'not_compliant'
+  comment: string | null
+}
+
 export interface ApplicationFeedback {
   /** Written by the reviewer: plain text, never HTML. Can be empty when they only marked documents. */
   summary: string | null
   created_at: string
   /** Which send it answers. */
   submission_number: number
+  /** The documents sent back, each with its reason. */
+  documents: FeedbackDocument[]
 }
 
 export interface StartApplicationPayload {

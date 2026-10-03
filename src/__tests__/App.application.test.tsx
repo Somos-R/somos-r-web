@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { QueryClientProvider } from '@tanstack/react-query'
 import App from '../App'
@@ -303,7 +303,7 @@ describe('application to join Somos R: complete and send (with the emailed token
     app = base({
       ...APPLICANT_ID, status: 'changes_requested', tax_id: '9001', legal_representative: 'L', contact_email: 'a@b.co',
       contact_phone: '300', address: 'Calle 1', city: 'Cali', submission_count: 1,
-      feedback: { summary: 'Falta el NIT correcto.\nRevisa la dirección.', created_at: '2026-10-02T00:00:00Z', submission_number: 1 },
+      feedback: { summary: 'Falta el NIT correcto.\nRevisa la dirección.', created_at: '2026-10-02T00:00:00Z', submission_number: 1, documents: [] },
     })
     await open()
     expect(screen.getByText(copy.status.changes_requested)).toBeInTheDocument()
@@ -504,8 +504,28 @@ describe('application to join Somos R: documents', () => {
     expect(screen.queryByRole('button', { name: interpolate(docs.removeFor, { label: 'RUT' }) })).not.toBeInTheDocument()
   })
 
+  it('lists the documents the reviewer sent back, with the reason, even with no general text', async () => {
+    app = base({
+      status: 'changes_requested', submission_count: 1,
+      feedback: {
+        summary: null, created_at: '2026-10-02T00:00:00Z', submission_number: 1,
+        documents: [
+          { code: 'assoc_rut', label: 'RUT', status: 'not_compliant', comment: 'Está vencido.' },
+          { code: 'assoc_legal_representative_id', label: 'Cédula del representante legal', status: 'missing', comment: null },
+        ],
+      },
+    })
+    slots = DOCUMENT_SLOTS()
+    await open()
+    const box = screen.getByRole('heading', { name: copy.form.feedbackTitle }).closest('[role="alert"]') as HTMLElement
+    expect(within(box).getByText(/RUT/)).toBeInTheDocument()
+    expect(within(box).getByText(/No cumple · Está vencido\./)).toBeInTheDocument()
+    expect(within(box).getByText(/Cédula del representante legal/)).toBeInTheDocument()
+    expect(within(box).getByText(new RegExp(`: ${docs.status.missing}$`))).toBeInTheDocument()
+  })
+
   it('does not draw an empty box when the reviewer left corrections with no text', async () => {
-    app = base({ status: 'changes_requested', feedback: { summary: null, created_at: '2026-10-02T00:00:00Z', submission_number: 1 } })
+    app = base({ status: 'changes_requested', feedback: { summary: null, created_at: '2026-10-02T00:00:00Z', submission_number: 1, documents: [] } })
     await open()
     expect(screen.getByText(copy.status.changes_requested)).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: copy.form.feedbackTitle })).not.toBeInTheDocument()
