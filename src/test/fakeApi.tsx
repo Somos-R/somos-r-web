@@ -96,6 +96,7 @@ export function serveApi(role: 'eca_admin' | 'association_admin' = 'eca_admin') 
     if (url === '/users') return { data: { total: RECYCLERS.length, limit: 25, offset: 0, items: RECYCLERS } }
     if (url === '/catalogs/document-types') return { data: [{ code: 'CC', label: 'Cédula de Ciudadanía' }, { code: 'CE', label: 'Cédula de Extranjería' }] }
     if (url === '/catalogs/roles') return { data: ROLES }
+    if (url === '/catalogs/associations') return { data: [{ id: 'a1', legal_name: 'Asociación Uno', city: 'Bogotá' }, { id: 'a2', legal_name: 'Asociación Dos', city: null }] }
     if (url.startsWith('/catalogs')) return { data: [] }
     return { data: { total: 0, items: [] } }
   })

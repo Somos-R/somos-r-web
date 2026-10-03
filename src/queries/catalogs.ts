@@ -28,6 +28,13 @@ export const catalogQueries = {
       staleTime: STALE_TIME.catalog,
     }),
 
+  associations: () =>
+    queryOptions({
+      queryKey: queryKeys.catalogs.associations,
+      queryFn: ({ signal }) => catalogsService.associations({ signal }),
+      staleTime: STALE_TIME.catalog,
+    }),
+
   documentTypes: () =>
     queryOptions({
       queryKey: queryKeys.catalogs.documentTypes,

@@ -179,6 +179,7 @@
         "password": "Contraseña",
         "documentType": "Tipo de documento",
         "documentNumber": "Número de documento",
+        "association": "Asociación a la que pertenece",
         "phone": "Teléfono (opcional)"
       },
       "validation": {
@@ -584,6 +585,8 @@
     }
   },
   "apiErrors": {
+    "association_required": "Elige la asociación a la que pertenece el reciclador.",
+    "invalid_association": "Esa asociación no existe o no está activa. Elige otra.",
     "export_too_large": "El reporte tiene demasiados pesajes. Acota el periodo o los filtros e inténtalo de nuevo.",
     "invalid_credentials": "Credenciales inválidas. Si fallaste varias veces, tu cuenta puede estar bloqueada unos minutos",
     "invalid_token": "Tu sesión no es válida. Inicia sesión de nuevo.",

@@ -86,6 +86,7 @@ export const queryKeys = {
     warehouses: ['catalogs', 'warehouses'] as const,
     documentTypes: ['catalogs', 'document-types'] as const,
     roles: ['catalogs', 'roles'] as const,
+    associations: ['catalogs', 'associations'] as const,
   },
 
   weighings: {

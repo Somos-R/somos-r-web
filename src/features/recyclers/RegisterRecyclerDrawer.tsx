@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { FormDrawer, Snackbar, type FormFieldDef } from '../../components/ui'
+import { useAuth } from '../../hooks/useAuth'
 import { catalogQueries } from '../../queries/catalogs'
 import { AFFECTED, invalidateAffected } from '../../queries/invalidation'
 import { recyclersService } from '../../services/recyclers'
@@ -32,7 +33,13 @@ export default function RegisterRecyclerDrawer({ open, onClose }: Props) {
     severity: 'success',
   })
 
+  const { user } = useAuth()
+  // Not a permission: it mirrors the backend rule. Association staff register into their own association;
+  // anyone else chooses which one verifies the recycler.
+  const mustChooseAssociation = user?.user_type !== 'association'
+
   const { data: documentTypes = FALLBACK_DOC_TYPES } = useQuery(catalogQueries.documentTypes())
+  const { data: associations = [] } = useQuery({ ...catalogQueries.associations(), enabled: open && mustChooseAssociation })
 
   const mutation = useMutation({
     meta: { silent: true },
@@ -44,6 +51,7 @@ export default function RegisterRecyclerDrawer({ open, onClose }: Props) {
         id_type: values.id_type,
         id_number: values.id_number.trim(),
         phone: values.phone?.trim() || null,
+        ...(mustChooseAssociation ? { association_id: values.association_id } : {}),
       }),
     onSuccess: () => {
       invalidateAffected(queryClient, AFFECTED.recyclerChanged)
@@ -82,6 +90,15 @@ export default function RegisterRecyclerDrawer({ open, onClose }: Props) {
           ? t.recicladores.register.validation.documentNumberLength
           : undefined,
     },
+    ...(mustChooseAssociation
+      ? [{
+          name: 'association_id',
+          label: t.recicladores.register.fields.association,
+          type: 'select' as const,
+          required: true,
+          options: associations.map((a) => ({ value: a.id, label: a.city ? `${a.legal_name} · ${a.city}` : a.legal_name })),
+        }]
+      : []),
     {
       name: 'phone',
       label: t.recicladores.register.fields.phone,
