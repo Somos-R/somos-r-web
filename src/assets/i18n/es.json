@@ -303,6 +303,7 @@
   },
   "inventario": {
     "title": "Inventario de Reciclaje",
+    "exportFile": "inventario",
     "subtitle": "Control de stock por material y punto de acopio",
     "countSingular": "ítem",
     "countPlural": "ítems",

@@ -115,6 +115,28 @@ describe('API contract (English names and values)', () => {
   })
 
   describe('inventory', () => {
+    it('orders with ?sort=&order=', async () => {
+      await inventoryService.list({ sort: 'total_value', order: 'desc', status: 'low_stock' })
+      expect(seen[0].params).toMatchObject({ sort: 'total_value', order: 'desc', status: 'low_stock' })
+    })
+
+    it('downloads the CSV from /inventory/export.csv with the same filters and no page', async () => {
+      await inventoryService.exportCsv({ warehouse_id: 'b1', sort: 'stock_kg', order: 'asc' })
+      expect(seen[0].url).toBe('/inventory/export.csv')
+      expect(seen[0].responseType).toBe('blob')
+      expect(seen[0].params).toEqual({ warehouse_id: 'b1', sort: 'stock_kg', order: 'asc' })
+    })
+
+    it('reads the error code of a failed download, which arrives as a Blob', async () => {
+      apiClient.defaults.adapter = mockAdapter(() => ({
+        status: 400,
+        data: new Blob([JSON.stringify({ detail: 'Demasiados', code: 'export_too_large' })]),
+      }))
+      await expect(inventoryService.exportCsv()).rejects.toMatchObject({
+        response: { data: { code: 'export_too_large' } },
+      })
+    })
+
     it('updates the reference price as price_per_kg', async () => {
       await inventoryService.update('i1', { stock_min_kg: 50, price_per_kg: 700 })
       const body = bodyOf(seen[0])

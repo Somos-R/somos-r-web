@@ -1,5 +1,6 @@
 import { keepPreviousData, queryOptions } from '@tanstack/react-query'
-import { inventoryService, type InventoryStatus } from '../services/inventory'
+import type { SortOrder } from '../lib/sorting'
+import { inventoryService, type InventorySortColumn, type InventoryStatus } from '../services/inventory'
 import { queryKeys, type InventoryListKey } from './keys'
 
 export const inventoryQueries = {
@@ -12,6 +13,8 @@ export const inventoryQueries = {
             status: (filters.status || undefined) as InventoryStatus | undefined,
             material_code: filters.materialCode || undefined,
             warehouse_id: filters.warehouseId || undefined,
+            sort: filters.sort as InventorySortColumn,
+            order: filters.order as SortOrder,
             limit: filters.rowsPerPage,
             offset: filters.page * filters.rowsPerPage,
           },

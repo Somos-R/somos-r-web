@@ -7,13 +7,14 @@ import Tooltip from '@mui/material/Tooltip'
 import { Pencil } from 'lucide-react'
 import {
   Badge,
-  Table, TableHead, TableBody, TableRow, TableCell, TableContainer, TablePagination,
+  Table, TableHead, TableBody, TableRow, TableCell, SortableTableCell, TableContainer, TablePagination,
   Loader,
 } from '../../components/ui'
 import { t } from '../../lib/i18n'
 import { visuallyHidden } from '../../lib/a11y'
 import { getMaterialColor, getStatusStyle, type CatalogRef } from '../../lib/catalog'
-import type { InventoryStatus } from '../../services/inventory'
+import type { SortState } from '../../lib/sorting'
+import type { InventorySortColumn, InventoryStatus } from '../../services/inventory'
 import { PAGE_SIZE_OPTIONS, type PaginationProps } from '../../lib/pagination'
 
 export interface InventoryItem {
@@ -26,6 +27,9 @@ export interface InventoryItem {
   updated_at: string
   status: InventoryStatus
 }
+
+/** The column the server orders by and which way. */
+export type InventorySort = SortState<InventorySortColumn>
 
 interface InventoryTableProps {
   /** The rows of the current page, already filtered by the server. */
@@ -41,6 +45,8 @@ interface InventoryTableProps {
   warehouseId: string
   onWarehouseChange: (id: string) => void
   warehouseOptions: { id: string; name: string }[]
+  sort: InventorySort
+  onSortChange: (column: InventorySortColumn) => void
   pagination: PaginationProps
   onEdit?: (item: InventoryItem) => void
 }
@@ -79,6 +85,8 @@ export default function InventoryTable({
   warehouseId,
   onWarehouseChange,
   warehouseOptions,
+  sort,
+  onSortChange,
   pagination,
   onEdit,
 }: InventoryTableProps) {
@@ -89,6 +97,11 @@ export default function InventoryTable({
   const total = pagination.total
   const countLabel = `${total.toLocaleString('es-CO')} ${total !== 1 ? t.inventario.countPlural : t.inventario.countSingular}`
   const hasFilters = status !== '' || materialCode !== '' || warehouseId !== ''
+  const sortHeader = (column: InventorySortColumn, label: string, align?: 'right') => (
+    <SortableTableCell align={align} active={sort.column === column} direction={sort.direction} onSort={() => onSortChange(column)}>
+      {label}
+    </SortableTableCell>
+  )
 
   return (
     <TableContainer sx={{ opacity: isFetching ? 0.6 : 1, transition: 'opacity 120ms' }}>
@@ -141,14 +154,14 @@ export default function InventoryTable({
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>{t.inventario.table.material}</TableCell>
-                <TableCell>{t.inventario.table.warehouse}</TableCell>
-                <TableCell>{t.inventario.table.currentStock}</TableCell>
+                {sortHeader('material', t.inventario.table.material)}
+                {sortHeader('warehouse', t.inventario.table.warehouse)}
+                {sortHeader('stock_kg', t.inventario.table.currentStock)}
                 <TableCell align="right">{t.inventario.table.minimum}</TableCell>
-                <TableCell align="right">{t.inventario.table.pricePerKg}</TableCell>
-                <TableCell align="right">{t.inventario.table.totalValue}</TableCell>
-                <TableCell>{t.inventario.table.updated}</TableCell>
-                <TableCell>{t.inventario.table.status}</TableCell>
+                {sortHeader('price_per_kg', t.inventario.table.pricePerKg, 'right')}
+                {sortHeader('total_value', t.inventario.table.totalValue, 'right')}
+                {sortHeader('updated_at', t.inventario.table.updated)}
+                {sortHeader('status', t.inventario.table.status)}
                 {onEdit && (
                   <TableCell>
                     <Box component="span" sx={visuallyHidden}>{t.common.actions}</Box>
