@@ -178,6 +178,12 @@ describe('accessibility: screens (ECA admin)', () => {
     await expectNoA11yViolations(document.body, { fullPage: true })
   })
 
+  it('reports', async () => {
+    renderAt('/reportes')
+    await screen.findByText(t.reportes.weighings.title)
+    await expectNoA11yViolations(document.body, { fullPage: true })
+  })
+
   it('settings', async () => {
     renderAt('/configuracion')
     await screen.findByRole('button', { name: t.account.security.changePassword.button })

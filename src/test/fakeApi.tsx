@@ -82,7 +82,7 @@ export function serveApi(role: 'eca_admin' | 'association_admin' = 'eca_admin') 
         : { status: 404, data: { detail: 'x', code: 'recycler_not_found' } }
     }
     if (url === '/weighings') return { data: { total: WEIGHINGS.length, items: WEIGHINGS } }
-    if (url === '/weighings/stats') return { data: { total_weighings_month: 3, total_kg_month: 30, pending_count: 1, by_material: [] } }
+    if (url === '/weighings/stats') return { data: { total_weighings_month: 3, total_kg_month: 30, pending_count: 1, by_material: [{ material: 'plastic', kg: 20 }, { material: 'paper', kg: 10 }] } }
     if (url === '/inventory') return { data: { total: INVENTORY.length, items: INVENTORY } }
     if (url === '/inventory/stats') return { data: { total_stock_kg: 100, total_value: 30000, available_count: 1, low_stock_count: 0, out_of_stock_count: 1 } }
     if (url === '/inventory/materials') return { data: MATERIALS }
