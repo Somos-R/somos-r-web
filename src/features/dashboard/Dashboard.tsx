@@ -8,7 +8,7 @@ import Divider from '@mui/material/Divider'
 import Skeleton from '@mui/material/Skeleton'
 import { Users, Scale, ClipboardList, Package } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
-import { Card, CardContent, CardHeader, Badge, Button } from '../../components/ui'
+import { Card, CardContent, CardHeader, Badge, Button, KpiValue } from '../../components/ui'
 import { useAuth } from '../../hooks/useAuth'
 import { t, interpolate } from '../../lib/i18n'
 import { weighingsQueries } from '../../queries/weighings'
@@ -80,8 +80,7 @@ export default function Dashboard() {
                   {m.icon}
                   <Badge label={m.trend} color={m.up ? 'success' : 'error'} size="small" />
                 </Box>
-                <Typography variant="h4" component="p" fontWeight={700}>{m.value}</Typography>
-                <Typography variant="body2" color="text.secondary" mt={0.5}>{m.label}</Typography>
+                <KpiValue value={m.value} label={m.label} />
               </CardContent>
             </Card>
           </Grid>

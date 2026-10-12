@@ -17,6 +17,8 @@ export {
 } from './Table'
 export { Badge } from './Badge'
 export { Card, CardContent, CardHeader } from './Card'
+export { KpiValue } from './KpiValue'
+export type { KpiValueProps } from './KpiValue'
 export { Alert } from './Alert'
 export { Snackbar } from './Snackbar'
 export { Loader } from './Loader'
