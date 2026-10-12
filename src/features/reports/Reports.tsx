@@ -3,7 +3,7 @@ import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import {
-  Badge, Button, Card, CardContent, CardHeader, Loader,
+  Badge, Button, Card, CardContent, CardHeader, KpiValue, Loader,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
 } from '../../components/ui'
 import { useRoles } from '../../hooks/useRoles'
@@ -21,8 +21,7 @@ import { t } from '../../lib/i18n'
 function Metric({ value, label }: { value: string; label: string }) {
   return (
     <Grid item xs={6} sm={3}>
-      <Typography variant="h5" component="p" fontWeight={700}>{value}</Typography>
-      <Typography variant="body2" color="text.secondary">{label}</Typography>
+      <KpiValue value={value} label={label} size="small" />
     </Grid>
   )
 }
