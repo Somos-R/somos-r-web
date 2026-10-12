@@ -444,7 +444,34 @@
   "reportes": {
     "title": "Reportes",
     "subtitle": "Estadísticas y exportación de datos",
-    "placeholder": "Reportes y exportación — disponible cuando se conecte el backend"
+    "exportFile": {
+      "weighings": "pesajes",
+      "inventory": "inventario",
+      "transactions": "transacciones"
+    },
+    "weighings": {
+      "title": "Pesajes del mes",
+      "count": "Pesajes este mes",
+      "kg": "Kilos recolectados",
+      "emptyMaterials": "Aún no hay pesajes este mes.",
+      "table": {
+        "material": "Material",
+        "kg": "Kilos"
+      }
+    },
+    "inventory": {
+      "title": "Resumen de inventario",
+      "stock": "Stock total",
+      "value": "Valor del inventario",
+      "lowStock": "Ítems con stock bajo"
+    },
+    "transactions": {
+      "title": "Transacciones del mes",
+      "purchases": "Compras este mes",
+      "sales": "Ventas este mes",
+      "purchasesValue": "Valor comprado",
+      "salesValue": "Valor vendido"
+    }
   },
   "configuracion": {
     "title": "Configuración",
